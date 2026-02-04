@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Planifiez vos repas de la semaine avec des rappels quotidiens">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Atable!">
+    <title>Atable!</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- En-tête de l'application -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🍽️ Atable!</h1>
+                <p class="subtitle">Planifiez vos repas du lundi au dimanche</p>
+            </div>
+            <button id="settings-btn" class="settings-btn" onclick="openSettings()" aria-label="Paramètres">
+                ⚙️
+            </button>
+        </header>
+
+        <!-- Modal de paramètres -->
+        <div id="settings-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>⚙️ Paramètres des Notifications</h2>
+                    <button class="close-btn" onclick="closeSettings()">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <!-- Activation des notifications -->
+                    <div class="setting-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="enable-notifications" onchange="toggleNotifications()">
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-text">Activer les notifications quotidiennes</span>
+                        </label>
+                        <p class="setting-description">
+                            Recevez un rappel quotidien avec vos repas du jour
+                        </p>
+                    </div>
+
+                    <!-- Configuration de l'heure -->
+                    <div class="setting-group" id="time-setting">
+                        <label for="notification-time">
+                            <strong>🕐 Heure de la notification</strong>
+                        </label>
+                        <input 
+                            type="time" 
+                            id="notification-time" 
+                            class="time-input"
+                            onchange="updateNotificationTime()"
+                        >
+                        <p class="setting-description">
+                            Choisissez l'heure à laquelle vous souhaitez recevoir votre rappel quotidien
+                        </p>
+                    </div>
+
+                    <!-- Statut de la permission -->
+                    <div class="setting-group">
+                        <div id="permission-status" class="permission-status">
+                            <span id="permission-text"></span>
+                        </div>
+                    </div>
+
+                    <!-- Bouton de test -->
+                    <div class="setting-group">
+                        <button class="test-btn" onclick="testNotification()">
+                            🔔 Tester la notification
+                        </button>
+                        <p class="setting-description">
+                            Envoie une notification immédiate pour tester le système
+                        </p>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn-primary" onclick="closeSettings()">
+                        Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message de statut -->
+        <div id="status-message" class="status-message"></div>
+
+        <!-- Conteneur des jours de la semaine -->
+        <main id="days-container" class="days-container">
+            <!-- Les cartes des jours seront générées dynamiquement par JavaScript -->
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>💾 Sauvegarde automatique activée</p>
+        </footer>
+    </div>
+
+    <script src="notifications.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

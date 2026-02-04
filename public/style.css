@@ -1,0 +1,654 @@
+/* ========================================
+   Variables CSS pour une gestion facile des couleurs
+   ======================================== */
+:root {
+    --primary-color: #069494;
+    --primary-light: #6366f1;
+    --primary-dark: #4338ca;
+    --background: #f8fafc;
+    --card-bg: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --success: #10b981;
+    --error: #ef4444;
+    --border-radius: 12px;
+    --transition: all 0.3s ease;
+}
+
+/* ========================================
+   Reset et styles de base
+   ======================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--background);
+    color: var(--text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================
+   Conteneur principal
+   ======================================== */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ========================================
+   En-tête
+   ======================================== */
+.header {
+    text-align: center;
+    padding: 24px 0;
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.header-content {
+    display: inline-block;
+}
+
+.header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.settings-btn {
+    position: absolute;
+    top: 24px;
+    right: 0;
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-btn:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: rotate(90deg);
+}
+
+.settings-btn:active {
+    transform: rotate(90deg) scale(0.95);
+}
+
+/* ========================================
+   Message de statut
+   ======================================== */
+.status-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: var(--transition);
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.status-message.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.status-message.success {
+    background-color: var(--success);
+    color: white;
+}
+
+.status-message.error {
+    background-color: var(--error);
+    color: white;
+}
+
+/* ========================================
+   Conteneur des jours
+   ======================================== */
+.days-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+}
+
+/* ========================================
+   Carte de jour
+   ======================================== */
+.day-card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.day-card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+/* En-tête de la carte (jour de la semaine) */
+.day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
+    cursor: pointer;
+    user-select: none;
+}
+
+.day-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.day-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.today-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
+}
+
+/* Style spécial pour le jour actuel */
+.day-card.today {
+    box-shadow: 0 0 0 3px var(--primary-light), var(--shadow-lg);
+}
+
+.day-card.today .day-header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+}
+
+.toggle-icon {
+    font-size: 1.25rem;
+    transition: transform 0.3s ease;
+}
+
+.day-card.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+/* Contenu de la carte */
+.day-content {
+    padding: 20px;
+    display: grid;
+    gap: 20px;
+    max-height: 1000px;
+    opacity: 1;
+    transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+}
+
+.day-card.collapsed .day-content {
+    max-height: 0;
+    opacity: 0;
+    padding: 0 20px;
+    overflow: hidden;
+}
+
+/* ========================================
+   Sections Midi et Soir
+   ======================================== */
+.meal-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.meal-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.meal-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--text-primary);
+    resize: vertical;
+    transition: var(--transition);
+    background-color: var(--background);
+}
+
+.meal-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    transform: scale(1.01);
+}
+
+.meal-textarea::placeholder {
+    color: #cbd5e1;
+}
+
+/* ========================================
+   Footer
+   ======================================== */
+.footer {
+    text-align: center;
+    padding: 24px 0;
+    margin-top: 32px;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+/* ========================================
+   Responsive - Tablette (768px et plus)
+   ======================================== */
+@media (min-width: 768px) {
+    .container {
+        padding: 24px;
+    }
+
+    .header h1 {
+        font-size: 2.25rem;
+    }
+
+    .subtitle {
+        font-size: 1.05rem;
+    }
+
+    .day-content {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .days-container {
+        gap: 20px;
+    }
+
+    .meal-textarea {
+        min-height: 120px;
+    }
+}
+
+/* ========================================
+   Responsive - Desktop (1024px et plus)
+   ======================================== */
+@media (min-width: 1024px) {
+    .container {
+        padding: 32px;
+    }
+
+    .header {
+        padding: 32px 0;
+    }
+
+    .header h1 {
+        font-size: 2.5rem;
+    }
+
+    .days-container {
+        gap: 24px;
+    }
+
+    .day-content {
+        padding: 24px;
+    }
+
+    .meal-textarea {
+        min-height: 140px;
+    }
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.day-card {
+    animation: fadeIn 0.3s ease;
+}
+
+/* ========================================
+   États de chargement
+   ======================================== */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    color: var(--text-secondary);
+}
+
+/* ========================================
+   Accessibilité
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ========================================
+   Modal de paramètres
+   ======================================== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.modal-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.close-btn:hover {
+    background-color: var(--background);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: 24px 20px;
+}
+
+.modal-footer {
+    padding: 16px 20px;
+    border-top: 2px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* ========================================
+   Groupes de paramètres
+   ======================================== */
+.setting-group {
+    margin-bottom: 24px;
+}
+
+.setting-group:last-child {
+    margin-bottom: 0;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.setting-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+/* ========================================
+   Toggle Switch
+   ======================================== */
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-slider {
+    position: relative;
+    width: 50px;
+    height: 28px;
+    background-color: #cbd5e1;
+    border-radius: 14px;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: white;
+    top: 3px;
+    left: 3px;
+    transition: var(--transition);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-label input[type="checkbox"]:checked+.toggle-slider {
+    background-color: var(--primary-color);
+}
+
+.toggle-label input[type="checkbox"]:checked+.toggle-slider::before {
+    transform: translateX(22px);
+}
+
+.toggle-text {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ========================================
+   Input de temps
+   ======================================== */
+.time-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--text-primary);
+    transition: var(--transition);
+    background-color: var(--background);
+}
+
+.time-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* ========================================
+   Statut de permission
+   ======================================== */
+.permission-status {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.permission-status.granted {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    border: 1px solid var(--success);
+}
+
+.permission-status.denied {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    border: 1px solid var(--error);
+}
+
+.permission-status.default {
+    background-color: rgba(251, 191, 36, 0.1);
+    color: #f59e0b;
+    border: 1px solid #f59e0b;
+}
+
+/* ========================================
+   Boutons
+   ======================================== */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.test-btn {
+    width: 100%;
+    background-color: white;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.test-btn:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.test-btn:active {
+    transform: scale(0.98);
+}
