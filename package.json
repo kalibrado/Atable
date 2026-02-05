@@ -6,7 +6,11 @@
   "scripts": {
     "start": "NODE_ENV=production && node server.js",
     "dev": "NODE_ENV=dev && nodemon server.js",
-    "generate-vapid": "node generate-vapid-keys.js"
+    "generate-vapid": "node generate-vapid-keys.js",
+    "build:notif": "esbuild public/src/js/notifications.js --bundle --minify --target=es2017 --outfile=public/dist/notifications.min.js",
+    "build:js": "esbuild public/src/js/app.js --bundle --minify --target=es2017 --outfile=public/dist/app.min.js",
+    "build:css": "csso public/src/css/style.css --output public/dist/style.min.css",
+    "build": "npm run build:js && npm run build:notif && npm run build:css"
   },
   "keywords": [
     "atable",
@@ -26,5 +30,9 @@
     "node-cron": "^4.2.1",
     "nodemon": "^3.1.11",
     "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "csso-cli": "^4.0.2",
+    "esbuild": "^0.27.2"
   }
 }

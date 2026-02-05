@@ -45,9 +45,16 @@ app.use(session({
 // Protection globale des routes
 app.use(protectAllRoutes);
 
+
 // Logging des requêtes (développement)
 if (process.env.NODE_ENV !== 'production') {
     app.use(logRequest);
+    app.use(express.static('public'));
+} else {
+    app.use(express.static('public', {
+        maxAge: '7d',
+        etag: true
+    }));
 }
 
 // ========================================
@@ -61,7 +68,6 @@ setupRoutes(app);
 // ========================================
 
 // Servir les fichiers statiques
-app.use(express.static('public'));
 
 // Page de login pour les non-authentifiés
 app.get('/login', (req, res) => {
