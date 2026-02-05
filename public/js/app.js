@@ -7,6 +7,7 @@
 
 import { UIManager } from './ui-handlers.js';
 import { SettingsManager, AuthManager } from './settings.js';
+import { ThemeManager } from './theme.js';
 
 /**
  * Classe principale de l'application
@@ -20,6 +21,9 @@ class AtableApp {
         console.log('🚀 Initialisation de l\'application Atable...');
 
         try {
+            // 0. Initialiser le thème (doit être fait en premier pour éviter le flash)
+            ThemeManager.initialize();
+
             // 1. Charger les informations utilisateur
             await AuthManager.loadUserInfo();
 
@@ -38,7 +42,10 @@ class AtableApp {
             // 6. Configurer les événements de la modal
             SettingsManager.setupModalEvents();
 
-            // 7. Exposer les handlers globalement
+            // 7. Configurer le toggle du mode sombre
+            ThemeManager.setupToggleListener();
+
+            // 8. Exposer les handlers globalement
             this.exposeGlobalHandlers();
 
             console.log('Application prête');
@@ -69,6 +76,12 @@ class AtableApp {
         // Handlers pour l'UI
         window.appHandlers = {
             toggleDay: (day) => UIManager.toggleDay(day)
+        };
+        // Handlers pour le thème
+        window.themeHandlers = {
+            toggle: () => ThemeManager.toggle(),
+            reset: () => ThemeManager.resetToSystemTheme(),
+            isDark: () => ThemeManager.isDarkMode()
         };
     }
 }

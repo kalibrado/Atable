@@ -1,7 +1,8 @@
 /* ========================================
-   Variables CSS pour une gestion facile des couleurs
+   Variables CSS avec support du mode sombre
    ======================================== */
 :root {
+    /* Couleurs mode clair (par défaut) */
     --primary-color: #069494;
     --primary-light: #6366f1;
     --primary-dark: #4338ca;
@@ -17,6 +18,29 @@
     --warning: #f59e0b;
     --border-radius: 12px;
     --transition: all 0.3s ease;
+
+    /* Variables spécifiques au thème */
+    --textarea-bg: #f8fafc;
+    --textarea-focus-bg: #ffffff;
+    --modal-backdrop: rgba(0, 0, 0, 0.5);
+    --header-bg: #f8fafc;
+}
+
+/* Mode sombre */
+[data-theme="dark"] {
+    --background: #0f172a;
+    --card-bg: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+
+    /* Ajustements pour le mode sombre */
+    --textarea-bg: #0f172a;
+    --textarea-focus-bg: #1e293b;
+    --modal-backdrop: rgba(0, 0, 0, 0.7);
+    --header-bg: #1e293b;
 }
 
 /* ========================================
@@ -47,6 +71,7 @@ body {
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ========================================
@@ -72,9 +97,10 @@ body {
     justify-content: space-between;
     align-items: center;
     flex-shrink: 0;
-    background-color: var(--background);
+    background-color: var(--header-bg);
     border-bottom: 2px solid var(--border-color);
     z-index: 100;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .header-content {
@@ -257,7 +283,6 @@ body {
 
 .day-card.collapsed .toggle-icon {
     transform: rotate(-90deg);
-
 }
 
 /* Contenu de la carte */
@@ -309,19 +334,24 @@ body {
     color: var(--text-primary);
     resize: vertical;
     transition: var(--transition);
-    background-color: var(--background);
+    background-color: var(--textarea-bg);
 }
 
 .atable-textarea:focus {
     outline: none;
     border-color: var(--primary-color);
-    background-color: white;
+    background-color: var(--textarea-focus-bg);
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
     transform: scale(1.01);
 }
 
 .atable-textarea::placeholder {
     color: #cbd5e1;
+}
+
+/* Mode sombre : placeholder plus visible */
+[data-theme="dark"] .atable-textarea::placeholder {
+    color: #64748b;
 }
 
 /* ========================================
@@ -451,7 +481,7 @@ body {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--modal-backdrop);
     backdrop-filter: blur(4px);
     animation: fadeIn 0.3s ease;
 }
@@ -471,6 +501,7 @@ body {
     max-height: 90vh;
     overflow-y: auto;
     animation: slideUp 0.3s ease;
+    overflow: hidden;
 }
 
 @keyframes slideUp {
@@ -525,6 +556,8 @@ body {
 
 .modal-body {
     padding: 24px 20px;
+    overflow-x: auto;
+    height: 65vh;
 }
 
 .modal-footer {
@@ -533,8 +566,6 @@ body {
     display: flex;
     justify-content: flex-end;
 }
-
-
 
 /* ========================================
    Groupes de paramètres
@@ -623,13 +654,13 @@ body {
     font-size: 1rem;
     color: var(--text-primary);
     transition: var(--transition);
-    background-color: var(--background);
+    background-color: var(--textarea-bg);
 }
 
 .time-input:focus {
     outline: none;
     border-color: var(--primary-color);
-    background-color: white;
+    background-color: var(--textarea-focus-bg);
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
@@ -703,6 +734,11 @@ body {
     vertical-align: middle;
 }
 
+/* Mode sombre : calendrier */
+[data-theme="dark"] .calendar-emoji {
+    background: #f1f5f9;
+}
+
 .calendar-emoji .cal-month {
     display: block;
     background: #e11d48;
@@ -719,4 +755,46 @@ body {
     font-weight: 700;
     color: #111827;
     line-height: 1.6;
+}
+
+/* ========================================
+   Sections de paramètres
+   ======================================== */
+.settings-section {
+    margin-bottom: 24px;
+}
+
+.settings-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+}
+
+/* ========================================
+   Support du mode sombre pour les scrollbars (Webkit)
+   ======================================== */
+[data-theme="dark"] ::-webkit-scrollbar {
+    width: 10px;
+    background-color: var(--background);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 5px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-secondary);
+}
+
+/* ========================================
+   Transition smooth pour le changement de thème
+   ======================================== */
+body,
+.header,
+.day-card,
+.modal-content,
+.atable-textarea,
+.time-input {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Planifiez vos repas de la semaine avec des rappels quotidiens">
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="#069494">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Atable!">
@@ -14,7 +14,10 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    
+    <!-- CSS avec support du mode sombre -->
     <link rel="stylesheet" href="css/style.css">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
@@ -39,7 +42,6 @@
         </header>
 
         <!-- Modal de paramètres -->
-        <!-- Modal de paramètres -->
         <div id="settings-modal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -60,9 +62,13 @@
                                 <span class="toggle-slider"></span>
                                 <span class="toggle-text">Mode sombre</span>
                             </label>
+                            <p class="setting-description">
+                                Activez le thème sombre pour réduire la fatigue oculaire
+                            </p>
                         </div>
                     </div>
                     <div class="divider"></div>
+                    
                     <!-- ===================== -->
                     <!-- NOTIFICATIONS -->
                     <!-- ===================== -->
@@ -78,7 +84,7 @@
                                 Recevez un rappel quotidien avec vos repas
                             </p>
                         </div>
-                        <div class="setting-group">
+                        <div class="setting-group" id="time-setting">
                             <label for="notification-time">
                                 <strong>🕐 Heure de notification</strong>
                             </label>
@@ -89,8 +95,7 @@
                                 <span id="permission-text"></span>
                             </div>
                         </div>
-                    </div>
-                    <div class="divider"></div>
+                    </div>                    
                     <!-- ===================== -->
                     <!-- COMPTE -->
                     <!-- ===================== -->
@@ -103,7 +108,7 @@
                         </div>
                         <div class="setting-group">
                             <button class="btn-primary" onclick="changeEmail()">
-                                Changer l’adresse email
+                                Changer l'adresse email
                             </button>
                         </div>
                         <div class="setting-group">
@@ -124,7 +129,6 @@
                 </div>
             </div>
         </div>
-
 
         <!-- Message de statut -->
         <div id="status-message" class="status-message"></div>
