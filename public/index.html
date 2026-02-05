@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,76 +14,109 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="container">
         <!-- En-tête de l'application -->
         <header class="header">
             <div class="header-content">
-                <h1>🍽️ Atable!</h1>
+                <h1>Atable! <span id="name-user"></span></h1>
                 <p class="subtitle">Planifiez vos repas du lundi au dimanche</p>
             </div>
-            <button id="settings-btn" class="settings-btn" onclick="openSettings()" aria-label="Paramètres">
-                ⚙️
-            </button>
+            <div class="header-actions">
+                <button id="settings-btn" class="settings-btn" onclick="openSettings()" aria-label="Paramètres">
+                    ⚙️
+                </button>
+                <button id="logout-btn" class="logout-btn" onclick="handleLogout()" aria-label="Déconnexion">
+                    🚪
+                </button>
+            </div>
         </header>
 
+        <!-- Modal de paramètres -->
         <!-- Modal de paramètres -->
         <div id="settings-modal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>⚙️ Paramètres des Notifications</h2>
+                    <h2>⚙️ Paramètres</h2>
                     <button class="close-btn" onclick="closeSettings()">&times;</button>
                 </div>
-                
+
+                <!-- CONTENU SCROLLABLE -->
                 <div class="modal-body">
-                    <!-- Activation des notifications -->
-                    <div class="setting-group">
-                        <label class="toggle-label">
-                            <input type="checkbox" id="enable-notifications" onchange="toggleNotifications()">
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-text">Activer les notifications quotidiennes</span>
-                        </label>
-                        <p class="setting-description">
-                            Recevez un rappel quotidien avec vos repas du jour
-                        </p>
-                    </div>
-
-                    <!-- Configuration de l'heure -->
-                    <div class="setting-group" id="time-setting">
-                        <label for="notification-time">
-                            <strong>🕐 Heure de la notification</strong>
-                        </label>
-                        <input 
-                            type="time" 
-                            id="notification-time" 
-                            class="time-input"
-                            onchange="updateNotificationTime()"
-                        >
-                        <p class="setting-description">
-                            Choisissez l'heure à laquelle vous souhaitez recevoir votre rappel quotidien
-                        </p>
-                    </div>
-
-                    <!-- Statut de la permission -->
-                    <div class="setting-group">
-                        <div id="permission-status" class="permission-status">
-                            <span id="permission-text"></span>
+                    <!-- ===================== -->
+                    <!-- PERSONNALISATION -->
+                    <!-- ===================== -->
+                    <div class="settings-section">
+                        <h3>🎨 Personnalisation</h3>
+                        <div class="setting-group">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="dark-mode">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-text">Mode sombre</span>
+                            </label>
                         </div>
                     </div>
-
-                    <!-- Bouton de test -->
-                    <div class="setting-group">
-                        <button class="test-btn" onclick="testNotification()">
-                            🔔 Tester la notification
-                        </button>
-                        <p class="setting-description">
-                            Envoie une notification immédiate pour tester le système
-                        </p>
+                    <div class="divider"></div>
+                    <!-- ===================== -->
+                    <!-- NOTIFICATIONS -->
+                    <!-- ===================== -->
+                    <div class="settings-section">
+                        <h3>🔔 Notifications</h3>
+                        <div class="setting-group">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="enable-notifications">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-text">Activer les notifications</span>
+                            </label>
+                            <p class="setting-description">
+                                Recevez un rappel quotidien avec vos repas
+                            </p>
+                        </div>
+                        <div class="setting-group">
+                            <label for="notification-time">
+                                <strong>🕐 Heure de notification</strong>
+                            </label>
+                            <input type="time" id="notification-time" class="time-input">
+                        </div>
+                        <div class="setting-group">
+                            <div id="permission-status" class="permission-status">
+                                <span id="permission-text"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <!-- ===================== -->
+                    <!-- COMPTE -->
+                    <!-- ===================== -->
+                    <div class="settings-section danger-zone">
+                        <h3>👤 Compte</h3>
+                        <div class="setting-group">
+                            <button class="btn-primary" onclick="changePassword()">
+                                Changer le mot de passe
+                            </button>
+                        </div>
+                        <div class="setting-group">
+                            <button class="btn-primary" onclick="changeEmail()">
+                                Changer l’adresse email
+                            </button>
+                        </div>
+                        <div class="setting-group">
+                            <button class="btn-danger" onclick="deleteAccount()">
+                                🗑️ Supprimer mon compte
+                            </button>
+                            <p class="setting-description warning">
+                                Cette action est définitive
+                            </p>
+                        </div>
                     </div>
                 </div>
-
+                <div class="divider"></div>
                 <div class="modal-footer">
                     <button class="btn-primary" onclick="closeSettings()">
                         Fermer
@@ -90,6 +124,7 @@
                 </div>
             </div>
         </div>
+
 
         <!-- Message de statut -->
         <div id="status-message" class="status-message"></div>
@@ -100,12 +135,13 @@
         </main>
 
         <!-- Footer -->
-        <footer class="footer">
+        <!-- <footer class="footer">
             <p>💾 Sauvegarde automatique activée</p>
-        </footer>
+        </footer> -->
     </div>
 
-    <script src="notifications.js"></script>
-    <script src="app.js"></script>
+    <script src="js/notifications.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
+
 </html>

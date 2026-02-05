@@ -14,6 +14,7 @@
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --success: #10b981;
     --error: #ef4444;
+    --warning: #f59e0b;
     --border-radius: 12px;
     --transition: all 0.3s ease;
 }
@@ -27,7 +28,19 @@
     box-sizing: border-box;
 }
 
+.parisienne-regular {
+    font-family: "Parisienne", cursive;
+    font-weight: 400;
+    font-style: normal;
+}
+
+h1,
+.subtitle {
+    font-family: 'Parisienne', cursive;
+}
+
 body {
+    overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background-color: var(--background);
     color: var(--text-primary);
@@ -40,10 +53,11 @@ body {
    Conteneur principal
    ======================================== */
 .container {
+    overflow: hidden;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 16px;
-    min-height: 100vh;
+    padding: 0;
+    height: 100vh;
     display: flex;
     flex-direction: column;
 }
@@ -53,13 +67,26 @@ body {
    ======================================== */
 .header {
     text-align: center;
-    padding: 24px 0;
-    margin-bottom: 24px;
-    position: relative;
+    padding: 5px 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    background-color: var(--background);
+    border-bottom: 2px solid var(--border-color);
+    z-index: 100;
 }
 
 .header-content {
-    display: inline-block;
+    flex: 1;
+    text-align: center;
+}
+
+.header-actions {
+    display: flex;
+    gap: 8px;
+    right: 0;
+    top: 24px;
 }
 
 .header h1 {
@@ -74,10 +101,8 @@ body {
     color: var(--text-secondary);
 }
 
-.settings-btn {
-    position: absolute;
-    top: 24px;
-    right: 0;
+.settings-btn,
+.logout-btn {
     background: var(--card-bg);
     border: 2px solid var(--border-color);
     border-radius: 50%;
@@ -99,6 +124,16 @@ body {
 
 .settings-btn:active {
     transform: rotate(90deg) scale(0.95);
+}
+
+.logout-btn:hover {
+    background: var(--error);
+    border-color: var(--error);
+    transform: scale(1.1);
+}
+
+.logout-btn:active {
+    transform: scale(0.95);
 }
 
 /* ========================================
@@ -135,6 +170,11 @@ body {
     color: white;
 }
 
+.status-message.warning {
+    background-color: var(--warning);
+    color: white;
+}
+
 /* ========================================
    Conteneur des jours
    ======================================== */
@@ -143,6 +183,9 @@ body {
     flex-direction: column;
     gap: 16px;
     flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px;
 }
 
 /* ========================================
@@ -150,10 +193,9 @@ body {
    ======================================== */
 .day-card {
     background-color: var(--card-bg);
-    border-radius: var(--border-radius);
     box-shadow: var(--shadow);
-    overflow: hidden;
     transition: var(--transition);
+    border-radius: var(--border-radius);
 }
 
 .day-card:hover {
@@ -170,6 +212,7 @@ body {
     color: white;
     cursor: pointer;
     user-select: none;
+    border-radius: var(--border-radius);
 }
 
 .day-title {
@@ -200,6 +243,7 @@ body {
 /* Style spécial pour le jour actuel */
 .day-card.today {
     box-shadow: 0 0 0 3px var(--primary-light), var(--shadow-lg);
+    border-radius: var(--border-radius);
 }
 
 .day-card.today .day-header {
@@ -213,6 +257,7 @@ body {
 
 .day-card.collapsed .toggle-icon {
     transform: rotate(-90deg);
+
 }
 
 /* Contenu de la carte */
@@ -230,18 +275,19 @@ body {
     opacity: 0;
     padding: 0 20px;
     overflow: hidden;
+    border-radius: var(--border-radius);
 }
 
 /* ========================================
    Sections Midi et Soir
    ======================================== */
-.meal-section {
+.atable-section {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.meal-label {
+.atable-label {
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-secondary);
@@ -252,7 +298,7 @@ body {
     gap: 6px;
 }
 
-.meal-textarea {
+.atable-textarea {
     width: 100%;
     min-height: 100px;
     padding: 12px 16px;
@@ -266,7 +312,7 @@ body {
     background-color: var(--background);
 }
 
-.meal-textarea:focus {
+.atable-textarea:focus {
     outline: none;
     border-color: var(--primary-color);
     background-color: white;
@@ -274,7 +320,7 @@ body {
     transform: scale(1.01);
 }
 
-.meal-textarea::placeholder {
+.atable-textarea::placeholder {
     color: #cbd5e1;
 }
 
@@ -283,10 +329,13 @@ body {
    ======================================== */
 .footer {
     text-align: center;
-    padding: 24px 0;
-    margin-top: 32px;
+    padding: 16px;
+    margin-top: 0;
     color: var(--text-secondary);
     font-size: 0.875rem;
+    background-color: var(--background);
+    border-top: 2px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 /* ========================================
@@ -294,7 +343,7 @@ body {
    ======================================== */
 @media (min-width: 768px) {
     .container {
-        padding: 24px;
+        padding: 5px;
     }
 
     .header h1 {
@@ -313,7 +362,7 @@ body {
         gap: 20px;
     }
 
-    .meal-textarea {
+    .atable-textarea {
         min-height: 120px;
     }
 }
@@ -323,11 +372,11 @@ body {
    ======================================== */
 @media (min-width: 1024px) {
     .container {
-        padding: 32px;
+        padding: 5px;
     }
 
     .header {
-        padding: 32px 0;
+        padding: 5px 0;
     }
 
     .header h1 {
@@ -342,7 +391,7 @@ body {
         padding: 24px;
     }
 
-    .meal-textarea {
+    .atable-textarea {
         min-height: 140px;
     }
 }
@@ -436,6 +485,11 @@ body {
     }
 }
 
+.divider {
+    margin: 20px;
+    border-bottom: 2px solid var(--border-color);
+}
+
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -480,6 +534,8 @@ body {
     justify-content: flex-end;
 }
 
+
+
 /* ========================================
    Groupes de paramètres
    ======================================== */
@@ -492,7 +548,6 @@ body {
 }
 
 .setting-group label {
-    display: block;
     margin-bottom: 8px;
     font-weight: 600;
     color: var(--text-primary);
@@ -631,24 +686,37 @@ body {
     transform: translateY(0);
 }
 
-.test-btn {
-    width: 100%;
-    background-color: white;
-    color: var(--primary-color);
-    border: 2px solid var(--primary-color);
-    border-radius: 8px;
-    padding: 12px 24px;
-    font-size: 1rem;
+/* ========================================
+   Emoji calendrier personnalisé
+   ======================================== */
+.calendar-emoji {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+    overflow: hidden;
+    text-align: center;
+    font-family: system-ui, -apple-system, sans-serif;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.calendar-emoji .cal-month {
+    display: block;
+    background: #e11d48;
+    color: #fff;
+    font-size: 8px;
     font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
+    text-transform: uppercase;
+    line-height: 1.2;
 }
 
-.test-btn:hover {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.test-btn:active {
-    transform: scale(0.98);
+.calendar-emoji .cal-day {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.6;
 }

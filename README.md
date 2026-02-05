@@ -16,7 +16,7 @@ Application web moderne et responsive pour planifier vos repas de la semaine.
 ## 🏗️ Architecture du Projet
 
 ```
-meal-planner/
+atable-planner/
 │
 ├── server.js                 # Serveur Node.js avec Express
 ├── package.json              # Configuration npm
@@ -52,7 +52,7 @@ meal-planner/
 
 1. **Naviguer dans le dossier du projet**
    ```bash
-   cd meal-planner
+   cd atable-planner
    ```
 
 2. **Installer les dépendances**
@@ -75,7 +75,7 @@ meal-planner/
 
 ## 📡 API REST
 
-### GET /api/meals
+### GET /api/atable
 Récupère toutes les données des repas
 
 **Réponse:**
@@ -87,7 +87,7 @@ Récupère toutes les données des repas
 }
 ```
 
-### PUT /api/meals
+### PUT /api/atable
 Met à jour les données des repas
 
 **Body:**

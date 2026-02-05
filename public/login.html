@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atable! - Connexion</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Styles spécifiques pour la page de login */
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      padding: 24px;
+    }
+
+    .login-card {
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-lg);
+      padding: 40px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .login-header h1 {
+      font-size: 2rem;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+    }
+
+    .login-header p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 1rem;
+      color: var(--text-primary);
+      transition: var(--transition);
+      background-color: var(--background);
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      background-color: white;
+      box-shadow: 0 0 0 3px rgba(6, 148, 148, 0.1);
+    }
+
+    .form-group input::placeholder {
+      color: #cbd5e1;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: 16px;
+    }
+
+    .submit-btn:hover {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .toggle-form {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .toggle-form p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .toggle-form button {
+      background: none;
+      border: none;
+      color: var(--primary-color);
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: underline;
+      padding: 0;
+      font-size: 0.95rem;
+    }
+
+    .toggle-form button:hover {
+      color: var(--primary-dark);
+    }
+
+    .form-error {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: var(--error);
+      border: 1px solid var(--error);
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.875rem;
+      display: none;
+    }
+
+    .form-error.show {
+      display: block;
+    }
+
+    .form-hidden {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 24px;
+      }
+
+      .login-header h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <h1>Atable!</h1>
+        <p>Gérez vos repas de la semaine</p>
+      </div>
+
+      <div class="form-error" id="errorMessage"></div>
+
+      <!-- Formulaire de connexion -->
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="votre@email.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Mot de passe</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="submit-btn" id="loginBtn">
+          Se connecter
+        </button>
+      </form>
+
+      <!-- Formulaire d'inscription (caché par défaut) -->
+      <form id="registerForm" class="form-hidden">
+        <div class="form-group">
+          <label for="registerName">Nom</label>
+          <input type="text" id="registerName" placeholder="Votre nom" required>
+        </div>
+
+        <div class="form-group">
+          <label for="registerEmail">Email</label>
+          <input type="email" id="registerEmail" placeholder="votre@email.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="registerPassword">Mot de passe</label>
+          <input type="password" id="registerPassword" placeholder="Minimum 6 caractères" required>
+        </div>
+
+        <button type="submit" class="submit-btn" id="registerBtn">
+          S'inscrire
+        </button>
+      </form>
+
+      <!-- Toggle entre login et register -->
+      <div class="toggle-form">
+        <p>
+          <span id="toggleText">Pas encore de compte?</span>
+          <button type="button" id="toggleBtn">
+            <span id="toggleTextBtn">S'inscrire</span>
+          </button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const toggleText = document.getElementById('toggleText');
+    const toggleTextBtn = document.getElementById('toggleTextBtn');
+    const errorMessage = document.getElementById('errorMessage');
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+
+    let isLoginMode = true;
+
+    /**
+     * Affiche un message d'erreur
+     */
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.classList.add('show');
+    }
+
+    /**
+     * Masque le message d'erreur
+     */
+    function hideError() {
+      errorMessage.classList.remove('show');
+      errorMessage.textContent = '';
+    }
+
+    /**
+     * Bascule entre formulaire de login et d'inscription
+     */
+    toggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      isLoginMode = !isLoginMode;
+      hideError();
+
+      if (isLoginMode) {
+        loginForm.classList.remove('form-hidden');
+        registerForm.classList.add('form-hidden');
+        toggleText.textContent = 'Pas encore de compte?';
+        toggleTextBtn.textContent = 'S\'inscrire';
+      } else {
+        loginForm.classList.add('form-hidden');
+        registerForm.classList.remove('form-hidden');
+        toggleText.textContent = 'Vous avez déjà un compte?';
+        toggleTextBtn.textContent = 'Se connecter';
+      }
+    });
+
+    /**
+     * Gère la soumission du formulaire de connexion
+     */
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Connexion...';
+      /**
+     * Génère ou récupère un identifiant unique pour la machine
+     * Utilise localStorage pour persister l'identifiant
+     * @returns {string} L'identifiant unique de la machine
+     */
+      function getMachineId() {
+        let machineId = localStorage.getItem('atable_machine_id');
+        if (!machineId) {
+          machineId = _generateUUID();
+          localStorage.setItem('atable_machine_id', machineId);
+        }
+        return machineId;
+      }
+
+      /**
+       * Génère un UUID v4
+       * @private
+       * @returns {string} Un UUID aléatoire
+       */
+      function _generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+          const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      }
+
+      try {
+        const response = await fetch('/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password, machineId: getMachineId() })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Erreur de connexion');
+        }
+
+        // Redirection vers la page principale
+        window.location.href = '/';
+      } catch (error) {
+        showError(error.message);
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Se connecter';
+      }
+    });
+
+    /**
+     * Gère la soumission du formulaire d'inscription
+     */
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+
+      const name = document.getElementById('registerName').value;
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+
+      // Validation
+      if (password.length < 6) {
+        showError('Le mot de passe doit contenir au moins 6 caractères');
+        return;
+      }
+
+      registerBtn.disabled = true;
+      registerBtn.textContent = 'Inscription...';
+
+      try {
+        const response = await fetch('/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password, name })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Erreur d\'inscription');
+        }
+
+        // Redirection vers la page principale
+        window.location.href = '/';
+      } catch (error) {
+        showError(error.message);
+        registerBtn.disabled = false;
+        registerBtn.textContent = 'S\'inscrire';
+      }
+    });
+
+    /**
+     * Vérifie si l'utilisateur est déjà connecté
+     */
+    async function checkAuth() {
+      try {
+        const response = await fetch('/auth/me');
+        if (response.ok) {
+          // L'utilisateur est connecté, redirection
+          window.location.href = '/';
+        }
+      } catch (error) {
+        // L'utilisateur n'est pas connecté, on reste sur la page de login
+      }
+    }
+
+    // Vérifier l'authentification au chargement
+    checkAuth();
+  </script>
+</body>
+
+</html>
