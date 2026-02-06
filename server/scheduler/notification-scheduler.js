@@ -54,7 +54,7 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-async function sendUserNotification(userId, subscription, date) {
+async function sendUserNotification(userId, permissionNotification, date) {
     const currentDay = getCurrentDay();
     const dayLabel = capitalize(currentDay);
 
@@ -73,7 +73,7 @@ async function sendUserNotification(userId, subscription, date) {
             body: 'Vous n\'avez pas encore défini vos repas pour aujourd\'hui.'
         };
 
-    await pushManager.sendNotificationToUser(userId, subscription, {
+    await pushManager.sendNotificationToUser(userId, permissionNotification, {
         ...notification,
         icon: '/icons/icon-192.png',
         badge: '/icons/icon-192.png',
@@ -98,11 +98,11 @@ function startNotificationScheduler() {
         try {
             const now = new Date();
             const currentTime = formatTime(now);
-            const subscriptions = await pushManager.readSubscriptions();
-            for (const { userId, subscription, settings } of subscriptions) {
+            const notifications = await pushManager.readNotifications();
+            for (const { userId, permissionNotification, settings } of notifications) {
                 if (!settings.enabled) continue;
                 if (!isNotificationTime(settings, currentTime)) continue;
-                await sendUserNotification(userId, subscription, now);
+                await sendUserNotification(userId, permissionNotification, now);
             }
         } catch (error) {
             console.error('Erreur scheduler notifications:', error);

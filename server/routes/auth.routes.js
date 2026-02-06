@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const usersManager = require('../managers/users-manager');
-
+const pushManager = require('../managers/push-manager')
 /**
  * POST /auth/register
  * Inscription d'un nouvel utilisateur
@@ -41,7 +41,6 @@ router.post('/register', async (req, res) => {
     // Connexion automatique après inscription
     req.session.userId = user.id;
     req.session.userEmail = user.email;
-
     res.json({
       success: true,
       user: {
@@ -133,18 +132,24 @@ router.get('/me', async (req, res) => {
       });
     }
 
-    const subscriptions = await pushManager.getUserSubscription(
+    const notifications = await pushManager.getUserNotification(
       req.session.userId,
       req.session.machineId
     );
-
     res.json({
       user: {
         id: user.id,
         email: user.email,
         name: user.name
       },
-      subscriptions
+      notifications: {
+        "settings": {
+          "enabled": false,
+          "hour": "8",
+          "minute": "30",
+          ...notifications?.settings
+        },
+      }
     });
   } catch (error) {
     console.error('Erreur récupération utilisateur:', error);

@@ -205,4 +205,34 @@ export class APIManager {
       return false;
     }
   }
+  /**
+   * Met à jour les paramètres de notification sur le serveur
+   */
+  static async updateSettings(settings) {
+    try {
+
+      console.log(notificationSettings)
+      const response = await fetch('/api/notifications/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(settings)
+      })
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error('Erreur serveur');
+      }
+      // Mettre à jour localement
+      console.log('Mise à jour paramètres:', data);
+      return true;
+
+    } catch (error) {
+      console.error('Erreur mise à jour paramètres:', error);
+      return false;
+    }
+  }
+
+
 }

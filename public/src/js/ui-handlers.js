@@ -19,7 +19,8 @@ export class UIManager {
     static state = {
         mealsData: {},
         collapsedDays: new Set(),
-        saveTimeout: null
+        saveTimeout: null,
+        statusTimeout: null
     };
 
     /**
@@ -28,22 +29,15 @@ export class UIManager {
      * @param {string} type - Le type de message ('success', 'error', 'warning')
      */
     static showStatus(message, type = STATUS_TYPES.SUCCESS) {
-        const statusElement = document.getElementById('status-message');
-        
-        if (!statusElement) {
-            console.warn('Élément status-message non trouvé');
-            return;
-        }
+        const el = document.getElementById('status-message');
+        if (!el) return;
 
-        statusElement.textContent = message;
-        statusElement.className = `status-message ${type} show`;
+        el.textContent = message;
+        el.className = `status-message ${type} show`;
 
-        // Cache le message après 3 secondes
-        setTimeout(() => {
-            statusElement.classList.remove('show');
-        }, 3000);
+        clearTimeout(UIManager.state.statusTimeout);
+        UIManager.state.statusTimeout = setTimeout(() => el.classList.remove('show'), 3000);
     }
-
     /**
      * Gère les changements dans les textareas
      * Déclenche la sauvegarde automatique
@@ -75,11 +69,8 @@ export class UIManager {
         if (UIManager.state.saveTimeout) {
             clearTimeout(UIManager.state.saveTimeout);
         }
-
         // Planifier une nouvelle sauvegarde
-        UIManager.state.saveTimeout = setTimeout(async () => {
-            await APIManager.saveMeals(UIManager.state.mealsData);
-        }, API_CONFIG.SAVE_DELAY);
+        UIManager.state.saveTimeout = setTimeout(async () => await APIManager.saveMeals(UIManager.state.mealsData), API_CONFIG.SAVE_DELAY);
     }
 
     /**
@@ -88,7 +79,7 @@ export class UIManager {
      */
     static toggleDay(day) {
         const dayCard = document.querySelector(`.day-card[data-day="${day}"]`);
-        
+
         if (!dayCard) {
             console.warn(`Carte du jour ${day} non trouvée`);
             return;
@@ -108,22 +99,22 @@ export class UIManager {
      * Doit être appelé après le rendu de l'interface
      */
     static attachEventListeners() {
-        const textareas = document.querySelectorAll('.atable-textarea');
+        const inputs = [...document.querySelectorAll('.atable-textarea'), ...document.querySelectorAll("input")];
 
-        textareas.forEach(textarea => {
-            // Événement input pour la sauvegarde en temps réel
-            textarea.addEventListener('input', UIManager.handleTextareaChange);
 
+        inputs.forEach(input => {
+            if (input.className === "atable-textarea") {
+                input.addEventListener('input', UIManager.handleTextareaChange);
+            }
             // Effet visuel au focus
-            textarea.addEventListener('focus', (e) => {
+            input.addEventListener('focus', (e) => {
                 e.target.parentElement.style.transform = 'scale(1.005)';
             });
-
             // Retour à la normale au blur
-            textarea.addEventListener('blur', (e) => {
+            input.addEventListener('blur', (e) => {
                 e.target.parentElement.style.transform = 'scale(1)';
             });
-        });
+        })
     }
 
     /**
@@ -134,7 +125,7 @@ export class UIManager {
         // Retour de connexion
         window.addEventListener('online', async () => {
             UIManager.showStatus(
-                '🌐 Connexion rétablie', 
+                '🌐 Connexion rétablie',
                 STATUS_TYPES.SUCCESS
             );
             await APIManager.syncPendingData();

@@ -23,20 +23,22 @@ export class SettingsManager {
         }
 
         modal.classList.add('show');
-        // Mettre à jour l'UI
-        console.log('Mise à jour de l\'interface des paramètres...');
-        await SettingsManager.updateUI();
 
+        document.getElementById('notification-time').addEventListener('change', async (e) => {
+            await SettingsManager.updateNotificationTime()
+
+        })
+
+
+        await SettingsManager.updateUI();
         // Attacher l'événement au toggle de notifications
         const notifToggle = document.getElementById('enable-notifications');
         if (notifToggle) {
             notifToggle.addEventListener('change', async () => {
-                console.log('Toggle de notifications changé, mise à jour des paramètres...');
                 await SettingsManager.toggleNotifications();
-                await SettingsManager.updateUI();
+
             });
         }
-
     }
 
     /**
@@ -60,24 +62,22 @@ export class SettingsManager {
         }
 
         try {
-            // État du toggle (basé sur la subscription)
-            const isSubscribed = await window.notificationSystem.isSubscribed();
+            // État du toggle (basé sur la notification)
+            const userInfo = await APIManager.fetchUserInfo();
             const enableCheckbox = document.getElementById('enable-notifications');
-            if (enableCheckbox) {
-                enableCheckbox.checked = isSubscribed;
-            }
-
-            // Heure de notification
-            const { hour, minute } = await window.notificationSystem.getTime();
+            const { hour, minute } = userInfo?.notifications?.settings;
             const timeInput = document.getElementById('notification-time');
+            const timeSetting = document.getElementById('time-setting');
+
+            if (enableCheckbox) {
+                enableCheckbox.checked = userInfo?.notifications?.settings?.enabled;
+            }
             if (timeInput) {
                 timeInput.value = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
             }
 
-            // Activer/désactiver l'input de temps
-            const timeSetting = document.getElementById('time-setting');
-            if (timeSetting && timeInput) {
-                if (isSubscribed) {
+            if (timeInput) {
+                if (enableCheckbox.checked) {
                     timeSetting.style.opacity = '1';
                     timeInput.disabled = false;
                 } else {
@@ -90,7 +90,7 @@ export class SettingsManager {
             SettingsManager.updatePermissionStatus();
 
         } catch (error) {
-            console.error('Erreur mise à jour UI paramètres:', error);
+            UIManager.showStatus(`Erreur mise à jour UI paramètres: ${error}`, STATUS_TYPES.ERROR)
         }
     }
 
@@ -109,7 +109,7 @@ export class SettingsManager {
 
         // Vérifier le support des notifications
         if (!('Notification' in window)) {
-            console.warn('Notifications non supportées par ce navigateur');
+            UIManager.showStatus('Notifications non supportées par ce navigateur', STATUS_TYPES.WARNING)
             statusDiv.className = 'permission-status denied';
             statusText.textContent = '❌ Votre navigateur ne supporte pas les notifications';
             return;
@@ -123,7 +123,6 @@ export class SettingsManager {
         }
 
         // Afficher le statut de la permission
-        console.log('Affichage du statut de permission:', Notification.permission);
         switch (Notification.permission) {
             case 'granted':
                 statusDiv.className = 'permission-status granted';
@@ -153,39 +152,42 @@ export class SettingsManager {
         }
 
         const enabled = checkbox.checked;
+
         if (enabled) {
-            // S'abonner avec les paramètres actuels
-            const { hour, minute } = window.notificationSystem.getTime();
+            const timeInput = document.getElementById('notification-time');
+            const [hour, minute] = timeInput.value.split(':').map(Number);
             const success = await window.notificationSystem.subscribe({
                 enabled,
                 hour,
                 minute
             });
-            console.log('Résultat de l\'abonnement aux notifications:', success);
             if (!success) {
                 checkbox.checked = false;
-                alert('Impossible d\'activer les notifications. Vérifiez les permissions de votre navigateur.');
+                UIManager.showStatus('Impossible d\'activer les notifications. Vérifiez les permissions de votre navigateur.', STATUS_TYPES.ERROR)
                 return;
             }
         } else {
             // Se désabonner
             const success = await window.notificationSystem.unsubscribe();
-            console.log('Résultat du désabonnement des notifications:', success);
             if (!success) {
                 checkbox.checked = true;
-                alert('Impossible de désactiver les notifications. Réessayez.');
+                UIManager.showStatus(STATUS_MESSAGES.ERROR, STATUS_TYPES.ERROR)
                 return;
             }
+
         }
         // Mettre à jour l'UI
         await SettingsManager.updateUI();
+        enabled
+            ? UIManager.showStatus(STATUS_MESSAGES.NOTIFICATION_ENABLED, STATUS_TYPES.SUCCESS)
+            : UIManager.showStatus(STATUS_MESSAGES.NOTIFICATION_DISABLED, STATUS_TYPES.SUCCESS)
+
     }
 
     /**
      * Met à jour l'heure de notification
      */
     static async updateNotificationTime() {
-        console.log('Mise à jour de l\'heure de notification...');
         const timeInput = document.getElementById('notification-time');
 
         if (!timeInput || !window.notificationSystem) {
@@ -194,9 +196,9 @@ export class SettingsManager {
 
         const [hour, minute] = timeInput.value.split(':').map(Number);
 
-        console.log('Nouvelle heure de notification:', hour, minute);
-        await window.notificationSystem.saveTime(hour, minute);
-        console.log('Heure de notification mise à jour avec succès');
+        await APIManager.updateSettings({
+            hour, minute
+        })
         UIManager.showStatus(
             STATUS_MESSAGES.NOTIFICATION_TIME_UPDATED,
             STATUS_TYPES.SUCCESS
@@ -207,22 +209,17 @@ export class SettingsManager {
      * Initialise le système de notifications
      */
     static async initialize() {
-        console.log('Initialisation du système de notifications...');
         if (!window.notificationSystem) {
-            console.warn('Système de notifications non disponible');
+            UIManager.showStatus('Système de notifications non disponible', STATUS_TYPES.WARNING)
             return;
         }
 
         // Démarrer le système de notifications
-        console.log('Démarrage du système de notifications...');
         await window.notificationSystem.start();
-        console.log('Système de notifications initialisé avec succès');
         // Mettre à jour l'UI si la modal est ouverte
         const modal = document.getElementById('settings-modal');
         if (modal && modal.classList.contains('show')) {
-            console.log('Modal de paramètres ouverte, mise à jour de l\'interface...');
             await SettingsManager.updateUI();
-            console.log('Interface des paramètres mise à jour après initialisation du système de notifications');
         }
     }
 
@@ -230,12 +227,10 @@ export class SettingsManager {
      * Configure les événements de fermeture de la modal
      */
     static setupModalEvents() {
-        console.log('Configuration des événements de la modal de paramètres...');
         // Fermer en cliquant en dehors
         window.addEventListener('click', (event) => {
             const modal = document.getElementById('settings-modal');
             if (event.target === modal) {
-                console.log('Clic en dehors de la modal, fermeture...');
                 SettingsManager.closeModal();
             }
         });
@@ -251,17 +246,14 @@ export class AuthManager {
      * Gère la déconnexion de l'utilisateur
      */
     static async handleLogout() {
-        console.log('Déconnexion de l\'utilisateur...');
         if (!confirm('Voulez-vous vraiment vous déconnecter ?')) {
             return;
         }
 
         try {
             const success = await APIManager.logout();
-            console.log('Résultat de la déconnexion:', success);
             if (success) {
-                // Rediriger vers la page de login
-                console.log('Redirection vers la page de login...');
+                // Rediriger vers la page de login 
                 window.location.href = '/login';
             } else {
                 UIManager.showStatus(
@@ -270,7 +262,6 @@ export class AuthManager {
                 );
             }
         } catch (error) {
-            console.error('Erreur déconnexion:', error);
             UIManager.showStatus(
                 'Erreur de connexion au serveur',
                 STATUS_TYPES.ERROR
@@ -282,20 +273,19 @@ export class AuthManager {
      * Charge et affiche les informations utilisateur
      */
     static async loadUserInfo() {
-        console.log('Chargement des informations utilisateur...');
         try {
-            const { user, subscriptions } = await APIManager.fetchUserInfo();
-            console.log('Informations utilisateur chargées:', user);
+            const { user, notifications } = await APIManager.fetchUserInfo();
             if (user && user.name) {
                 // Import dynamique pour éviter la circularité
                 const { UIRenderer } = await import('./ui-renderer.js');
                 UIRenderer.displayUserName(user.name);
+
             }
-            if (subscriptions) {
-                console.log('Subscriptions utilisateur chargées:', subscriptions);
+            if (notifications) {
+                console.log('Notifications utilisateur chargées:', notifications);
             }
         } catch (error) {
-            console.error('Erreur chargement infos utilisateur:', error);
+            UIManager.showStatus(`Erreur chargement infos utilisateur: ${error}`, STATUS_TYPES.ERROR)
         }
     }
 }

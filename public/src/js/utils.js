@@ -139,7 +139,7 @@ export class DebounceUtils {
         return function (...args) {
             clearTimeout(timeoutId);
             timeoutId = setTimeout(() => {
-                func.apply(this, args);
+                func(...args);
             }, delay);
         };
     }

@@ -70,7 +70,7 @@ async function registerServiceWorker() {
 /**
  * Demande la permission pour les notifications
  */
-async function requestNotificationPermission() {
+async function requestPermission() {
     if (!('Notification' in window)) {
         console.warn('Notifications non supportées');
         return false;
@@ -88,15 +88,13 @@ async function requestNotificationPermission() {
     return false;
 }
 
-
-
 /**
  * S'abonne aux notifications push
  */
-async function subscribeToPush(settings = {}) {
+async function subscribe(settings = {}) {
     try {
         // Vérifier la permission
-        const hasPermission = await requestNotificationPermission();
+        const hasPermission = await requestPermission();
         if (!hasPermission) {
             throw new Error('Permission refusée');
         }
@@ -113,18 +111,18 @@ async function subscribeToPush(settings = {}) {
             throw new Error('Clé VAPID non disponible');
         }
         // S'abonner aux notifications push
-        const subscription = await registration.pushManager.subscribe({
+        const permissionNotification = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(publicKey)
         });
-        // Envoyer la subscription au serveur
+        // Envoyer la notification au serveur
         const response = await fetch('/api/notifications/subscribe', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                subscription,
+                permissionNotification,
                 settings: {
                     enabled: settings.enabled !== undefined ? settings.enabled : true,
                     hour: settings.hour || 8,
@@ -148,13 +146,13 @@ async function subscribeToPush(settings = {}) {
 /**
  * Se désabonne des notifications push
  */
-async function unsubscribeFromPush() {
+async function unsubscribe() {
     try {
         const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
+        const notification = await registration.pushManager.getSubscription();
 
-        if (subscription) {
-            await subscription.unsubscribe();
+        if (notification) {
+            await notification.unsubscribe();
         }
 
         // Notifier le serveur
@@ -174,96 +172,11 @@ async function unsubscribeFromPush() {
     }
 }
 
-/**
- * Met à jour les paramètres de notification sur le serveur
- */
-async function updateNotificationSettings(settings) {
-    try {
-        
-        console.log(notificationSettings)
-        const response = await fetch('/api/notifications/settings', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(settings)
-        })
-        
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error('Erreur serveur');
-        }
-        // Mettre à jour localement
-        console.log('Mise à jour paramètres:', data);
-        return true;
-
-    } catch (error) {
-        console.error('Erreur mise à jour paramètres:', error);
-        return false;
-    }
-}
-
-/**
- * Récupère les paramètres de notification du serveur
- */
-async function loadNotificationSettings() {
-    try {
-        const response = await fetch('/api/notifications/settings');
-        const data = await response.json();
-        console.log('Paramètres chargés:', data);
-        return data;
-
-    } catch (error) {
-        console.error('Erreur chargement paramètres:', error);
-        return null;
-    }
-}
-
-/**
- * Vérifie si l'utilisateur est abonné aux notifications
- */
-async function isSubscribed() {
-    try {
-        if (!('serviceWorker' in navigator)) {
-            return false;
-        }
-
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        console.log('Subscription actuelle:', subscription);
-        return subscription !== null;
-
-    } catch (error) {
-        console.error('Erreur vérification subscription:', error);
-        return false;
-    }
-}
-
 // Export des fonctions
 window.notificationSystem = {
-    requestPermission: requestNotificationPermission,
-    subscribe: subscribeToPush,
-    unsubscribe: unsubscribeFromPush,
-    updateSettings: updateNotificationSettings,
-    loadSettings: loadNotificationSettings,
-    isSubscribed: isSubscribed,
-    getTime: () => ({ hour: notificationSettings.hour, minute: notificationSettings.minute }),
-    saveTime: (hour, minute) => {
-        notificationSettings.hour = hour;
-        notificationSettings.minute = minute;
-        return updateNotificationSettings({ hour, minute });
-    },
-    isEnabled: () => notificationSettings.enabled,
-    setEnabled: (enabled) => {
-        notificationSettings.enabled = enabled;
-        return updateNotificationSettings({ enabled });
-    },
-    start: async () => {
-        // Charger les paramètres au démarrage
-        await loadNotificationSettings();
-        // Enregistrer le Service Worker
-        await registerServiceWorker();
-    }
+    subscribe,
+    unsubscribe,
+    start: async () => await registerServiceWorker()
 };
 
 // Initialisation au chargement

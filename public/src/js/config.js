@@ -8,10 +8,10 @@
 export const API_CONFIG = {
     // URL de l'API des repas
     MEALS_URL: '/api/atable',
-    
+
     // Délai avant sauvegarde automatique (en millisecondes)
     SAVE_DELAY: 1000,
-    
+
     // Timeout pour les requêtes réseau (en millisecondes)
     REQUEST_TIMEOUT: 5000
 };
@@ -21,12 +21,12 @@ export const API_CONFIG = {
  * Ordre : du lundi au dimanche
  */
 export const DAYS = [
-    'lundi', 
-    'mardi', 
-    'mercredi', 
-    'jeudi', 
-    'vendredi', 
-    'samedi', 
+    'lundi',
+    'mardi',
+    'mercredi',
+    'jeudi',
+    'vendredi',
+    'samedi',
     'dimanche'
 ];
 
@@ -36,7 +36,7 @@ export const DAYS = [
 export const STORAGE_KEYS = {
     // Cache des données des repas
     CACHE: 'atable-planner-cache',
-    
+
     // Données en attente de synchronisation
     PENDING_SAVE: 'atable-planner-pending-save'
 };
@@ -69,7 +69,10 @@ export const STATUS_MESSAGES = {
     OFFLINE_MODE: '📡 Hors ligne - Les modifications seront synchronisées plus tard',
     CACHE_LOADED: '📱 Chargement depuis le cache local',
     LOGOUT_SUCCESS: 'Déconnexion réussie',
-    NOTIFICATION_TIME_UPDATED: '⏰ Heure de notification mise à jour'
+    NOTIFICATION_TIME_UPDATED: '⏰ Heure de notification mise à jour',
+    NOTIFICATION_ENABLED: '🔔 Notifications activées',
+    NOTIFICATION_DISABLED: '🔕 Notifications désactivées',
+    ERROR: '❌ Une erreur s\'est produite'
 };
 
 /**

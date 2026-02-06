@@ -25,31 +25,31 @@ router.get('/vapid-public-key', (req, res) => {
 
 /**
  * POST /api/notifications/subscribe
- * Enregistre une subscription push pour l'utilisateur
+ * Enregistre une notification push pour l'utilisateur
  */
 router.post('/subscribe', requireAuth, async (req, res) => {
   try {
-    const { subscription, settings } = req.body;
+    const { permissionNotification, settings } = req.body;
 
-    if (!subscription || !subscription.endpoint) {
+    if (!permissionNotification || !permissionNotification.endpoint) {
       return res.status(400).json({
-        error: 'Subscription invalide'
+        error: 'Systeme de notification invalide'
       });
     }
 
-    await pushManager.saveSubscription(
+    await pushManager.saveNotification(
       req.session.userId,
       req.session.machineId,
-      subscription,
+      permissionNotification,
       settings
     );
 
     res.json({
       success: true,
-      message: 'Subscription enregistrée'
+      message: 'Demande de notification enregistrée'
     });
   } catch (error) {
-    console.error('Erreur enregistrement subscription:', error);
+    console.error('Erreur enregistrement notification:', error);
     res.status(500).json({
       error: 'Erreur lors de l\'enregistrement'
     });
@@ -72,7 +72,7 @@ router.put('/settings', requireAuth, async (req, res) => {
       { ...settings }
     );
 
-    const newSettings = await pushManager.getUserSubscription(
+    const newSettings = await pushManager.getUserNotification(
       req.session.userId,
       req.session.machineId
     );
@@ -96,12 +96,12 @@ router.put('/settings', requireAuth, async (req, res) => {
  */
 router.get('/settings', requireAuth, async (req, res) => {
   try {
-    const subscription = await pushManager.getUserSubscription(
+    const notification = await pushManager.getUserNotification(
       req.session.userId,
       req.session.machineId
     );
 
-    if (!subscription) {
+    if (!notification) {
       return res.json({
         subscribed: false,
         settings: {
@@ -114,7 +114,7 @@ router.get('/settings', requireAuth, async (req, res) => {
 
     res.json({
       subscribed: true,
-      settings: subscription.settings
+      settings: notification.settings
     });
   } catch (error) {
     console.error('Erreur récupération paramètres:', error);
@@ -126,11 +126,11 @@ router.get('/settings', requireAuth, async (req, res) => {
 
 /**
  * DELETE /api/notifications/unsubscribe
- * Supprime la subscription de l'utilisateur
+ * Supprime la notification de l'utilisateur
  */
 router.delete('/unsubscribe', requireAuth, async (req, res) => {
   try {
-    await pushManager.deleteSubscription(
+    await pushManager.disabledNotification(
       req.session.userId,
       req.session.machineId
     );

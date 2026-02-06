@@ -11,7 +11,7 @@ const CONFIG = {
   appName: 'Atable!',
   version: '1.0.0',
   dataDir: path.join(__dirname, 'data'),
-  subscribeFile: path.join(__dirname, 'data', 'subscriptions.json'),
+  subscribeFile: path.join(__dirname, 'data', 'notifications.json'),
   usersFile: path.join(__dirname, 'data', 'users.json'),
   atableFilePrefix: 'atable_',
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY,

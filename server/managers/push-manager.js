@@ -1,11 +1,11 @@
 // ========================================
 // Gestionnaire de notifications push (web-push)
-// Ce module gère les subscriptions, les paramètres de notification et l'envoi des notifications push aux utilisateurs.
-// Les données sont stockées dans un fichier JSON (subscriptions.json) avec la structure suivante :
+// Ce module gère les notifications, les paramètres de notification et l'envoi des notifications push aux utilisateurs.
+// Les données sont stockées dans un fichier JSON (notifications.json) avec la structure suivante :
 // [
 //   {
 //     "userId": "123",
-//     "subscription": { ... }, // L'objet PushSubscription du navigateur
+//     "notification": { ... }, // L'objet PushNotification du navigateur
 //     "settings": {
 //       "enabled": true,
 //       "hour": 8,
@@ -17,7 +17,7 @@
 //   ...
 // ]
 // Le module utilise la bibliothèque web-push pour envoyer les notifications.
-// En cas d'erreur lors de l'envoi, si la subscription est expirée (410 Gone), elle est automatiquement supprimée.
+// En cas d'erreur lors de l'envoi, si la notification est expirée (410 Gone), elle est automatiquement supprimée.
 // ========================================
 
 const webPush = require('web-push');
@@ -48,73 +48,72 @@ function setupWebPush() {
 }
 
 /**
- * Initialise le fichier des subscriptions
+ * Initialise le fichier des notifications
  */
-async function initializeSubscriptionsFile() {
+async function initializeNotificationsFile() {
     try {
         await fs.access(SUBSCRIPTIONS_FILE);
     } catch (error) {
         // Le fichier n'existe pas, on le crée
         await fs.writeFile(SUBSCRIPTIONS_FILE, JSON.stringify([], null, 2));
-        console.log('Fichier subscriptions.json créé');
+        console.log('Fichier notifications.json créé');
     }
 }
 
 /**
- * Lit toutes les subscriptions
+ * Lit toutes les notifications
  */
-async function readSubscriptions() {
+async function readNotifications() {
     try {
         const data = await fs.readFile(SUBSCRIPTIONS_FILE, 'utf8');
         return JSON.parse(data);
     } catch (error) {
-        console.error('Erreur lecture subscriptions:', error);
+        console.error('Erreur lecture notifications:', error);
         return [];
     }
 }
 
 /**
- * Sauvegarde les subscriptions
+ * Sauvegarde les notifications
  */
-async function writeSubscriptions(subscriptions) {
-    await fs.writeFile(SUBSCRIPTIONS_FILE, JSON.stringify(subscriptions, null, 2));
+async function writeNotifications(permissionNotification) {
+    await fs.writeFile(SUBSCRIPTIONS_FILE, JSON.stringify(permissionNotification, null, 2));
 }
 
 /**
- * Ajoute ou met à jour une subscription pour un utilisateur
+ * Ajoute ou met à jour une notification pour un utilisateur
  * @param {string} userId
- * @param {Object} subscription - L'objet PushSubscription du navigateur
+ * @param {Object} notification - L'objet PushNotification du navigateur
  * @param {Object} settings - Paramètres de notification { enabled, hour, minute }
  */
-async function saveSubscription(userId, machineId, subscription, settings = {}) {
-    const subscriptions = await readSubscriptions();
+async function saveNotification(userId, machineId, permissionNotification, settings = {}) {
+    const notifications = await readNotifications();
 
-    // Vérifier si l'utilisateur a déjà une subscription
-    const existingIndex = subscriptions.findIndex(s => s.userId === userId);
+    // Vérifier si l'utilisateur a déjà une notification
+    const existingIndex = notifications.findIndex(s => s.userId === userId);
 
-    const subscriptionData = {
+    const notificationData = {
         userId,
         machineId,
-        subscription,
+        permissionNotification,
         settings: {
             enabled: settings.enabled !== undefined ? settings.enabled : true,
             hour: settings.hour || 8,
             minute: settings.minute || 0
         },
-        createdAt: existingIndex === -1 ? new Date().toISOString() : subscriptions[existingIndex].createdAt,
+        createdAt: existingIndex === -1 ? new Date().toISOString() : notifications[existingIndex].createdAt,
         updatedAt: new Date().toISOString()
     };
 
     if (existingIndex !== -1) {
         // Mettre à jour
-        subscriptions[existingIndex] = subscriptionData;
+        notifications[existingIndex] = notificationData;
     } else {
         // Ajouter
-        subscriptions.push(subscriptionData);
+        notifications.push(notificationData);
     }
 
-    await writeSubscriptions(subscriptions);
-    console.log(`Subscription sauvegardée pour utilisateur ${userId}`);
+    await writeNotifications(notifications);
 }
 
 /**
@@ -123,17 +122,17 @@ async function saveSubscription(userId, machineId, subscription, settings = {}) 
  * @param {Object} settings - { enabled, hour, minute }
  */
 async function updateNotificationSettings(userId, machineId, settings) {
-    const subscriptions = await readSubscriptions();
-    const index = subscriptions.findIndex(s => s.userId === userId && s.machineId === machineId);
+    const notifications = await readNotifications();
+    const index = notifications.findIndex(s => s.userId === userId && s.machineId === machineId);
 
     if (index !== -1) {
-        subscriptions[index].settings = {
-            ...subscriptions[index].settings,
+        notifications[index].settings = {
+            ...notifications[index].settings,
             ...settings
         };
-        subscriptions[index].updatedAt = new Date().toISOString();
-        await writeSubscriptions(subscriptions);
-        console.log(`Paramètres mis à jour pour utilisateur ${userId}`);
+        notifications[index].updatedAt = new Date().toISOString();
+        await writeNotifications(notifications);
+        console.log(`Paramètres mis à jour pour utilisateur ${userId}`)
         return true;
     }
 
@@ -141,24 +140,24 @@ async function updateNotificationSettings(userId, machineId, settings) {
 }
 
 /**
- * Récupère la subscription d'un utilisateur
+ * Récupère la notification d'un utilisateur
  * @param {string} userId
  */
-async function getUserSubscription(userId, machineId) {
-    const subscriptions = await readSubscriptions();
-    const subscription = subscriptions.find(s => s.userId === userId && s.machineId === machineId);
-    return subscription;
+async function getUserNotification(userId, machineId) {
+    const notifications = await readNotifications();
+    const notification = notifications.find(s => s.userId === userId && s.machineId === machineId);
+    return notification;
 }
 
 /**
- * Supprime la subscription d'un utilisateur
+ * Supprime la notification d'un utilisateur
  * @param {string} userId
  */
-async function deleteSubscription(userId, machineId) {
-    const subscriptions = await readSubscriptions();
-    const filtered = subscriptions.filter(s => s.userId !== userId);
-    await writeSubscriptions(filtered);
-    console.log(`Subscription supprimée pour utilisateur ${userId}`);
+async function disabledNotification(userId, machineId) {
+    console.log(`Notification désactivé pour utilisateur ${userId}`);
+    await updateNotificationSettings(userId, machineId, { enabled: false });
+    const notification = await getUserNotification(userId, machineId)
+    return notification
 }
 
 /**
@@ -166,11 +165,11 @@ async function deleteSubscription(userId, machineId) {
  * @param {string} userId
  * @param {Object} payload - { title, body, icon, data }
  */
-async function sendNotificationToUser(userId, subscription, payload) {
+async function sendNotificationToUser(userId, permissionNotification, payload) {
 
     try {
         await webPush.sendNotification(
-            subscription,
+            permissionNotification,
             JSON.stringify(payload)
         );
         console.log(`📬 Notification envoyée à utilisateur ${userId}`);
@@ -178,9 +177,9 @@ async function sendNotificationToUser(userId, subscription, payload) {
     } catch (error) {
         console.error(`❌ Erreur envoi notification à ${userId}:`, error);
 
-        // Si la subscription est invalide (410 Gone), la supprimer
+        // Si la notification est invalide (410 Gone), la supprimer
         if (error.statusCode === 410) {
-            await deleteSubscription(userId, machineId);
+            await disabledNotification(userId, machineId);
             return { success: false, reason: 'expired' };
         }
 
@@ -188,29 +187,14 @@ async function sendNotificationToUser(userId, subscription, payload) {
     }
 }
 
-/**
- * Récupère toutes les subscriptions actives pour une heure donnée
- * @param {number} hour
- * @param {number} minute
- */
-async function getSubscriptionsForTime(hour, minute) {
-    const subscriptions = await readSubscriptions();
-
-    return subscriptions.filter(s =>
-        s.settings.enabled &&
-        s.settings.hour === hour &&
-        s.settings.minute === minute
-    );
-}
 
 module.exports = {
     setupWebPush,
-    initializeSubscriptionsFile,
-    saveSubscription,
+    initializeNotificationsFile,
+    saveNotification,
     updateNotificationSettings,
-    getUserSubscription,
-    deleteSubscription,
+    getUserNotification,
+    disabledNotification,
     sendNotificationToUser,
-    getSubscriptionsForTime,
-    readSubscriptions
+    readNotifications
 };

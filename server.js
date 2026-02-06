@@ -123,7 +123,7 @@ async function startServer() {
         // Initialiser le système de notifications push
         const pushConfigured = pushManager.setupWebPush();
         if (pushConfigured) {
-            await pushManager.initializeSubscriptionsFile();
+            await pushManager.initializeNotificationsFile();
 
             // Démarrer le scheduler de notifications
             notificationScheduler.startNotificationScheduler();
