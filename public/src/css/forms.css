@@ -1,0 +1,153 @@
+/* ========================================
+   Groupes de paramètres
+   ======================================== */
+.setting-group {
+  margin-bottom: 24px;
+}
+
+.setting-group:last-child {
+  margin-bottom: 0;
+}
+
+.setting-group label {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.setting-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* ========================================
+   Toggle Switch
+   ======================================== */
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+  display: none;
+}
+
+.toggle-slider {
+  position: relative;
+  width: 50px;
+  height: 28px;
+  background-color: #cbd5e1;
+  border-radius: 14px;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: white;
+  top: 3px;
+  left: 3px;
+  transition: var(--transition);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-label input[type="checkbox"]:checked+.toggle-slider {
+  background-color: var(--primary-color);
+}
+
+.toggle-label input[type="checkbox"]:checked+.toggle-slider::before {
+  transform: translateX(22px);
+}
+
+.toggle-text {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ========================================
+   Input de temps
+   ======================================== */
+.time-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text-primary);
+  transition: var(--transition);
+  background-color: var(--textarea-bg);
+}
+
+.time-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background-color: var(--textarea-focus-bg);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* ========================================
+   Form Groups (Login)
+   ======================================== */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text-primary);
+  transition: var(--transition);
+  background-color: var(--background);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(6, 148, 148, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #cbd5e1;
+}
+
+.form-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+  border: 1px solid var(--error);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.875rem;
+  display: none;
+}
+
+.form-error.show {
+  display: block;
+}
+
+.form-hidden {
+  display: none;
+}

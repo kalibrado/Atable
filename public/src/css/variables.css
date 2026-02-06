@@ -1,0 +1,44 @@
+/* ========================================
+   Variables CSS avec support du mode sombre
+   ======================================== */
+:root {
+  /* Couleurs mode clair (par défaut) */
+  --primary-color: #069494;
+  --primary-light: #6366f1;
+  --primary-dark: #4338ca;
+  --background: #f8fafc;
+  --card-bg: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --border-radius: 12px;
+  --transition: all 0.3s ease;
+
+  /* Variables spécifiques au thème */
+  --textarea-bg: #f8fafc;
+  --textarea-focus-bg: #ffffff;
+  --modal-backdrop: rgba(0, 0, 0, 0.5);
+  --header-bg: #f8fafc;
+}
+
+/* Mode sombre */
+[data-theme="dark"] {
+  --background: #0f172a;
+  --card-bg: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: #334155;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+
+  /* Ajustements pour le mode sombre */
+  --textarea-bg: #0f172a;
+  --textarea-focus-bg: #1e293b;
+  --modal-backdrop: rgba(0, 0, 0, 0.7);
+  --header-bg: #1e293b;
+}

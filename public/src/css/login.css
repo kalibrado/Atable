@@ -1,0 +1,57 @@
+/* ========================================
+   Login page
+   ======================================== */
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 24px;
+}
+
+.login-card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  padding: 40px;
+  animation: fadeIn 0.5s ease;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-header h1 {
+  font-size: 2rem;
+  color: var(--primary-color);
+  margin-bottom: 8px;
+}
+
+.login-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.toggle-form {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.toggle-form p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.toggle-form button {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 0.95rem;
+}
+
+.toggle-form button:hover {
+  color: var(--primary-dark);
+}

@@ -1,0 +1,152 @@
+/* ========================================
+   Conteneur des jours
+   ======================================== */
+.days-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+}
+
+/* ========================================
+   Carte de jour
+   ======================================== */
+.day-card {
+  background-color: var(--card-bg);
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+  border-radius: var(--border-radius);
+}
+
+.day-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* En-tête de la carte (jour de la semaine) */
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  color: white;
+  cursor: pointer;
+  user-select: none;
+  border-radius: var(--border-radius);
+}
+
+.day-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.day-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.today-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(10px);
+}
+
+/* Style spécial pour le jour actuel */
+.day-card.today {
+  box-shadow: 0 0 0 3px var(--primary-light), var(--shadow-lg);
+  border-radius: var(--border-radius);
+}
+
+.day-card.today .day-header {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+}
+
+.toggle-icon {
+  font-size: 1.25rem;
+  transition: transform 0.3s ease;
+}
+
+.day-card.collapsed .toggle-icon {
+  transform: rotate(-90deg);
+}
+
+/* Contenu de la carte */
+.day-content {
+  padding: 20px;
+  display: grid;
+  gap: 20px;
+  max-height: 1000px;
+  opacity: 1;
+  transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+}
+
+.day-card.collapsed .day-content {
+  max-height: 0;
+  opacity: 0;
+  padding: 0 20px;
+  overflow: hidden;
+  border-radius: var(--border-radius);
+}
+
+/* ========================================
+   Sections Midi et Soir
+   ======================================== */
+.atable-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.atable-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.atable-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text-primary);
+  resize: vertical;
+  transition: var(--transition);
+  background-color: var(--textarea-bg);
+}
+
+.atable-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background-color: var(--textarea-focus-bg);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  transform: scale(1.01);
+}
+
+.atable-textarea::placeholder {
+  color: #cbd5e1;
+}
+
+/* Mode sombre : placeholder plus visible */
+[data-theme="dark"] .atable-textarea::placeholder {
+  color: #64748b;
+}

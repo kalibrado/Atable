@@ -1,0 +1,26 @@
+/* ========================================
+   Conteneur principal
+   ======================================== */
+.container {
+  overflow: hidden;
+  width: 100vw;
+  margin: 0 auto;
+  padding: 0;
+  height: 95vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================
+   Footer
+   ======================================== */
+.footer {
+  text-align: center;
+  padding: 16px;
+  margin-top: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  background-color: var(--background);
+  border-top: 2px solid var(--border-color);
+  flex-shrink: 0;
+}

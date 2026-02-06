@@ -1,0 +1,16 @@
+/* ========================================
+   Support du mode sombre pour les scrollbars (Webkit)
+   ======================================== */
+[data-theme="dark"] ::-webkit-scrollbar {
+  width: 10px;
+  background-color: var(--background);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 5px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-secondary);
+}
