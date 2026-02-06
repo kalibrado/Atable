@@ -102,12 +102,20 @@ export class UIRenderer {
         const container = document.getElementById('days-container');
         const currentDay = DateUtils.getCurrentDay();
 
-        // Replier tous les jours sauf le jour actuel
-        DAYS.forEach(day => {
-            if (day !== currentDay) {
-                collapsedDays.add(day);
-            }
-        });
+        // Vérifier si on est sur grand écran
+        const isLargeScreen = window.innerWidth >= 768;
+
+        if (isLargeScreen) {
+            // Sur grand écran : tout déplier
+            collapsedDays.clear();
+        } else {
+            // Sur mobile : replier tous les jours sauf le jour actuel
+            DAYS.forEach(day => {
+                if (day !== currentDay) {
+                    collapsedDays.add(day);
+                }
+            });
+        }
 
         // Générer le HTML de toutes les cartes
         const cardsHTML = DAYS
@@ -116,8 +124,21 @@ export class UIRenderer {
 
         container.innerHTML = cardsHTML;
 
-        // Scroll vers le jour actuel après un court délai
-        this.scrollToCurrentDay(currentDay);
+        // Scroll vers le jour actuel après un court délai (seulement sur mobile)
+        if (!isLargeScreen) {
+            this.scrollToCurrentDay(currentDay);
+        }
+
+        // Écouter le redimensionnement de la fenêtre
+        window.addEventListener('resize', () => {
+            const wasLargeScreen = isLargeScreen;
+            const nowLargeScreen = window.innerWidth >= 768;
+            
+            // Si on change de mode, re-render
+            if (wasLargeScreen !== nowLargeScreen) {
+                this.renderAllDays(mealsData, collapsedDays);
+            }
+        });
     }
 
     /**

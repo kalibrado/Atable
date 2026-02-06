@@ -6,7 +6,7 @@
   width: 100vw;
   margin: 0 auto;
   padding: 0;
-  height: 95vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
 }
