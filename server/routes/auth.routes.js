@@ -5,13 +5,15 @@
 const express = require('express');
 const router = express.Router();
 const usersManager = require('../managers/users-manager');
-const pushManager = require('../managers/push-manager')
+const preferencesManager = require('../managers/preferences-manager');
+const atableManager = require("../managers/atable-manager")
+
 /**
  * POST /auth/register
  * Inscription d'un nouvel utilisateur
  */
 router.post('/register', async (req, res) => {
-  const { email, password, name } = req.body;
+  const { email, password, name, machineId } = req.body;
 
   // Validation
   if (!email || !password) {
@@ -40,7 +42,12 @@ router.post('/register', async (req, res) => {
 
     // Connexion automatique après inscription
     req.session.userId = user.id;
+    req.session.machineId = machineId
     req.session.userEmail = user.email;
+
+    await preferencesManager.updateNumberOfWeeks(req.session.userId, parseInt(2));
+    await atableManager
+
     res.json({
       success: true,
       user: {

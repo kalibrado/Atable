@@ -5,16 +5,24 @@
 const express = require('express');
 const router = express.Router();
 const atableManager = require('../managers/atable-manager');
+const preferencesManager = require('../managers/preferences-manager');
 const { requireAuth } = require('../middleware/auth-middleware');
 
 /**
  * GET /api/meals
- * Récupère les repas de l'utilisateur connecté
+ * Récupère les repas de l'utilisateur connecté 
  */
 router.get('/', requireAuth, async (req, res) => {
     try {
-        const atable = await atableManager.readUseratable(req.session.userId);
-        res.json(atable);
+        // Récupérer le nombre de semaines de l'utilisateur
+        const preferences = await preferencesManager.readUserPreferences(req.session.userId);
+        const numberOfWeeks = preferences.numberOfWeeks || 1;
+        
+        const atable = await atableManager.readUseratable(req.session.userId, numberOfWeeks);
+        res.json({
+            weeks: atable,
+            numberOfWeeks
+        });
     } catch (error) {
         console.error('Erreur lecture repas:', error);
         res.status(500).json({

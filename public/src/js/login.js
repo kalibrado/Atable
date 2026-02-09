@@ -28,6 +28,30 @@ const login = () => {
     errorMessage.classList.remove('show');
     errorMessage.textContent = '';
   }
+  /**
+ * Génère ou récupère un identifiant unique pour la machine
+ * Utilise localStorage pour persister l'identifiant
+ * @returns {string} L'identifiant unique de la machine
+*/
+  function getMachineId() {
+    let machineId = localStorage.getItem('atable_machine_id');
+    if (!machineId) {
+      machineId = _generateUUID();
+      localStorage.setItem('atable_machine_id', machineId);
+    }
+    return machineId;
+  }
+  /**
+   * Génère un UUID v4
+   * @private
+   * @returns {string} Un UUID aléatoire
+  */
+  function _generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
 
   /**
    * Bascule entre formulaire de login et d'inscription
@@ -62,31 +86,6 @@ const login = () => {
 
     loginBtn.disabled = true;
     loginBtn.textContent = 'Connexion...';
-    /**
-     * Génère ou récupère un identifiant unique pour la machine
-     * Utilise localStorage pour persister l'identifiant
-     * @returns {string} L'identifiant unique de la machine
-    */
-    function getMachineId() {
-      let machineId = localStorage.getItem('atable_machine_id');
-      if (!machineId) {
-        machineId = _generateUUID();
-        localStorage.setItem('atable_machine_id', machineId);
-      }
-      return machineId;
-    }
-
-    /**
-     * Génère un UUID v4
-     * @private
-     * @returns {string} Un UUID aléatoire
-    */
-    function _generateUUID() {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-      });
-    }
 
     try {
       const response = await fetch('/auth/login', {
@@ -138,7 +137,7 @@ const login = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, name })
+        body: JSON.stringify({ email, password, name, machineId: getMachineId() })
       });
 
       const data = await response.json();

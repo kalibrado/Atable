@@ -1,0 +1,63 @@
+/* ========================================
+   Onglets de semaines
+   ======================================== */
+.weeks-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px;
+  background-color: var(--header-bg);
+  border-bottom: 2px solid var(--border-color);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.week-tab {
+  padding: 12px 24px;
+  background-color: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: var(--transition);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.week-tab:hover {
+  background-color: var(--background);
+  border-color: var(--primary-light);
+}
+
+.week-tab.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow);
+}
+
+/* Responsive tablette */
+@media (min-width: 768px) {
+  .weeks-tabs {
+    justify-content: center;
+  }
+
+  .week-tab {
+    min-width: 150px;
+    text-align: center;
+  }
+}
+
+/* Scrollbar personnalisée pour les onglets */
+.weeks-tabs::-webkit-scrollbar {
+  height: 6px;
+}
+
+.weeks-tabs::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+}
+
+.weeks-tabs::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-secondary);
+}

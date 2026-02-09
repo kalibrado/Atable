@@ -210,8 +210,6 @@ export class APIManager {
    */
   static async updateSettings(settings) {
     try {
-
-      console.log(notificationSettings)
       const response = await fetch('/api/notifications/settings', {
         method: 'PUT',
         headers: {
@@ -219,15 +217,12 @@ export class APIManager {
         },
         body: JSON.stringify(settings)
       })
-
       const data = await response.json();
       if (!response.ok) {
         throw new Error('Erreur serveur');
       }
       // Mettre à jour localement
-      console.log('Mise à jour paramètres:', data);
       return true;
-
     } catch (error) {
       console.error('Erreur mise à jour paramètres:', error);
       return false;

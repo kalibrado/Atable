@@ -14,8 +14,6 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
-
-    <!-- CSS avec support du mode sombre -->
     <link rel="stylesheet" href="src/css/main.css">
 </head>
 
@@ -36,6 +34,8 @@
                 </button>
             </div>
         </header>
+        <div id="weeks-tabs-container" class="weeks-tabs" style="display: none;">
+        </div>
 
         <!-- Modal de paramètres -->
         <div id="settings-modal" class="modal">
@@ -60,6 +60,28 @@
                             </label>
                             <p class="setting-description">
                                 Activez le thème sombre pour réduire la fatigue oculaire
+                            </p>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+
+                    <!-- ===================== -->
+                    <!-- PLANIFICATION -->
+                    <!-- ===================== -->
+                    <div class="settings-section">
+                        <h3>📅 Planification</h3>
+                        <div class="setting-group">
+                            <label for="number-of-weeks">
+                                <strong>Nombre de semaines</strong>
+                            </label>
+                            <select id="number-of-weeks" class="weeks-select">
+                                <option value="1">1 semaine</option>
+                                <option value="2">2 semaines</option>
+                                <option value="3">3 semaines</option>
+                                <option value="4">4 semaines</option>
+                            </select>
+                            <p class="setting-description">
+                                Planifiez vos repas sur plusieurs semaines. Les données seront conservées.
                             </p>
                         </div>
                     </div>
@@ -92,6 +114,8 @@
                             </div>
                         </div>
                     </div>
+                    <div class="divider"></div>
+                    
                     <!-- ===================== -->
                     <!-- COMPTE -->
                     <!-- ===================== -->

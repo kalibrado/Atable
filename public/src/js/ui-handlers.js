@@ -1,11 +1,12 @@
 // ========================================
-// Gestion des événements et interactions utilisateur
+// Gestion des événements et interactions utilisateur 
 // ========================================
 
 import { API_CONFIG, STATUS_TYPES } from './config.js';
 import { APIManager } from './api.js';
 import { UIRenderer } from './ui-renderer.js';
 import { StorageManager } from './storage.js';
+import { WeeksManager } from './weeks-manager.js';
 
 /**
  * Classe de gestion des interactions utilisateur
@@ -70,7 +71,9 @@ export class UIManager {
             clearTimeout(UIManager.state.saveTimeout);
         }
         // Planifier une nouvelle sauvegarde
-        UIManager.state.saveTimeout = setTimeout(async () => await APIManager.saveMeals(UIManager.state.mealsData), API_CONFIG.SAVE_DELAY);
+        UIManager.state.saveTimeout = setTimeout(async () => {
+            await WeeksManager.saveAllWeeks();
+        }, API_CONFIG.SAVE_DELAY);
     }
 
     /**
@@ -114,7 +117,7 @@ export class UIManager {
             input.addEventListener('blur', (e) => {
                 e.target.parentElement.style.transform = 'scale(1)';
             });
-        })
+        });
     }
 
     /**
@@ -149,8 +152,9 @@ export class UIManager {
                 // Annuler le timeout de sauvegarde
                 clearTimeout(UIManager.state.saveTimeout);
 
-                // Sauvegarder immédiatement dans le cache
-                StorageManager.saveToCache(UIManager.state.mealsData);
+                // Sauvegarder toutes les semaines dans le cache
+                const allWeeksData = WeeksManager.getAllWeeksData();
+                StorageManager.saveToCache(allWeeksData);
 
                 // Tenter d'envoyer avec sendBeacon si disponible
                 const pendingData = localStorage.getItem('atable-planner-pending-save');
@@ -169,7 +173,13 @@ export class UIManager {
     static async loadAndRender() {
         try {
             // Charger les données
-            UIManager.state.mealsData = await APIManager.loadMeals();
+            const { weeks, numberOfWeeks } = await APIManager.loadMeals();
+
+            // Initialiser le gestionnaire de semaines
+            WeeksManager.initialize(numberOfWeeks, weeks);
+
+            // Charger les données de la première semaine
+            UIManager.state.mealsData = weeks.week1;
 
             // Rendre l'interface
             UIRenderer.renderAllDays(

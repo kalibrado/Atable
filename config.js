@@ -27,7 +27,10 @@ const CONFIG = {
     samedi: { midi: '', soir: '' },
     dimanche: { midi: '', soir: '' }
   },
-  validDays: ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
+  validDays: ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'],
+  minWeeks: 1,
+  maxWeeks: 4,
+  defaultWeeks: 2
 };
 
 

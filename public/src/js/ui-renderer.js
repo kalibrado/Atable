@@ -3,7 +3,9 @@
 // ========================================
 
 import { DAYS, MEAL_TYPES, MEAL_EMOJIS } from './config.js';
-import { DateUtils } from './utils.js';
+// import { DateUtils } from './utils.js';
+import { DateUtils } from './utils-multiweek.js'; // ← IMPORTANT
+import { WeeksManager } from './weeks-manager.js'; // ← AJOUTER
 
 /**
  * Classe de gestion du rendu de l'interface
@@ -47,7 +49,13 @@ export class UIRenderer {
      * @returns {string} Le HTML de l'emoji calendrier
      */
     static createCalendarEmoji(dayName) {
-        const date = DateUtils.getDateForDay(dayName);
+        // Calculer l'offset de semaine
+        const currentWeek = WeeksManager.getCurrentWeek();
+        const weekOffset = currentWeek - 1;
+        
+        // Utiliser getDateForDayInWeek au lieu de getDateForDay
+        const date = DateUtils.getDateForDayInWeek(dayName, weekOffset);
+        
         const dayNumber = date.getDate();
         const month = date.toLocaleString('fr-FR', { month: 'short' });
 

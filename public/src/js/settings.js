@@ -5,6 +5,7 @@
 import { APIManager } from './api.js';
 import { UIManager } from './ui-handlers.js';
 import { STATUS_MESSAGES, STATUS_TYPES } from './config.js';
+import { WeeksManager } from './weeks-manager.js'
 
 /**
  * Classe de gestion des paramètres de l'application
@@ -23,6 +24,15 @@ export class SettingsManager {
         }
 
         modal.classList.add('show');
+        const numberOfWeeks = WeeksManager.getNumberOfWeeks();
+        const select = document.getElementById('number-of-weeks');
+        if (select) {
+            select.value = numberOfWeeks;
+            select.addEventListener('change', async (e) => {
+                console.log('change', e)
+                await SettingsManager.updateNumberOfWeeks(parseInt(e.target.value));
+            });
+        }
 
         document.getElementById('notification-time').addEventListener('change', async (e) => {
             await SettingsManager.updateNotificationTime()
@@ -40,7 +50,19 @@ export class SettingsManager {
             });
         }
     }
-
+    static async updateNumberOfWeeks(newValue) {
+        try {
+            console.log(newValue)
+            await WeeksManager.updateNumberOfWeeks(newValue);
+            UIManager.showStatus(
+                `Planification sur ${newValue} semaine(s) activée`,
+                STATUS_TYPES.SUCCESS
+            );
+        } catch (error) {
+            console.error('Erreur:', error);
+            UIManager.showStatus('Erreur lors de la mise à jour', STATUS_TYPES.ERROR);
+        }
+    }
     /**
      * Ferme la modal de paramètres
      */

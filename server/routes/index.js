@@ -6,7 +6,7 @@
 const authRoutes = require('./auth.routes');
 const mealsRoutes = require('./atable.routes');
 const notificationsRoutes = require('./notifications.routes');
-
+const preferencesRoutes = require('./preferences.routes')
 /**
  * Configure tous les routeurs de l'application
  * @param {Express} app - Instance Express
@@ -20,6 +20,8 @@ function setupRoutes(app) {
 
     // Routes API des notifications
     app.use('/api/notifications', notificationsRoutes);
+
+    app.use('/api/preferences', preferencesRoutes);
 
 }
 

@@ -27,46 +27,69 @@ const validDays = CONFIG.validDays;
  * @returns {string}
  */
 function getUseratablePath(userId) {
-    return path.join(DATA_DIR, `atable_${userId}.json`);
+  return path.join(DATA_DIR, `atable_${userId}.json`);
 }
 
 /**
- * Lit les repas d'un utilisateur
+ * Crée une structure de semaine vide
+ * @returns {Object}
+ */
+function createEmptyWeek() {
+  return { ...DEFAULT_atable };
+}
+
+/**
+ * Crée la structure de données pour un nombre de semaines donné
+ * @param {number} numberOfWeeks
+ * @returns {Object}
+ */
+function createWeeksStructure(userId) {
+  const weeks = {};
+  for (let i = 1; i <= numberOfWeeks; i++) {
+    weeks[`week${i}`] = createEmptyWeek();
+  }
+  writeUseratable(userId, weeks)
+  return weeks;
+}
+
+/**
+ * Lit les repas d'un utilisateur (toutes les semaines)
  * @param {string} userId
+ * @param {number} numberOfWeeks - Nombre de semaines à charger
  * @returns {Promise<Object>}
  */
 async function readUseratable(userId) {
-    const filePath = getUseratablePath(userId);
+  const filePath = getUseratablePath(userId);
 
-    try {
-        const data = await fs.readFile(filePath, 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        // Le fichier n'existe pas encore, retourner les données par défaut
-        return { ...DEFAULT_atable };
-    }
+  try {
+    const data = await fs.readFile(filePath, 'utf8');
+    return data;
+  } catch (error) {
+    console.error(error)
+    // Le fichier n'existe pas encore, retourner les données par défaut
+    // return createWeeksStructure(numberOfWeeks);
+  }
 }
 
 /**
- * Sauvegarde les repas d'un utilisateur
+ * Sauvegarde les repas d'un utilisateur (toutes les semaines)
  * @param {string} userId
- * @param {Object} atable
+ * @param {Object} atable - Structure avec week1, week2, etc.
  */
 async function writeUseratable(userId, atable) {
-    const filePath = getUseratablePath(userId);
+  const filePath = getUseratablePath(userId);
 
-    // Validation des données
-    const isValid = Object.keys(atable).every(day =>
-        validDays.includes(day) &&
-        atable[day].hasOwnProperty('midi') &&
-        atable[day].hasOwnProperty('soir')
-    );
+  // Validation des données
+  const weekKeys = Object.keys(atable);
+  const isValid = weekKeys.every(weekKey => {
+    const day = atable[weekKey];
+    return !!day
+  });
+  if (!isValid) {
+    throw new Error('Format de données invalide');
+  }
 
-    if (!isValid) {
-        throw new Error('Format de données invalide');
-    }
-
-    await fs.writeFile(filePath, JSON.stringify(atable, null, 2));
+  await fs.writeFile(filePath, JSON.stringify(atable, null, 2));
 }
 
 /**
@@ -74,18 +97,19 @@ async function writeUseratable(userId, atable) {
  * @param {string} userId
  */
 async function deleteUseratable(userId) {
-    const filePath = getUseratablePath(userId);
+  const filePath = getUseratablePath(userId);
 
-    try {
-        await fs.unlink(filePath);
-    } catch (error) {
-        // Le fichier n'existe pas, ignorer
-    }
+  try {
+    await fs.unlink(filePath);
+  } catch (error) {
+    // Le fichier n'existe pas, ignorer
+  }
 }
 
 module.exports = {
-    readUseratable,
-    writeUseratable,
-    deleteUseratable,
-    DEFAULT_atable
+  readUseratable,
+  writeUseratable,
+  deleteUseratable,
+  createWeeksStructure,
+  DEFAULT_atable
 };

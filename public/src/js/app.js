@@ -8,6 +8,7 @@
 import { UIManager } from './ui-handlers.js';
 import { SettingsManager, AuthManager } from './settings.js';
 import { ThemeManager } from './theme.js';
+import { WeeksManager } from './weeks-manager.js';
 
 /**
  * Classe principale de l'application
@@ -69,7 +70,6 @@ class AtableApp {
         window.closeSettings = () => SettingsManager.closeModal();
         window.toggleNotifications = () => SettingsManager.toggleNotifications();
         window.updateNotificationTime = () => SettingsManager.updateNotificationTime();
-        window.getMachineId = () => SettingsManager.getMachineId();
         // Handler pour la déconnexion
         window.handleLogout = () => AuthManager.handleLogout();
 
@@ -82,6 +82,11 @@ class AtableApp {
             toggle: () => ThemeManager.toggle(),
             reset: () => ThemeManager.resetToSystemTheme(),
             isDark: () => ThemeManager.isDarkMode()
+        };
+        // Handlers pour les semaines
+        window.weeksHandlers = {
+            switchWeek: (weekNumber) => WeeksManager.switchWeek(weekNumber),
+            updateNumberOfWeeks: (number) => WeeksManager.updateNumberOfWeeks(number)
         };
     }
 }
