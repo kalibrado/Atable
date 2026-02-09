@@ -70,9 +70,9 @@ export class APIManager {
         },
         body: JSON.stringify(data)
       });
-
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
+      const dataResponse = await response.json()
+      if (!response.ok || dataResponse?.error) {
+        throw new Error(`Erreur HTTP: ${response.status} ${dataResponse?.error}`);
       }
 
       // Sauvegarde réussie
@@ -80,7 +80,7 @@ export class APIManager {
       StorageManager.saveToCache(data);
 
       UIManager.showStatus(
-        STATUS_MESSAGES.SAVED,
+        dataResponse?.message || STATUS_MESSAGES.SAVED,
         STATUS_TYPES.SUCCESS
       );
 
@@ -88,6 +88,10 @@ export class APIManager {
 
     } catch (error) {
       console.error('Erreur sauvegarde:', error);
+      UIManager.showStatus(
+        error,
+        STATUS_TYPES.ERROR
+      );
       return this._handleOfflineSave(data);
     }
   }
