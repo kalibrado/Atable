@@ -9,6 +9,7 @@
   border-bottom: 2px solid var(--border-color);
   overflow-x: auto;
   flex-shrink: 0;
+  justify-content: center;
 }
 
 .week-tab {
@@ -38,10 +39,6 @@
 
 /* Responsive tablette */
 @media (min-width: 768px) {
-  .weeks-tabs {
-    justify-content: center;
-  }
-
   .week-tab {
     min-width: 150px;
     text-align: center;

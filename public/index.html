@@ -20,22 +20,24 @@
 <body>
     <div class="container">
         <!-- En-tête de l'application -->
-        <header class="header">
-            <div class="header-content">
-                <h1>Atable! <span id="name-user"></span></h1>
-                <p class="subtitle">Planifiez vos repas du lundi au dimanche</p>
+        <header>
+            <div  class="header">
+                <div class="header-content">
+                    <h1>Atable! <span id="name-user"></span></h1>
+                    <p class="subtitle">Planifiez vos repas du lundi au dimanche</p>
+                </div>
+                <div class="header-actions">
+                    <button id="settings-btn" class="settings-btn" onclick="openSettings()" aria-label="Paramètres">
+                        ⚙️
+                    </button>
+                    <button id="logout-btn" class="logout-btn" onclick="handleLogout()" aria-label="Déconnexion">
+                        🚪
+                    </button>
+                </div>
             </div>
-            <div class="header-actions">
-                <button id="settings-btn" class="settings-btn" onclick="openSettings()" aria-label="Paramètres">
-                    ⚙️
-                </button>
-                <button id="logout-btn" class="logout-btn" onclick="handleLogout()" aria-label="Déconnexion">
-                    🚪
-                </button>
+            <div id="weeks-tabs-container" class="weeks-tabs" style="display: none;">
             </div>
         </header>
-        <div id="weeks-tabs-container" class="weeks-tabs" style="display: none;">
-        </div>
 
         <!-- Modal de paramètres -->
         <div id="settings-modal" class="modal">
@@ -93,7 +95,8 @@
                     <div class="settings-section">
                         <h3>🍽️ Préférences alimentaires</h3>
                         <p class="setting-description">
-                            Définissez vos catégories d'ingrédients préférés et indiquez pour quels repas vous les utilisez.
+                            Définissez vos catégories d'ingrédients préférés et indiquez pour quels repas vous les
+                            utilisez.
                         </p>
                         <div id="ingredients-container" class="ingredients-container">
                             <!-- Les catégories d'ingrédients seront générées ici par JavaScript -->
@@ -129,7 +132,7 @@
                         </div>
                     </div>
                     <div class="divider"></div>
-                    
+
                     <!-- ===================== -->
                     <!-- COMPTE -->
                     <!-- ===================== -->
@@ -175,6 +178,7 @@
 
     <script src="src/js/notifications.js"></script>
     <script type="module" src="src/js/app.js"></script>
+    <script src="src/js/dynamique.js"></script>
 </body>
 
 </html>

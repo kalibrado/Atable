@@ -22,31 +22,31 @@ class AtableApp {
         console.log('🚀 Initialisation de l\'application Atable...');
 
         try {
-            // 0. Initialiser le thème (doit être fait en premier pour éviter le flash)
+            // Initialiser le thème (doit être fait en premier pour éviter le flash)
             ThemeManager.initialize();
 
-            // 1. Charger les informations utilisateur
+            // Charger les informations utilisateur
             await AuthManager.loadUserInfo();
 
-            // 2. Charger et afficher les données des repas
+            // Charger et afficher les données des repas
             await UIManager.loadAndRender();
 
-            // 3. Initialiser le système de notifications
+            // Initialiser le système de notifications
             await SettingsManager.initialize();
 
-            // 4. Configurer les listeners de connectivité
+            // Configurer les listeners de connectivité
             UIManager.setupConnectivityListeners();
 
-            // 5. Configurer la sauvegarde avant déchargement
+            // Configurer la sauvegarde avant déchargement
             UIManager.setupBeforeUnload();
 
-            // 6. Configurer les événements de la modal
+            // Configurer les événements de la modal
             SettingsManager.setupModalEvents();
 
-            // 7. Configurer le toggle du mode sombre
+            // Configurer le toggle du mode sombre
             ThemeManager.setupToggleListener();
 
-            // 8. Exposer les handlers globalement
+            // Exposer les handlers globalement
             this.exposeGlobalHandlers();
 
             console.log('Application prête');
