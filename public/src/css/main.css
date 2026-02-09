@@ -20,6 +20,7 @@
 @import 'buttons.css';
 @import 'messages.css';
 @import 'utilities.css';
+@import 'ingredients.css';
 
 /* Pages */
 @import 'login.css';

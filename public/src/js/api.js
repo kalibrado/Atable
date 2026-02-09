@@ -209,6 +209,7 @@ export class APIManager {
       return false;
     }
   }
+
   /**
    * Met à jour les paramètres de notification sur le serveur
    */
@@ -225,7 +226,6 @@ export class APIManager {
       if (!response.ok) {
         throw new Error('Erreur serveur');
       }
-      // Mettre à jour localement
       return true;
     } catch (error) {
       console.error('Erreur mise à jour paramètres:', error);
@@ -233,5 +233,146 @@ export class APIManager {
     }
   }
 
+  // ========================================
+  // MÉTHODES POUR LES INGRÉDIENTS
+  // ========================================
 
+  /**
+   * Récupère les ingrédients de l'utilisateur
+   * @returns {Promise<Object>} Les ingrédients
+   */
+  static async fetchIngredients() {
+    try {
+      const response = await fetch('/api/preferences/ingredients');
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+
+    } catch (error) {
+      console.error('Erreur chargement ingrédients:', error);
+      return { ingredients: {} };
+    }
+  }
+
+  /**
+   * Ajoute un item à une catégorie d'ingrédients
+   * @param {string} category - La catégorie
+   * @param {string} item - L'item à ajouter
+   * @returns {Promise<Object>} Résultat de l'opération
+   */
+  static async addIngredientItem(category, item) {
+    try {
+      const encodedCategory = encodeURIComponent(category);
+      const response = await fetch(`/api/preferences/ingredients/${encodedCategory}/item`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ item })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur serveur');
+      }
+
+      return await response.json();
+
+    } catch (error) {
+      console.error('Erreur ajout item:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Supprime un item d'une catégorie d'ingrédients
+   * @param {string} category - La catégorie
+   * @param {string} item - L'item à supprimer
+   * @returns {Promise<Object>} Résultat de l'opération
+   */
+  static async removeIngredientItem(category, item) {
+    try {
+      const encodedCategory = encodeURIComponent(category);
+      const response = await fetch(`/api/preferences/ingredients/${encodedCategory}/item`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ item })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur serveur');
+      }
+
+      return await response.json();
+
+    } catch (error) {
+      console.error('Erreur suppression item:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Met à jour les préférences de repas pour une catégorie
+   * @param {string} category - La catégorie
+   * @param {Object} repas - { midi: boolean, soir: boolean }
+   * @returns {Promise<Object>} Résultat de l'opération
+   */
+  static async updateCategoryRepas(category, repas) {
+    try {
+      const encodedCategory = encodeURIComponent(category);
+      const response = await fetch(`/api/preferences/ingredients/${encodedCategory}/repas`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(repas)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur serveur');
+      }
+
+      return await response.json();
+
+    } catch (error) {
+      console.error('Erreur mise à jour repas:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Sauvegarde tous les ingrédients
+   * @param {Object} ingredients - Les ingrédients à sauvegarder
+   * @returns {Promise<Object>} Résultat de l'opération
+   */
+  static async saveIngredients(ingredients) {
+    try {
+      const response = await fetch('/api/preferences/ingredients', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ingredients })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur serveur');
+      }
+
+      return await response.json();
+
+    } catch (error) {
+      console.error('Erreur sauvegarde ingrédients:', error);
+      throw error;
+    }
+  }
 }

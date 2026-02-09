@@ -30,6 +30,20 @@ function getUserFilePath(userId) {
 }
 
 /**
+ * Crée la structure par défaut des ingrédients
+ */
+function createDefaultIngredients() {
+    const ingredients = {};
+    CONFIG.foodCategories.forEach(category => {
+        ingredients[category] = {
+            repas: { midi: false, soir: false },
+            items: []
+        };
+    });
+    return ingredients;
+}
+
+/**
  * Crée la structure par défaut d'un utilisateur
  */
 function createDefaultUserStructure(email, passwordHash, firstname = '', lastname = '') {
@@ -43,7 +57,8 @@ function createDefaultUserStructure(email, passwordHash, firstname = '', lastnam
         createdAt: now,
         updatedAt: now,
         preference: {
-            showWeeks: CONFIG.defaultWeeks
+            showWeeks: CONFIG.defaultWeeks,
+            ingredients: createDefaultIngredients()
         },
         devices: [],
         weeksPlans: createDefaultWeeksPlans(CONFIG.defaultWeeks)
@@ -71,7 +86,18 @@ async function readUserData(userId) {
     const filePath = getUserFilePath(userId);
     try {
         const data = await fs.readFile(filePath, 'utf8');
-        return JSON.parse(data);
+        const userData = JSON.parse(data);
+
+        // Migration : ajouter ingredients si manquant
+        if (!userData.preference) {
+            userData.preference = {};
+        }
+        if (!userData.preference.ingredients) {
+            userData.preference.ingredients = createDefaultIngredients();
+            await writeUserData(userId, userData);
+        }
+
+        return userData;
     } catch (error) {
         return null;
     }
@@ -93,7 +119,7 @@ async function listAllUsers() {
     try {
         const files = await fs.readdir(USERS_DIR);
         const users = [];
-        
+
         for (const file of files) {
             if (file.endsWith('.json')) {
                 const userId = file.replace('.json', '');
@@ -103,7 +129,7 @@ async function listAllUsers() {
                 }
             }
         }
-        
+
         return users;
     } catch (error) {
         return [];
@@ -135,7 +161,7 @@ async function createUser(email, password, firstname = '', lastname = '') {
     }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    
+
     const userData = createDefaultUserStructure(email, passwordHash, firstname, lastname);
     await writeUserData(userData.id, userData);
 
@@ -220,5 +246,6 @@ module.exports = {
     updateDevice,
     readUserData,
     writeUserData,
-    listAllUsers
+    listAllUsers,
+    createDefaultIngredients
 };

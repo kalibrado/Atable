@@ -25,7 +25,16 @@ const CONFIG = {
   validDays: ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'],
   minWeeks: 1,
   maxWeeks: 4,
-  defaultWeeks: 2
+  defaultWeeks: 2,
+  foodCategories: [
+    "🥩 Protéines animales",
+    "🌱 Protéines végétales",
+    "🥕 Légumes",
+    "🍎 Fruits",
+    "🍞 Féculents / Glucides",
+    "🧀 Produits laitiers",
+    "🧂 Condiments"
+  ]
 };
 
 module.exports = CONFIG;

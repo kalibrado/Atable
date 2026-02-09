@@ -5,7 +5,8 @@
 import { APIManager } from './api.js';
 import { UIManager } from './ui-handlers.js';
 import { STATUS_MESSAGES, STATUS_TYPES } from './config.js';
-import { WeeksManager } from './weeks-manager.js'
+import { WeeksManager } from './weeks-manager.js';
+import { IngredientsManager } from './ingredients-manager.js';
 
 /**
  * Classe de gestion des paramètres de l'application
@@ -24,6 +25,8 @@ export class SettingsManager {
         }
 
         modal.classList.add('show');
+        
+        // Initialiser le nombre de semaines
         const numberOfWeeks = WeeksManager.getNumberOfWeeks();
         const select = document.getElementById('number-of-weeks');
         if (select) {
@@ -34,22 +37,27 @@ export class SettingsManager {
             });
         }
 
-        document.getElementById('notification-time').addEventListener('change', async (e) => {
+        // Initialiser l'heure de notification
+        document.getElementById('notification-time')?.addEventListener('change', async (e) => {
             await SettingsManager.updateNotificationTime()
+        });
 
-        })
-
-
+        // Mettre à jour l'UI
         await SettingsManager.updateUI();
+        
+        // Initialiser et afficher les ingrédients
+        await IngredientsManager.initialize();
+        IngredientsManager.render();
+
         // Attacher l'événement au toggle de notifications
         const notifToggle = document.getElementById('enable-notifications');
         if (notifToggle) {
             notifToggle.addEventListener('change', async () => {
                 await SettingsManager.toggleNotifications();
-
             });
         }
     }
+
     static async updateNumberOfWeeks(newValue) {
         try {
             console.log(newValue)
@@ -63,6 +71,7 @@ export class SettingsManager {
             UIManager.showStatus('Erreur lors de la mise à jour', STATUS_TYPES.ERROR);
         }
     }
+
     /**
      * Ferme la modal de paramètres
      */
@@ -238,6 +247,10 @@ export class SettingsManager {
 
         // Démarrer le système de notifications
         await window.notificationSystem.start();
+        
+        // Initialiser les ingrédients
+        IngredientsManager.exposeHandlers();
+        
         // Mettre à jour l'UI si la modal est ouverte
         const modal = document.getElementById('settings-modal');
         if (modal && modal.classList.contains('show')) {
