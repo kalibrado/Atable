@@ -1,14 +1,10 @@
 // ========================================
-// Scheduler de notifications (node-cron)
-// Ce module utilise node-cron pour exécuter une tâche toutes les minutes.
-// La tâche vérifie les utilisateurs qui ont activé les notifications pour l'heure actuelle,
-// récupère leurs repas du jour et leur envoie une notification push.
-// En cas d'erreur lors de l'envoi, elle est loguée pour être corrigée.
+// Scheduler de notifications
 // ========================================
 
 const cron = require('node-cron');
 const pushManager = require('../managers/push-manager');
-const atableManager = require('../managers/atable-manager');
+const usersManager = require('../managers/users-manager');
 const CONFIG = require('../../config');
 
 /**
@@ -36,7 +32,7 @@ function formatatableText(midi, soir) {
 function getCurrentDay() {
     const daysMap = CONFIG.validDays;
     const today = new Date().getDay() - 1;
-    return daysMap[today];
+    return daysMap[today < 0 ? 6 : today];
 }
 
 function formatTime(date) {
@@ -54,42 +50,69 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+/**
+ * Obtient la semaine actuelle basée sur le numéro de semaine de l'année
+ */
+function getCurrentWeekNumber(numberOfWeeks) {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const diff = now - start;
+    const oneWeek = 1000 * 60 * 60 * 24 * 7;
+    const weekNumber = Math.ceil((diff / oneWeek) + 1);
+    return ((weekNumber - 1) % numberOfWeeks) + 1;
+}
+
 async function sendUserNotification(userId, permissionNotification, date) {
-    const currentDay = getCurrentDay();
-    const dayLabel = capitalize(currentDay);
+    try {
+        const currentDay = getCurrentDay();
+        const dayLabel = capitalize(currentDay);
 
-    const atable = await atableManager.readUseratable(userId);
-    const dayatable = atable[currentDay] || { midi: '', soir: '' };
-
-    const hasatable = dayatable.midi.trim() || dayatable.soir.trim();
-
-    const notification = hasatable
-        ? {
-            title: `🍽️ Vos repas du ${dayLabel}`,
-            body: formatatableText(dayatable.midi, dayatable.soir)
+        const userData = await usersManager.readUserData(userId);
+        if (!userData || !userData.weeksPlans) {
+            return;
         }
-        : {
-            title: `⚠️ Aucun repas prévu pour ${dayLabel}`,
-            body: 'Vous n\'avez pas encore défini vos repas pour aujourd\'hui.'
-        };
 
-    await pushManager.sendNotificationToUser(userId, permissionNotification, {
-        ...notification,
-        icon: '/icons/icon-192.png',
-        badge: '/icons/icon-192.png',
-        tag: 'atable-reminder',
-        data: {
-            day: currentDay,
-            url: '/'
+        const numberOfWeeks = userData.preference?.showWeeks || CONFIG.defaultWeeks;
+        const currentWeek = getCurrentWeekNumber(numberOfWeeks);
+        const weekKey = `week${currentWeek}`;
+
+        const weekPlan = userData.weeksPlans[weekKey];
+        if (!weekPlan || !weekPlan.enabled) {
+            return;
         }
-    });
 
-    console.log(`Notification envoyée à l'utilisateur ${userId} à ${formatTime(date)}`);
+        const dayatable = weekPlan.days[currentDay] || { midi: '', soir: '' };
+        const hasatable = dayatable.midi.trim() || dayatable.soir.trim();
+
+        const notification = hasatable
+            ? {
+                title: `🍽️ Vos repas du ${dayLabel}`,
+                body: formatatableText(dayatable.midi, dayatable.soir)
+            }
+            : {
+                title: `⚠️ Aucun repas prévu pour ${dayLabel}`,
+                body: 'Vous n\'avez pas encore défini vos repas pour aujourd\'hui.'
+            };
+
+        await pushManager.sendNotificationToUser(userId, permissionNotification, {
+            ...notification,
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-192.png',
+            tag: 'atable-reminder',
+            data: {
+                day: currentDay,
+                url: '/'
+            }
+        });
+
+        console.log(`Notification envoyée à l'utilisateur ${userId} à ${formatTime(date)}`);
+    } catch (error) {
+        console.error(`Erreur envoi notification à ${userId}:`, error);
+    }
 }
 
 /**
  * Démarre le scheduler de notifications
- * Vérifie chaque minute si des notifications doivent être envoyées
  */
 function startNotificationScheduler() {
     console.log('Démarrage du scheduler de notifications...');
@@ -99,6 +122,7 @@ function startNotificationScheduler() {
             const now = new Date();
             const currentTime = formatTime(now);
             const notifications = await pushManager.readNotifications();
+
             for (const { userId, permissionNotification, settings } of notifications) {
                 if (!settings.enabled) continue;
                 if (!isNotificationTime(settings, currentTime)) continue;

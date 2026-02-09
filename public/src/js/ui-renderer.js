@@ -4,7 +4,7 @@
 
 import { DAYS, MEAL_TYPES, MEAL_EMOJIS } from './config.js';
 // import { DateUtils } from './utils.js';
-import { DateUtils } from './utils-multiweek.js'; // ← IMPORTANT
+import { DateUtils } from './utils.js'; // ← IMPORTANT
 import { WeeksManager } from './weeks-manager.js'; // ← AJOUTER
 
 /**

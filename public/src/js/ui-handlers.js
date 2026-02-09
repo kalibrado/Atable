@@ -174,7 +174,6 @@ export class UIManager {
         try {
             // Charger les données
             const { weeks, numberOfWeeks } = await APIManager.loadMeals();
-
             // Initialiser le gestionnaire de semaines
             WeeksManager.initialize(numberOfWeeks, weeks);
 

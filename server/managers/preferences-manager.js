@@ -1,73 +1,66 @@
 // ========================================
-// Gestion des préférences utilisateur
-// Ce module gère les préférences de l'utilisateur, notamment le nombre de semaines à afficher
-// Les préférences sont stockées dans un fichier JSON par utilisateur
+// Gestion des préférences utilisateur - Structure unifiée
 // ========================================
 
-const fs = require('fs').promises;
-const path = require('path');
+const usersManager = require('./users-manager');
 const CONFIG = require('../../config');
-
-const DATA_DIR = CONFIG.dataDir;
-
-/**
- * Obtient le chemin du fichier de préférences pour un utilisateur
- * @param {string} userId
- * @returns {string}
- */
-function getUserPreferencesPath(userId) {
-  return path.join(DATA_DIR, `preferences_${userId}.json`);
-}
 
 /**
  * Lit les préférences d'un utilisateur
- * @param {string} userId
- * @returns {Promise<Object>}
  */
 async function readUserPreferences(userId) {
-  const filePath = getUserPreferencesPath(userId);
-
-  try {
-    const data = await fs.readFile(filePath, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    // Le fichier n'existe pas encore, retourner les préférences par défaut
-    return {
-      numberOfWeeks: CONFIG.defaultWeeks
-    };
-  }
+    const userData = await usersManager.readUserData(userId);
+    if (!userData) {
+        return { showWeeks: CONFIG.defaultWeeks, darkMode: false };
+    }
+    return userData.preference || { showWeeks: CONFIG.defaultWeeks, darkMode: false };
 }
 
 /**
- * Sauvegarde les préférences d'un utilisateur
- * @param {string} userId
- * @param {Object} preferences
+ * Met à jour les préférences d'un utilisateur
  */
 async function writeUserPreferences(userId, preferences) {
-  const filePath = getUserPreferencesPath(userId);
+    const userData = await usersManager.readUserData(userId);
+    if (!userData) {
+        throw new Error('Utilisateur non trouvé');
+    }
 
-  // Validation du nombre de semaines
-  if (preferences.numberOfWeeks < CONFIG.minWeeks || preferences.numberOfWeeks > CONFIG.maxWeeks) {
-    throw new Error(`Le nombre de semaines doit être entre ${CONFIG.minWeeks} et ${CONFIG.maxWeeks}`);
-  }
+    if (preferences.showWeeks && (preferences.showWeeks < CONFIG.minWeeks || preferences.showWeeks > CONFIG.maxWeeks)) {
+        throw new Error(`Le nombre de semaines doit être entre ${CONFIG.minWeeks} et ${CONFIG.maxWeeks}`);
+    }
 
-  await fs.writeFile(filePath, JSON.stringify(preferences, null, 2));
+    userData.preference = { ...userData.preference, ...preferences };
+    
+    // Activer/désactiver les semaines selon showWeeks
+    if (preferences.showWeeks) {
+        for (let i = 1; i <= 4; i++) {
+            if (userData.weeksPlans[`week${i}`]) {
+                userData.weeksPlans[`week${i}`].enabled = i <= preferences.showWeeks;
+            }
+        }
+    }
+
+    await usersManager.writeUserData(userId, userData);
+    return userData.preference;
 }
 
 /**
- * Met à jour le nombre de semaines pour un utilisateur
- * @param {string} userId
- * @param {number} numberOfWeeks
+ * Met à jour le nombre de semaines
  */
 async function updateNumberOfWeeks(userId, numberOfWeeks) {
-  const preferences = await readUserPreferences(userId);
-  preferences.numberOfWeeks = numberOfWeeks;
-  await writeUserPreferences(userId, preferences);
-  return preferences;
+    return await writeUserPreferences(userId, { showWeeks: numberOfWeeks });
+}
+
+/**
+ * Met à jour le mode sombre
+ */
+async function updateDarkMode(userId, darkMode) {
+    return await writeUserPreferences(userId, { darkMode });
 }
 
 module.exports = {
-  readUserPreferences,
-  writeUserPreferences,
-  updateNumberOfWeeks
+    readUserPreferences,
+    writeUserPreferences,
+    updateNumberOfWeeks,
+    updateDarkMode
 };

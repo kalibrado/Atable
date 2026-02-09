@@ -1,115 +1,92 @@
 // ========================================
-// Gestion des atable plans par utilisateur
-// 
-// Ce module gère les atable plans des utilisateurs, stockés dans des fichiers JSON individuels.
-// Chaque utilisateur a un fichier nommé atable_{userId}.json dans le dossier data.
-// Les fonctions permettent de lire, écrire et supprimer ces fichiers.
-// Le format des données est validé pour s'assurer qu'il correspond à la structure attendue.
-// En cas d'erreur, des exceptions sont levées pour être gérées par les routes ou autres modules.
-// 
+// Gestion des plans de repas - Structure unifiée
 // ========================================
 
-const fs = require('fs').promises;
-const path = require('path');
+const usersManager = require('./users-manager');
 const CONFIG = require('../../config');
 
 /**
- * Constantes de configuration
+ * Lit les plans de repas d'un utilisateur
  */
-const DATA_DIR = CONFIG.dataDir;
-const DEFAULT_atable = CONFIG.default_atable;
-const validDays = CONFIG.validDays;
-
+async function readUseratable(userId) {
+    const userData = await usersManager.readUserData(userId);
+    if (!userData || !userData.weeksPlans) {
+        return createDefaultWeeksPlans(CONFIG.defaultWeeks);
+    }
+    return userData.weeksPlans;
+}
 
 /**
- * Obtient le chemin du fichier de repas pour un utilisateur
- * @param {string} userId
- * @returns {string}
+ * Sauvegarde les plans de repas d'un utilisateur
  */
-function getUseratablePath(userId) {
-  return path.join(DATA_DIR, `atable_${userId}.json`);
+async function writeUseratable(userId, weeksPlans) {
+    const userData = await usersManager.readUserData(userId);
+    if (!userData) {
+        throw new Error('Utilisateur non trouvé');
+    }
+
+    // Valider les données
+    for (const weekKey in weeksPlans) {
+        if (!weekKey.startsWith('week')) continue;
+        
+        const week = weeksPlans[weekKey];
+        if (!week.days) {
+            throw new Error('Format de données invalide');
+        }
+
+        const validDays = CONFIG.validDays;
+        for (const day of validDays) {
+            if (!week.days[day] || typeof week.days[day].midi === 'undefined' || typeof week.days[day].soir === 'undefined') {
+                throw new Error(`Données manquantes pour ${day} dans ${weekKey}`);
+            }
+        }
+    }
+
+    userData.weeksPlans = weeksPlans;
+    await usersManager.writeUserData(userId, userData);
+}
+
+/**
+ * Crée la structure de semaines par défaut
+ */
+function createDefaultWeeksPlans(numberOfWeeks) {
+    const plans = {};
+    for (let i = 1; i <= 4; i++) {
+        plans[`week${i}`] = {
+            enabled: i <= numberOfWeeks,
+            days: { ...CONFIG.default_atable }
+        };
+    }
+    return plans;
 }
 
 /**
  * Crée une structure de semaine vide
- * @returns {Object}
  */
 function createEmptyWeek() {
-  return { ...DEFAULT_atable };
+    return {
+        enabled: false,
+        days: { ...CONFIG.default_atable }
+    };
 }
 
 /**
- * Crée la structure de données pour un nombre de semaines donné
- * @param {number} numberOfWeeks
- * @returns {Object}
- */
-function createWeeksStructure(userId) {
-  const weeks = {};
-  for (let i = 1; i <= numberOfWeeks; i++) {
-    weeks[`week${i}`] = createEmptyWeek();
-  }
-  writeUseratable(userId, weeks)
-  return weeks;
-}
-
-/**
- * Lit les repas d'un utilisateur (toutes les semaines)
- * @param {string} userId
- * @param {number} numberOfWeeks - Nombre de semaines à charger
- * @returns {Promise<Object>}
- */
-async function readUseratable(userId) {
-  const filePath = getUseratablePath(userId);
-
-  try {
-    const data = await fs.readFile(filePath, 'utf8');
-    return data;
-  } catch (error) {
-    console.error(error)
-    // Le fichier n'existe pas encore, retourner les données par défaut
-    // return createWeeksStructure(numberOfWeeks);
-  }
-}
-
-/**
- * Sauvegarde les repas d'un utilisateur (toutes les semaines)
- * @param {string} userId
- * @param {Object} atable - Structure avec week1, week2, etc.
- */
-async function writeUseratable(userId, atable) {
-  const filePath = getUseratablePath(userId);
-
-  // Validation des données
-  const weekKeys = Object.keys(atable);
-  const isValid = weekKeys.every(weekKey => {
-    const day = atable[weekKey];
-    return !!day
-  });
-  if (!isValid) {
-    throw new Error('Format de données invalide');
-  }
-
-  await fs.writeFile(filePath, JSON.stringify(atable, null, 2));
-}
-
-/**
- * Supprime les repas d'un utilisateur
- * @param {string} userId
+ * Supprime les plans de repas d'un utilisateur (remise à zéro)
  */
 async function deleteUseratable(userId) {
-  const filePath = getUseratablePath(userId);
+    const userData = await usersManager.readUserData(userId);
+    if (!userData) return;
 
-  try {
-    await fs.unlink(filePath);
-  } catch (error) {
-    // Le fichier n'existe pas, ignorer
-  }
+    const numberOfWeeks = userData.preference?.showWeeks || CONFIG.defaultWeeks;
+    userData.weeksPlans = createDefaultWeeksPlans(numberOfWeeks);
+    
+    await usersManager.writeUserData(userId, userData);
 }
 
 module.exports = {
-  readUseratable,
-  writeUseratable,
-  deleteUseratable,
-  createWeeksStructure,
-  DEFAULT_atable
+    readUseratable,
+    writeUseratable,
+    deleteUseratable,
+    createDefaultWeeksPlans,
+    createEmptyWeek
 };
