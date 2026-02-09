@@ -64,14 +64,14 @@ router.post('/login', async (req, res) => {
   const { email, password, machineId } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email et mot de passe requis' });
+    return res.json({ error: 'Email et mot de passe requis' });
   }
 
   try {
     const user = await usersManager.verifyUser(email, password);
 
     if (!user) {
-      return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+      return res.json({ error: 'Email ou mot de passe incorrect' });
     }
 
     // Enregistrer/mettre à jour le device

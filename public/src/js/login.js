@@ -62,12 +62,12 @@ const login = () => {
    */
   function setupPasswordToggles() {
     const toggleButtons = document.querySelectorAll('.toggle-password');
-    
+
     toggleButtons.forEach(button => {
-      button.addEventListener('click', function() {
+      button.addEventListener('click', function () {
         const targetId = this.getAttribute('data-target');
         const input = document.getElementById(targetId);
-        
+
         if (input.type === 'password') {
           input.type = 'text';
           this.textContent = '🙈';
@@ -183,13 +183,12 @@ const login = () => {
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
+      if (!response.ok || data?.error) {
         throw new Error(data.error || 'Erreur de connexion');
+      } else {
+        // Redirection vers la page principale
+        window.location.reload()
       }
-
-      // Redirection vers la page principale
-      window.location.href = '/';
     } catch (error) {
       showError(error.message);
       loginBtn.disabled = false;
@@ -251,23 +250,23 @@ const login = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          email, 
-          password, 
+        body: JSON.stringify({
+          email,
+          password,
           firstname,
           lastname,
-          machineId: getMachineId() 
+          machineId: getMachineId()
         })
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || data?.error) {
         throw new Error(data.error || 'Erreur d\'inscription');
+      } else {
+        // Redirection vers la page principale
+        window.location.reload()
       }
-
-      // Redirection vers la page principale
-      window.location.href = '/';
     } catch (error) {
       showError(error.message);
       registerBtn.disabled = false;
