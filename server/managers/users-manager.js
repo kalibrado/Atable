@@ -43,8 +43,7 @@ function createDefaultUserStructure(email, passwordHash, firstname = '', lastnam
         createdAt: now,
         updatedAt: now,
         preference: {
-            showWeeks: CONFIG.defaultWeeks,
-            darkMode: false
+            showWeeks: CONFIG.defaultWeeks
         },
         devices: [],
         weeksPlans: createDefaultWeeksPlans(CONFIG.defaultWeeks)
