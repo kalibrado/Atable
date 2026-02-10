@@ -168,6 +168,11 @@
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
+.add-item-input.has-exact-match {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
 .add-item-btn {
   padding: 10px 20px;
   background-color: var(--primary-color);
@@ -180,7 +185,7 @@
   white-space: nowrap;
 }
 
-.add-item-btn:hover {
+.add-item-btn:hover:not(:disabled) {
   background-color: var(--primary-dark);
   transform: translateY(-2px);
 }
@@ -189,11 +194,43 @@
   transform: translateY(0);
 }
 
+.add-item-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--text-secondary);
+}
+
 .empty-items {
   color: var(--text-secondary);
   font-style: italic;
   font-size: 0.9rem;
   padding: 8px;
+}
+
+/* Mise en évidence des items existants */
+.item-tag.highlight-match {
+  background-color: #f59e0b;
+  animation: pulse 0.5s ease-in-out;
+}
+
+.item-tag.exact-match {
+  background-color: var(--error);
+  animation: shake 0.3s ease-in-out;
+}
+
+.item-tag.hidden {
+  display: none;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
 }
 
 /* Mode sombre - ajustements */

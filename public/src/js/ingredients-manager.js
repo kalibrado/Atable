@@ -110,11 +110,10 @@ export class IngredientsManager {
                             class="add-item-input" 
                             placeholder="Ajouter un ingrédient..."
                             data-category="${category}"
-                            onkeypress="window.ingredientsHandlers.handleKeyPress(event, '${category}')"
                         >
                         <button 
                             class="add-item-btn" 
-                            onclick="window.ingredientsHandlers.addItem('${category}')"
+                            data-category-btn="${category}"
                         >
                             Ajouter
                         </button>
@@ -130,12 +129,13 @@ export class IngredientsManager {
    * @param {string} item - Nom de l'item
    */
   static renderItem(category, item) {
+    const safeItem = item.replace(/'/g, "\\'");
     return `
-            <span class="item-tag">
+            <span class="item-tag" data-item="${safeItem}" data-item-category="${category}">
                 ${item}
                 <button 
                     class="item-remove" 
-                    onclick="window.ingredientsHandlers.removeItem('${category}', '${item}')"
+                    onclick="window.ingredientsHandlers.removeItem('${category}', '${safeItem}')"
                     aria-label="Supprimer ${item}"
                 >
                     ×
@@ -162,6 +162,63 @@ export class IngredientsManager {
   }
 
   /**
+   * Filtre et met en évidence les items existants
+   * @param {string} category - La catégorie
+   * @param {string} searchValue - La valeur recherchée
+   */
+  static filterAndHighlight(category, searchValue) {
+    const input = document.querySelector(`.add-item-input[data-category="${category}"]`);
+    const btn = document.querySelector(`.add-item-btn[data-category-btn="${category}"]`);
+    const itemsList = document.querySelector(`.items-list[data-category-items="${category}"]`);
+    
+    if (!input || !btn || !itemsList) return;
+
+    const trimmedValue = searchValue.trim().toLowerCase();
+    const items = itemsList.querySelectorAll('.item-tag');
+
+    // Réinitialiser les classes
+    items.forEach(item => {
+      item.classList.remove('highlight-match', 'exact-match', 'hidden');
+    });
+    input.classList.remove('has-exact-match');
+    btn.disabled = false;
+
+    // Si vide, tout afficher
+    if (!trimmedValue) {
+      return;
+    }
+
+    let hasExactMatch = false;
+    let hasPartialMatch = false;
+
+    items.forEach(item => {
+      const itemText = item.getAttribute('data-item').toLowerCase();
+      
+      if (itemText === trimmedValue) {
+        // Correspondance exacte
+        item.classList.add('exact-match');
+        hasExactMatch = true;
+      } else if (itemText.includes(trimmedValue)) {
+        // Correspondance partielle
+        item.classList.add('highlight-match');
+        hasPartialMatch = true;
+      } else {
+        // Masquer les autres
+        item.classList.add('hidden');
+      }
+    });
+
+    // Désactiver le bouton si correspondance exacte
+    if (hasExactMatch) {
+      input.classList.add('has-exact-match');
+      btn.disabled = true;
+      btn.textContent = 'Existe déjà';
+    } else {
+      btn.textContent = 'Ajouter';
+    }
+  }
+
+  /**
    * Ajoute un item à une catégorie
    * @param {string} category - La catégorie
    */
@@ -172,6 +229,13 @@ export class IngredientsManager {
     const item = input.value.trim();
     if (!item) {
       UIManager.showStatus('Veuillez saisir un ingrédient', STATUS_TYPES.WARNING);
+      return;
+    }
+
+    // Vérifier si l'item existe déjà
+    const existingItems = this.state.ingredients[category]?.items || [];
+    if (existingItems.some(existing => existing.toLowerCase() === item.toLowerCase())) {
+      UIManager.showStatus('Cet ingrédient existe déjà', STATUS_TYPES.WARNING);
       return;
     }
 
@@ -193,6 +257,9 @@ export class IngredientsManager {
 
         // Re-render la liste des items
         this.renderItemsList(category);
+
+        // Réattacher les événements
+        this.attachCategoryEventListeners(category);
 
         UIManager.showStatus(`✓ ${item} ajouté`, STATUS_TYPES.SUCCESS);
       }
@@ -220,6 +287,9 @@ export class IngredientsManager {
 
         // Re-render la liste des items
         this.renderItemsList(category);
+
+        // Réattacher les événements
+        this.attachCategoryEventListeners(category);
 
         UIManager.showStatus(`✓ ${item} supprimé`, STATUS_TYPES.SUCCESS);
       }
@@ -293,11 +363,44 @@ export class IngredientsManager {
   }
 
   /**
+   * Attache les événements à une catégorie spécifique
+   * @param {string} category - La catégorie
+   */
+  static attachCategoryEventListeners(category) {
+    const input = document.querySelector(`.add-item-input[data-category="${category}"]`);
+    const btn = document.querySelector(`.add-item-btn[data-category-btn="${category}"]`);
+
+    if (input) {
+      // Supprimer les anciens listeners
+      const newInput = input.cloneNode(true);
+      input.parentNode.replaceChild(newInput, input);
+
+      // Ajouter les nouveaux
+      newInput.addEventListener('input', (e) => {
+        this.filterAndHighlight(category, e.target.value);
+      });
+      newInput.addEventListener('keypress', (e) => {
+        this.handleKeyPress(e, category);
+      });
+    }
+
+    if (btn) {
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+
+      newBtn.addEventListener('click', () => {
+        this.addItem(category);
+      });
+    }
+  }
+
+  /**
    * Attache les événements nécessaires
    */
   static attachEventListeners() {
-    // Les événements sont gérés via les attributs onclick dans le HTML
-    // pour simplifier la gestion avec les handlers globaux
+    Object.keys(this.state.ingredients).forEach(category => {
+      this.attachCategoryEventListeners(category);
+    });
   }
 
   /**
