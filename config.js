@@ -30,10 +30,7 @@ const CONFIG = {
     "🥩 Protéines animales",
     "🌱 Protéines végétales",
     "🥕 Légumes",
-    "🍎 Fruits",
-    "🍞 Féculents / Glucides",
-    "🧀 Produits laitiers",
-    "🧂 Condiments"
+    "🍞 Féculents / Glucides"
   ]
 };
 
