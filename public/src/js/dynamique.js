@@ -2,7 +2,7 @@
 // WindowDynamique
 // ========================================
 
-class WindowDynamique {
+export class WindowDynamique {
 
   static MOBILE_BREAKPOINT = 600;
   static initialized = false;
@@ -100,11 +100,4 @@ class WindowDynamique {
     run()
   };
 
-}
-
-// Init unique
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => WindowDynamique.init());
-} else {
-  WindowDynamique.init();
 }

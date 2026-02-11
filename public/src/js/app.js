@@ -10,7 +10,7 @@ import { SettingsManager, AuthManager, GeneratorManager } from './settings.js';
 import { ThemeManager } from './theme.js';
 import { WeeksManager } from './weeks-manager.js';
 import { UserManager } from './user-manager.js';
-
+import { WindowDynamique } from './dynamique.js'
 /**
  * Classe principale de l'application
  * Orchestre l'initialisation et la coordination des modules
@@ -46,7 +46,7 @@ class AtableApp {
 
             // Configurer le toggle du mode sombre
             ThemeManager.setupToggleListener();
-
+            WindowDynamique.init();
             // Exposer les handlers globalement
             this.exposeGlobalHandlers();
 
@@ -94,7 +94,7 @@ class AtableApp {
             generateReplaceAll: () => GeneratorManager.generateAllMeals(true),
             showPreview: () => GeneratorManager.showPreview()
         };
-        
+
         window.userManager = {
             changePassword: () => UserManager.changePassword(),
             changeEmail: () => UserManager.changeEmail(),

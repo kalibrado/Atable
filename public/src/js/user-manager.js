@@ -3,7 +3,7 @@ export class UserManager {
     const modal = document.createElement('div');
     modal.className = 'modal show';
     modal.innerHTML = `
-      <div class="modal-content" style="width:35vw;">
+      <div class="modal-content" style="width:600px;">
         <div class="modal-header">
           <h2 id="modal-title"></h2>
         </div>

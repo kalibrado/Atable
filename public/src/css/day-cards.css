@@ -4,11 +4,11 @@
 .days-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 16px;
+  padding: 10px 15px 10px 15px;
 }
 
 /* ========================================

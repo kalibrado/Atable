@@ -33,7 +33,19 @@
 
 @media (max-width: 1060px) {
   .settings-group {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .setting-group {
+    width: 100%;
+  }
+
+  .setting-group>* {
+    width: 100%;
   }
 }
 

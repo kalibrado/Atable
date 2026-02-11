@@ -4,7 +4,7 @@
 .weeks-tabs {
   display: flex;
   gap: 8px;
-  padding: 16px;
+  padding: 5px;
   background-color: var(--header-bg);
   border-bottom: 2px solid var(--border-color);
   overflow-x: auto;
