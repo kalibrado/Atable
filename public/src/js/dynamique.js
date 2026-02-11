@@ -83,7 +83,8 @@ export class WindowDynamique {
 
     // PWA : retour au premier plan
     window.addEventListener('focus', run);
-
+    window.addEventListener('click', run)
+    window.addEventListener('change', run)
     // PWA Android : clavier virtuel / resize viewport
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', () => {
