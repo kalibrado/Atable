@@ -109,6 +109,15 @@
   gap: 8px;
 }
 
+/* Header de section avec label et bouton */
+.atable-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
 .atable-label {
   font-size: 0.875rem;
   font-weight: 600;
@@ -118,6 +127,54 @@
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+/* Bouton de génération individuelle */
+.generate-meal-btn {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.generate-meal-btn:hover {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.generate-meal-btn:active {
+  transform: translateY(0);
+}
+
+.generate-meal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Animation de génération en cours */
+.generate-meal-btn.generating {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .atable-textarea {
@@ -149,4 +206,17 @@
 /* Mode sombre : placeholder plus visible */
 [data-theme="dark"] .atable-textarea::placeholder {
   color: #64748b;
+}
+
+/* Responsive mobile */
+@media (max-width: 480px) {
+  .atable-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .generate-meal-btn {
+    width: 100%;
+    padding: 8px 12px;
+  }
 }

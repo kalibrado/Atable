@@ -84,7 +84,7 @@ router.post('/generate', requireAuth, async (req, res) => {
  */
 router.post('/generate-single', requireAuth, async (req, res) => {
   try {
-    const { mealType = 'midi' } = req.body;
+    const { mealType = 'midi', usedMeals = [] } = req.body;
 
     if (!['midi', 'soir'].includes(mealType)) {
       return res.status(400).json({
@@ -103,8 +103,34 @@ router.post('/generate-single', requireAuth, async (req, res) => {
       });
     }
 
-    // Générer une suggestion
-    const suggestion = MealGenerator.generateSingleMeal(ingredients, mealType);
+    // Convertir le tableau de repas utilisés en Set
+    const usedMealsSet = new Set(
+      usedMeals.map(meal => meal.toLowerCase().trim())
+    );
+
+    // Générer une suggestion en évitant les doublons
+    let attempts = 0;
+    let suggestion = null;
+    const maxAttempts = 20;
+
+    while (attempts < maxAttempts) {
+      suggestion = MealGenerator.generateSingleMeal(ingredients, mealType, usedMealsSet);
+      
+      // Vérifier que la suggestion n'est pas déjà utilisée
+      if (suggestion && !usedMealsSet.has(suggestion.toLowerCase().trim())) {
+        break;
+      }
+      
+      attempts++;
+    }
+
+    if (!suggestion || usedMealsSet.has(suggestion.toLowerCase().trim())) {
+      return res.json({
+        success: false,
+        error: 'Tous les repas disponibles sont déjà utilisés',
+        suggestion: null
+      });
+    }
 
     res.json({
       success: true,

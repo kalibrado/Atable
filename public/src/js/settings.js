@@ -366,6 +366,93 @@ export class GeneratorManager {
     }
 
     /**
+     * Génère un seul repas pour un jour et type de repas spécifique
+     * @param {string} day - Le jour (lundi, mardi, etc.)
+     * @param {string} mealType - Le type de repas ('midi' ou 'soir')
+     */
+    static async generateSingleMeal(day, mealType) {
+        // Récupérer la textarea correspondante
+        const textarea = document.getElementById(`${day}-${mealType}`);
+        const button = document.querySelector(
+            `.generate-meal-btn[onclick*="${day}"][onclick*="${mealType}"]`
+        );
+
+        if (!textarea) {
+            console.error(`Textarea non trouvée pour ${day} ${mealType}`);
+            return;
+        }
+
+        // Désactiver le bouton et afficher l'état de chargement
+        if (button) {
+            button.disabled = true;
+            button.classList.add('generating');
+            button.textContent = '⏳ Génération...';
+        }
+
+        try {
+            // Récupérer tous les repas de la semaine actuelle pour éviter les doublons
+            const currentWeekData = UIManager.getState().mealsData;
+            const usedMeals = new Set();
+
+            // Collecter tous les repas déjà utilisés dans la semaine
+            Object.values(currentWeekData).forEach(dayMeals => {
+                if (dayMeals.midi) usedMeals.add(dayMeals.midi.trim().toLowerCase());
+                if (dayMeals.soir) usedMeals.add(dayMeals.soir.trim().toLowerCase());
+            });
+
+            // Appeler l'API pour générer un repas
+            const result = await APIManager.generateSingleMeal(mealType, usedMeals);
+
+            if (result.success && result.suggestion) {
+                // Vérifier une dernière fois que le repas n'est pas déjà utilisé
+                if (usedMeals.has(result.suggestion.trim().toLowerCase())) {
+                    // Réessayer une fois
+                    const retry = await APIManager.generateSingleMeal(mealType, usedMeals);
+                    if (retry.success && retry.suggestion && !usedMeals.has(retry.suggestion.trim().toLowerCase())) {
+                        textarea.value = retry.suggestion;
+                    } else {
+                        UIManager.showStatus(
+                            '⚠️ Tous les repas disponibles sont déjà utilisés',
+                            STATUS_TYPES.WARNING
+                        );
+                        return;
+                    }
+                } else {
+                    // Insérer le repas dans la textarea
+                    textarea.value = result.suggestion;
+                }
+
+                // Déclencher l'événement de changement pour sauvegarder
+                const event = new Event('input', { bubbles: true });
+                textarea.dispatchEvent(event);
+
+                UIManager.showStatus(
+                    `✓ Repas généré pour ${day} ${mealType}`,
+                    STATUS_TYPES.SUCCESS
+                );
+            } else {
+                UIManager.showStatus(
+                    'Impossible de générer un repas. Vérifiez vos préférences alimentaires.',
+                    STATUS_TYPES.WARNING
+                );
+            }
+        } catch (error) {
+            console.error('Erreur génération repas unique:', error);
+            UIManager.showStatus(
+                error.message || 'Erreur lors de la génération',
+                STATUS_TYPES.ERROR
+            );
+        } finally {
+            // Réactiver le bouton
+            if (button) {
+                button.disabled = false;
+                button.classList.remove('generating');
+                button.textContent = '🎲 Générer';
+            }
+        }
+    }
+
+    /**
      * Affiche un aperçu des repas générés
      */
     static async showPreview() {

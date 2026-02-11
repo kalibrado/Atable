@@ -407,16 +407,20 @@ export class APIManager {
   /**
    * Génère une suggestion pour un repas unique
    * @param {string} mealType - 'midi' ou 'soir'
+   * @param {Set} usedMeals - Ensemble des repas déjà utilisés (pour éviter les doublons)
    * @returns {Promise<Object>} Suggestion
    */
-  static async generateSingleMeal(mealType) {
+  static async generateSingleMeal(mealType, usedMeals = new Set()) {
     try {
       const response = await fetch('/api/generator/generate-single', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ mealType })
+        body: JSON.stringify({
+          mealType,
+          usedMeals: Array.from(usedMeals)
+        })
       });
 
       if (!response.ok) {

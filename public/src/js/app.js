@@ -89,10 +89,12 @@ class AtableApp {
             switchWeek: (weekNumber) => WeeksManager.switchWeek(weekNumber),
             updateNumberOfWeeks: (number) => WeeksManager.updateNumberOfWeeks(number)
         };
+        // Handlers pour la génération de repas
         window.generatorHandlers = {
             generateFillEmpty: () => GeneratorManager.generateAllMeals(false),
             generateReplaceAll: () => GeneratorManager.generateAllMeals(true),
-            showPreview: () => GeneratorManager.showPreview()
+            showPreview: () => GeneratorManager.showPreview(),
+            generateSingleMeal: (day, mealType) => GeneratorManager.generateSingleMeal(day, mealType)
         };
 
         window.userManager = {

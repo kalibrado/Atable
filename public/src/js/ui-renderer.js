@@ -26,10 +26,20 @@ export class UIRenderer {
 
         return `
             <div class="atable-section">
-                <label class="atable-label" for="${day}-${mealType}">
-                    <span>${emoji}</span>
-                    <span>${label}</span>
-                </label>
+                <div class="atable-header">
+                    <label class="atable-label" for="${day}-${mealType}">
+                        <span>${emoji}</span>
+                        <span>${label}</span>
+                    </label>
+                    <button 
+                        class="generate-meal-btn" 
+                        onclick="window.generatorHandlers.generateSingleMeal('${day}', '${mealType}')"
+                        title="Générer un repas"
+                        aria-label="Générer un repas pour ${label}"
+                    >
+                        🎲 Générer
+                    </button>
+                </div>
                 <textarea 
                     class="atable-textarea" 
                     id="${day}-${mealType}"
