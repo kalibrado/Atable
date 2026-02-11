@@ -74,10 +74,6 @@ class AtableApp {
         // Handler pour la déconnexion
         window.handleLogout = () => AuthManager.handleLogout();
 
-        // Handlers pour l'UI
-        window.appHandlers = {
-            toggleDay: (day) => UIManager.toggleDay(day)
-        };
         // Handlers pour le thème
         window.themeHandlers = {
             toggle: () => ThemeManager.toggle(),

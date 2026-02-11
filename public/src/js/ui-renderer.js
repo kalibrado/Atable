@@ -61,45 +61,48 @@ export class UIRenderer {
         // Calculer l'offset de semaine
         const currentWeek = WeeksManager.getCurrentWeek();
         const weekOffset = currentWeek - 1;
-        
+
         // Utiliser getDateForDayInWeek au lieu de getDateForDay
         const date = DateUtils.getDateForDayInWeek(dayName, weekOffset);
-        
+
         const dayNumber = date.getDate();
         const month = date.toLocaleString('fr-FR', { month: 'short' });
 
-        return `
+        return {
+            month,
+            dayNumber,
+            html: `
             <span class="calendar-emoji" aria-hidden="true">
                 <span class="cal-month">${month}</span>
                 <span class="cal-day">${dayNumber}</span>
             </span>
-        `;
+        `};
     }
 
     /**
      * Crée le HTML pour une carte de jour complète
      * @param {string} day - Le jour de la semaine
      * @param {Object} mealsData - Les données des repas
-     * @param {Set} collapsedDays - Ensemble des jours repliés
      * @param {string} currentDay - Le jour actuel
-     * @param {boolean} isCurrentWeek - True si on affiche la semaine actuelle
      * @returns {string} Le HTML de la carte
-     */
-    static createDayCard(day, mealsData, collapsedDays, currentDay, isCurrentWeek) {
-        const emoji = this.createCalendarEmoji(day);
-        const isCollapsed = collapsedDays.has(day);
-        const collapsedClass = isCollapsed ? 'collapsed' : '';
-        // Ne marquer "aujourd'hui" que si c'est la semaine actuelle ET le bon jour
-        const isTodayClass = (isCurrentWeek && day === currentDay) ? 'today' : '';
-        const todayBadge = (isCurrentWeek && day === currentDay)
-            ? '<span class="today-badge">Aujourd\'hui</span>' 
+    */
+    static createDayCard(day, mealsData, isLargeScreen) {
+        const { html, dayNumber, month } = this.createCalendarEmoji(day);
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = today.toLocaleString('fr-FR', { month: 'short' });
+        const isToday = String(dayNumber) === dd && String(month) === mm
+        const collapsedClass = isLargeScreen ? '' : !isToday ? 'collapsed' : 'today';
+
+        const todayBadge = isToday
+            ? '<span class="today-badge">Aujourd\'hui</span>'
             : '';
 
         return `
-            <div class="day-card ${collapsedClass} ${isTodayClass}" data-day="${day}">
-                <div class="day-header" onclick="window.appHandlers.toggleDay('${day}')">
+            <div class="day-card ${collapsedClass}" data-day="${day}">
+                <div class="day-header">
                     <div class="day-title">
-                        <h2>${emoji} ${day}</h2>
+                        <h2>${html} ${day}</h2>
                         ${todayBadge}
                     </div>
                     <span class="toggle-icon">▼</span>
@@ -115,42 +118,21 @@ export class UIRenderer {
     /**
      * Rend tous les jours de la semaine dans le conteneur
      * @param {Object} mealsData - Les données des repas
-     * @param {Set} collapsedDays - Ensemble des jours repliés
      */
-    static renderAllDays(mealsData, collapsedDays) {
+    static renderAllDays(mealsData) {
         const container = document.getElementById('days-container');
         const currentDay = DateUtils.getCurrentDay();
-        
-        // Déterminer si on affiche la semaine actuelle
-        const currentWeek = WeeksManager.getCurrentWeek();
-        const numberOfWeeks = WeeksManager.getNumberOfWeeks();
-        const currentPlanningWeek = DateUtils.getCurrentPlanningWeek(numberOfWeeks);
-        const isCurrentWeek = currentWeek === currentPlanningWeek;
-
         // Vérifier si on est sur grand écran
         const isLargeScreen = window.innerWidth >= 768;
-
-        if (isLargeScreen) {
-            // Sur grand écran : tout déplier
-            collapsedDays.clear();
-        } else {
-            // Sur mobile : replier tous les jours sauf le jour actuel (si on est dans la semaine actuelle)
-            DAYS.forEach(day => {
-                if (!isCurrentWeek || day !== currentDay) {
-                    collapsedDays.add(day);
-                }
-            });
-        }
-
         // Générer le HTML de toutes les cartes
         const cardsHTML = DAYS
-            .map(day => this.createDayCard(day, mealsData, collapsedDays, currentDay, isCurrentWeek))
+            .map(day => this.createDayCard(day, mealsData, isLargeScreen))
             .join('');
 
         container.innerHTML = cardsHTML;
 
         // Scroll vers le jour actuel après un court délai (seulement sur mobile et si semaine actuelle)
-        if (!isLargeScreen && isCurrentWeek) {
+        if (!isLargeScreen) {
             this.scrollToCurrentDay(currentDay);
         }
 
@@ -158,12 +140,22 @@ export class UIRenderer {
         window.addEventListener('resize', () => {
             const wasLargeScreen = isLargeScreen;
             const nowLargeScreen = window.innerWidth >= 768;
-            
             // Si on change de mode, re-render
             if (wasLargeScreen !== nowLargeScreen) {
-                this.renderAllDays(mealsData, collapsedDays);
+                this.renderAllDays(mealsData);
             }
         });
+        // Ajouter l'événement de clic sur chaque carte
+        const allDayCards = document.querySelectorAll('.day-card');
+        allDayCards.forEach(card => {
+            card.addEventListener('click', () => {
+            // Retirer 'collapsed' de toutes les cartes
+            allDayCards.forEach(c => c.classList.add('collapsed'));
+            // Ajouter 'today' ou retirer 'collapsed' de la carte cliquée
+            card.classList.remove('collapsed');
+            });
+        });
+        
     }
 
     /**
@@ -174,9 +166,9 @@ export class UIRenderer {
         setTimeout(() => {
             const currentDayCard = document.querySelector(`.day-card[data-day="${currentDay}"]`);
             if (currentDayCard) {
-                currentDayCard.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'start' 
+                currentDayCard.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
                 });
             }
         }, 100);

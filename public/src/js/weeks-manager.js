@@ -10,6 +10,7 @@ import { UIManager } from './ui-handlers.js';
  * Classe de gestion des semaines multiples
  */
 export class WeeksManager {
+
   /**
    * État des semaines
    * @private
@@ -21,14 +22,28 @@ export class WeeksManager {
   };
 
   /**
+   * Calcule la semaine actuelle du mois (1 à numberOfWeeks max)
+   * @private
+   */
+  static getCurrentWeekOfMonth() {
+    const today = new Date();
+    const week = Math.ceil(today.getDate() / 7);
+
+    // Ne jamais dépasser le nombre configuré
+    return Math.min(week, this.state.numberOfWeeks);
+  }
+
+  /**
    * Initialise le gestionnaire de semaines
    * @param {number} numberOfWeeks - Nombre de semaines
    * @param {Object} weeksData - Données de toutes les semaines
    */
   static initialize(numberOfWeeks, weeksData) {
     this.state.numberOfWeeks = numberOfWeeks;
-    this.state.weeksData = weeksData;
-    this.state.currentWeek = 1;
+    this.state.weeksData = weeksData || {};
+
+    // Sélection automatique de la semaine en cours
+    this.state.currentWeek = this.getCurrentWeekOfMonth();
 
     this.renderWeeksTabs();
   }
@@ -40,7 +55,6 @@ export class WeeksManager {
     const container = document.getElementById('weeks-tabs-container');
     if (!container) return;
 
-    // Si une seule semaine, ne pas afficher les onglets
     if (this.state.numberOfWeeks === 1) {
       container.style.display = 'none';
       return;
@@ -49,17 +63,19 @@ export class WeeksManager {
     container.style.display = 'flex';
 
     const tabsHTML = [];
+
     for (let i = 1; i <= this.state.numberOfWeeks; i++) {
       const isActive = i === this.state.currentWeek ? 'active' : '';
+
       tabsHTML.push(`
-                <button 
-                    class="week-tab ${isActive}" 
-                    data-week="${i}"
-                    onclick="window.weeksHandlers.switchWeek(${i})"
-                >
-                    Semaine ${i}
-                </button>
-            `);
+        <button 
+          class="week-tab ${isActive}" 
+          data-week="${i}"
+          onclick="window.weeksHandlers.switchWeek(${i})"
+        >
+          Semaine ${i}
+        </button>
+      `);
     }
 
     container.innerHTML = tabsHTML.join('');
@@ -67,41 +83,40 @@ export class WeeksManager {
 
   /**
    * Change la semaine affichée
-   * @param {number} weekNumber - Numéro de la semaine (1-4)
+   * @param {number} weekNumber
    */
   static switchWeek(weekNumber) {
-    if (weekNumber < 1 || weekNumber > this.state.numberOfWeeks) {
+    if (
+      weekNumber < 1 ||
+      weekNumber > this.state.numberOfWeeks ||
+      weekNumber === this.state.currentWeek
+    ) {
       return;
     }
 
-    // Sauvegarder les données de la semaine actuelle avant de changer
+    // Sauvegarde de la semaine actuelle
     const currentWeekData = UIManager.getState().mealsData;
     this.state.weeksData[`week${this.state.currentWeek}`] = currentWeekData;
 
-    // Changer de semaine
+    // Changement
     this.state.currentWeek = weekNumber;
 
-    // Charger les données de la nouvelle semaine
-    const weekData = this.state.weeksData[`week${weekNumber}`];
+    // Chargement sécurisé
+    const weekKey = `week${weekNumber}`;
+    const weekData = this.state.weeksData[weekKey] || {};
+
     UIManager.getState().mealsData = weekData;
 
-    // Mettre à jour l'UI
+    // Mise à jour UI
     this.renderWeeksTabs();
-    UIRenderer.renderAllDays(
-      weekData,
-      UIManager.getState().collapsedDays
-    );
-
-    // Réattacher les événements
+    UIRenderer.renderAllDays(weekData);
     UIManager.attachEventListeners();
   }
 
   /**
    * Obtient toutes les données des semaines
-   * @returns {Object}
    */
   static getAllWeeksData() {
-    // Sauvegarder la semaine actuelle
     const currentWeekData = UIManager.getState().mealsData;
     this.state.weeksData[`week${this.state.currentWeek}`] = currentWeekData;
 
@@ -110,7 +125,6 @@ export class WeeksManager {
 
   /**
    * Met à jour le nombre de semaines
-   * @param {number} newNumberOfWeeks
    */
   static async updateNumberOfWeeks(newNumberOfWeeks) {
     if (newNumberOfWeeks < 1 || newNumberOfWeeks > 4) {
@@ -118,10 +132,8 @@ export class WeeksManager {
     }
 
     try {
-      // Sauvegarder d'abord les données actuelles
       await this.saveAllWeeks();
 
-      // Mettre à jour les préférences sur le serveur
       const response = await fetch('/api/preferences', {
         method: 'PUT',
         headers: {
@@ -134,7 +146,6 @@ export class WeeksManager {
         throw new Error('Erreur lors de la mise à jour');
       }
 
-      // Recharger l'application avec le nouveau nombre de semaines
       window.location.reload();
 
     } catch (error) {
@@ -152,16 +163,14 @@ export class WeeksManager {
   }
 
   /**
-   * Obtient le numéro de la semaine actuelle
-   * @returns {number}
+   * Retourne la semaine actuelle
    */
   static getCurrentWeek() {
     return this.state.currentWeek;
   }
 
   /**
-   * Obtient le nombre total de semaines
-   * @returns {number}
+   * Retourne le nombre total de semaines
    */
   static getNumberOfWeeks() {
     return this.state.numberOfWeeks;

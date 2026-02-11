@@ -19,7 +19,6 @@ export class UIManager {
      */
     static state = {
         mealsData: {},
-        collapsedDays: new Set(),
         saveTimeout: null,
         statusTimeout: null
     };
@@ -75,28 +74,6 @@ export class UIManager {
             await WeeksManager.saveAllWeeks();
         }, API_CONFIG.SAVE_DELAY);
     }
-
-    /**
-     * Toggle l'état replié/déplié d'un jour
-     * @param {string} day - Le jour à toggle
-     */
-    static toggleDay(day) {
-        const dayCard = document.querySelector(`.day-card[data-day="${day}"]`);
-
-        if (!dayCard) {
-            console.warn(`Carte du jour ${day} non trouvée`);
-            return;
-        }
-
-        if (UIManager.state.collapsedDays.has(day)) {
-            UIManager.state.collapsedDays.delete(day);
-            dayCard.classList.remove('collapsed');
-        } else {
-            UIManager.state.collapsedDays.add(day);
-            dayCard.classList.add('collapsed');
-        }
-    }
-
     /**
      * Attache les événements aux textareas
      * Doit être appelé après le rendu de l'interface
@@ -182,8 +159,7 @@ export class UIManager {
 
             // Rendre l'interface
             UIRenderer.renderAllDays(
-                UIManager.state.mealsData,
-                UIManager.state.collapsedDays
+                UIManager.state.mealsData
             );
 
             // Attacher les événements
