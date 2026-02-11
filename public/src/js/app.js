@@ -6,9 +6,10 @@
 // ========================================
 
 import { UIManager } from './ui-handlers.js';
-import { SettingsManager, AuthManager } from './settings.js';
+import { SettingsManager, AuthManager, GeneratorManager } from './settings.js';
 import { ThemeManager } from './theme.js';
 import { WeeksManager } from './weeks-manager.js';
+import { UserManager } from './user-manager.js';
 
 /**
  * Classe principale de l'application
@@ -88,6 +89,17 @@ class AtableApp {
             switchWeek: (weekNumber) => WeeksManager.switchWeek(weekNumber),
             updateNumberOfWeeks: (number) => WeeksManager.updateNumberOfWeeks(number)
         };
+        window.generatorHandlers = {
+            generateFillEmpty: () => GeneratorManager.generateAllMeals(false),
+            generateReplaceAll: () => GeneratorManager.generateAllMeals(true),
+            showPreview: () => GeneratorManager.showPreview()
+        };
+        
+        window.userManager = {
+            changePassword: () => UserManager.changePassword(),
+            changeEmail: () => UserManager.changeEmail(),
+            deleteAccount: () => UserManager.deleteAccount()
+        }
     }
 }
 

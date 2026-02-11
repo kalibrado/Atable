@@ -375,4 +375,81 @@ export class APIManager {
       throw error;
     }
   }
+
+  /**
+   * Génère automatiquement les repas de la semaine
+   * @param {boolean} replaceAll - Remplacer tous les repas ou seulement les vides
+   * @returns {Promise<Object>} Résultat de la génération
+   */
+  static async generateMeals(replaceAll = false) {
+    try {
+      const response = await fetch('/api/generator/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ replaceAll })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur serveur');
+      }
+
+      return await response.json();
+
+    } catch (error) {
+      console.error('Erreur génération repas:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Génère une suggestion pour un repas unique
+   * @param {string} mealType - 'midi' ou 'soir'
+   * @returns {Promise<Object>} Suggestion
+   */
+  static async generateSingleMeal(mealType) {
+    try {
+      const response = await fetch('/api/generator/generate-single', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ mealType })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur serveur');
+      }
+
+      return await response.json();
+
+    } catch (error) {
+      console.error('Erreur génération repas unique:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Prévisualise les repas générés sans les sauvegarder
+   * @returns {Promise<Object>} Prévisualisation
+   */
+  static async previewGeneratedMeals() {
+    try {
+      const response = await fetch('/api/generator/preview');
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur serveur');
+      }
+
+      return await response.json();
+
+    } catch (error) {
+      console.error('Erreur prévisualisation:', error);
+      throw error;
+    }
+  }
 }

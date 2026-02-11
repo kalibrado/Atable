@@ -52,3 +52,47 @@
   cursor: not-allowed;
   transform: none;
 }
+
+.btn-generate {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--error), #dc2626);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.btn-danger:active {
+  transform: translateY(0);
+}
+
+.setting-description.warning {
+  color: var(--error);
+  font-weight: 600;
+}
+
+/* Section danger zone */
+.settings-section.danger-zone {
+  border: 2px solid var(--error);
+  border-radius: 8px;
+  padding: 16px;
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+[data-theme="dark"] .settings-section.danger-zone {
+  background-color: rgba(239, 68, 68, 0.1);
+}

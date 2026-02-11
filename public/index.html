@@ -21,16 +21,22 @@
     <div class="container">
         <!-- En-tête de l'application -->
         <header>
-            <div  class="header">
+            <div class="header">
                 <div class="header-content">
                     <h1>Atable! <span id="name-user"></span></h1>
                     <p class="subtitle">Planifiez vos repas du lundi au dimanche</p>
                 </div>
                 <div class="header-actions">
-                    <button id="settings-btn" class="settings-btn" onclick="openSettings()" aria-label="Paramètres">
+                    <button id="settings-btn" class="settings-btn" onclick="window.location.reload()" title="Actualiser"
+                        aria-label="Actualiser">
+                        🔄️
+                    </button>
+                    <button id="settings-btn" class="settings-btn" onclick="openSettings()" title="Paramètres"
+                        aria-label="Paramètres">
                         ⚙️
                     </button>
-                    <button id="logout-btn" class="logout-btn" onclick="handleLogout()" aria-label="Déconnexion">
+                    <button id="logout-btn" class="logout-btn" onclick="handleLogout()" title="Déconnexion"
+                        aria-label="Déconnexion">
                         🚪
                     </button>
                 </div>
@@ -47,51 +53,73 @@
                     <button class="close-btn" onclick="closeSettings()">&times;</button>
                 </div>
 
-                <!-- CONTENU SCROLLABLE -->
                 <div class="modal-body">
-                    <!-- ===================== -->
-                    <!-- PERSONNALISATION -->
-                    <!-- ===================== -->
                     <div class="settings-section">
                         <h3>🎨 Personnalisation</h3>
-                        <div class="setting-group">
-                            <label class="toggle-label">
-                                <input type="checkbox" id="dark-mode">
-                                <span class="toggle-slider"></span>
-                                <span class="toggle-text">Mode sombre</span>
-                            </label>
-                            <p class="setting-description">
-                                Activez le thème sombre pour réduire la fatigue oculaire
-                            </p>
+                        <div class="settings-group">
+                            <div class="setting-group">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="dark-mode">
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-text">Mode sombre</span>
+                                </label>
+                                <p class="setting-description">
+                                    Activez le thème sombre pour réduire la fatigue oculaire
+                                </p>
+                            </div>
                         </div>
                     </div>
                     <div class="divider"></div>
-
-                    <!-- ===================== -->
-                    <!-- PLANIFICATION -->
-                    <!-- ===================== -->
                     <div class="settings-section">
                         <h3>📅 Planification</h3>
-                        <div class="setting-group">
-                            <label for="number-of-weeks">
-                                <strong>Nombre de semaines</strong>
-                            </label>
-                            <select id="number-of-weeks" class="weeks-select">
-                                <option value="1">1 semaine</option>
-                                <option value="2">2 semaines</option>
-                                <option value="3">3 semaines</option>
-                                <option value="4">4 semaines</option>
-                            </select>
-                            <p class="setting-description">
-                                Planifiez vos repas sur plusieurs semaines. Les données seront conservées.
-                            </p>
+                        <div class="settings-group">
+                            <div class="setting-group">
+                                <label for="number-of-weeks">
+                                    <strong>Nombre de semaines</strong>
+                                </label>
+                                <select id="number-of-weeks" class="weeks-select">
+                                    <option value="1">1 semaine</option>
+                                    <option value="2">2 semaines</option>
+                                    <option value="3">3 semaines</option>
+                                    <option value="4">4 semaines</option>
+                                </select>
+                                <p class="setting-description">
+                                    Planifiez vos repas sur plusieurs semaines. Les données seront conservées.
+                                </p>
+                            </div>
                         </div>
                     </div>
                     <div class="divider"></div>
+                    <div class="settings-section">
+                        <h3>🤖 Génération automatique</h3>
+                        <p class="setting-description">
+                            Générez automatiquement vos repas à partir de vos préférences alimentaires.
+                            Le système utilise une rotation intelligente pour varier les repas.
+                        </p>
+                        <div class="settings-group">
 
-                    <!-- ===================== -->
-                    <!-- PRÉFÉRENCES ALIMENTAIRES -->
-                    <!-- ===================== -->
+                            <div class="setting-group">
+                                <button class="btn-primary btn-generate"
+                                    onclick="window.generatorHandlers.generateFillEmpty()">
+                                    🎲 Remplir les cases vides
+                                </button>
+                                <p class="setting-description">
+                                    Génère des repas uniquement pour les jours où aucun repas n'est planifié
+                                </p>
+                            </div>
+
+                            <div class="setting-group">
+                                <button class="btn-danger btn-generate"
+                                    onclick="window.generatorHandlers.generateReplaceAll()">
+                                    🔄 Tout remplacer
+                                </button>
+                                <p class="setting-description warning">
+                                    ⚠️ Remplace TOUS vos repas par des repas générés automatiquement
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
                     <div class="settings-section">
                         <h3>🍽️ Préférences alimentaires</h3>
                         <p class="setting-description">
@@ -103,62 +131,60 @@
                         </div>
                     </div>
                     <div class="divider"></div>
-
-                    <!-- ===================== -->
-                    <!-- NOTIFICATIONS -->
-                    <!-- ===================== -->
                     <div class="settings-section">
                         <h3>🔔 Notifications</h3>
-                        <div class="setting-group">
-                            <label class="toggle-label">
-                                <input type="checkbox" id="enable-notifications">
-                                <span class="toggle-slider"></span>
-                                <span class="toggle-text">Activer les notifications</span>
-                            </label>
-                            <p class="setting-description">
-                                Recevez un rappel quotidien avec vos repas
-                            </p>
-                        </div>
-                        <div class="setting-group" id="time-setting">
-                            <label for="notification-time">
-                                <strong>🕐 Heure de notification</strong>
-                            </label>
-                            <input type="time" id="notification-time" class="time-input">
-                        </div>
-                        <div class="setting-group">
-                            <div id="permission-status" class="permission-status">
-                                <span id="permission-text"></span>
+
+                        <div class="settings-group">
+
+                            <div class="setting-group">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="enable-notifications">
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-text">Activer les notifications</span>
+                                </label>
+                                <p class="setting-description">
+                                    Recevez un rappel quotidien avec vos repas
+                                </p>
+                            </div>
+                            <div class="setting-group" id="time-setting">
+                                <label for="notification-time">
+                                    <strong>🕐 Heure de notification</strong>
+                                </label>
+                                <input type="time" id="notification-time" class="time-input">
+                            </div>
+                            <div class="setting-group">
+                                <div id="permission-status" class="permission-status">
+                                    <span id="permission-text"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="divider"></div>
-
-                    <!-- ===================== -->
-                    <!-- COMPTE -->
-                    <!-- ===================== -->
                     <div class="settings-section danger-zone">
                         <h3>👤 Compte</h3>
-                        <div class="setting-group">
-                            <button class="btn-primary" onclick="changePassword()">
-                                Changer le mot de passe
-                            </button>
-                        </div>
-                        <div class="setting-group">
-                            <button class="btn-primary" onclick="changeEmail()">
-                                Changer l'adresse email
-                            </button>
-                        </div>
-                        <div class="setting-group">
-                            <button class="btn-danger" onclick="deleteAccount()">
-                                🗑️ Supprimer mon compte
-                            </button>
-                            <p class="setting-description warning">
-                                Cette action est définitive
-                            </p>
+                        <div class="settings-group">
+
+                            <div class="setting-group">
+                                <button class="btn-primary" onclick="window.userManager.changePassword()">
+                                    Changer le mot de passe
+                                </button>
+                            </div>
+                            <div class="setting-group">
+                                <button class="btn-primary" onclick="window.userManager.changeEmail()">
+                                    Changer l'adresse email
+                                </button>
+                            </div>
+                            <div class="setting-group">
+                                <button class="btn-danger" onclick="window.userManager.deleteAccount()">
+                                    🗑️ Supprimer mon compte
+                                </button>
+                                <p class="setting-description warning">
+                                    Cette action est définitive
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="divider"></div>
                 <div class="modal-footer">
                     <button class="btn-primary" onclick="closeSettings()">
                         Fermer

@@ -2,7 +2,10 @@
    Groupes de paramètres
    ======================================== */
 .setting-group {
-  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .setting-group:last-child {
@@ -18,9 +21,22 @@
 .setting-description {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  margin-top: 6px;
+  margin: 6px;
   line-height: 1.4;
 }
+
+.settings-group {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+@media (max-width: 1060px) {
+  .settings-group {
+    display: block;
+  }
+}
+
 
 /* ========================================
    Toggle Switch

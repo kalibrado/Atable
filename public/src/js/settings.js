@@ -25,7 +25,7 @@ export class SettingsManager {
         }
 
         modal.classList.add('show');
-        
+
         // Initialiser le nombre de semaines
         const numberOfWeeks = WeeksManager.getNumberOfWeeks();
         const select = document.getElementById('number-of-weeks');
@@ -44,7 +44,7 @@ export class SettingsManager {
 
         // Mettre à jour l'UI
         await SettingsManager.updateUI();
-        
+
         // Initialiser et afficher les ingrédients
         await IngredientsManager.initialize();
         IngredientsManager.render();
@@ -247,10 +247,10 @@ export class SettingsManager {
 
         // Démarrer le système de notifications
         await window.notificationSystem.start();
-        
+
         // Initialiser les ingrédients
         IngredientsManager.exposeHandlers();
-        
+
         // Mettre à jour l'UI si la modal est ouverte
         const modal = document.getElementById('settings-modal');
         if (modal && modal.classList.contains('show')) {
@@ -322,5 +322,103 @@ export class AuthManager {
         } catch (error) {
             UIManager.showStatus(`Erreur chargement infos utilisateur: ${error}`, STATUS_TYPES.ERROR)
         }
+    }
+}
+
+
+/**
+ * Classe de gestion de la génération automatique
+ */
+export class GeneratorManager {
+    /**
+     * Génère tous les repas et recharge la page
+     * @param {boolean} replaceAll - Remplacer tous les repas
+     */
+    static async generateAllMeals(replaceAll = false) {
+        const confirmMsg = replaceAll
+            ? 'Voulez-vous remplacer TOUS les repas existants par des repas générés automatiquement ?'
+            : 'Voulez-vous générer automatiquement les repas pour les cases vides ?';
+
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
+        UIManager.showStatus('🔄 Génération en cours...', STATUS_TYPES.SUCCESS);
+
+        try {
+            const result = await APIManager.generateMeals(replaceAll);
+
+            if (result.success) {
+                UIManager.showStatus('✅ ' + result.message, STATUS_TYPES.SUCCESS);
+
+                // Recharger l'application après 1 seconde
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        } catch (error) {
+            console.error('Erreur génération:', error);
+            UIManager.showStatus(
+                error.message || 'Erreur lors de la génération',
+                STATUS_TYPES.ERROR
+            );
+        }
+    }
+
+    /**
+     * Affiche un aperçu des repas générés
+     */
+    static async showPreview() {
+        try {
+            const result = await APIManager.previewGeneratedMeals();
+
+            if (result.success && result.preview) {
+                this.displayPreviewModal(result.preview);
+            }
+        } catch (error) {
+            console.error('Erreur aperçu:', error);
+            UIManager.showStatus(
+                error.message || 'Erreur lors de l\'aperçu',
+                STATUS_TYPES.ERROR
+            );
+        }
+    }
+
+    /**
+     * Affiche la modal d'aperçu
+     * @param {Object} preview - Les repas générés
+     */
+    static displayPreviewModal(preview) {
+        const weeks = Object.keys(preview);
+
+        let previewHTML = '<div class="preview-container">';
+
+        weeks.forEach(weekKey => {
+            const weekNumber = weekKey.replace('week', '');
+            previewHTML += `<h4>Semaine ${weekNumber}</h4>`;
+            previewHTML += '<div class="preview-week">';
+
+            Object.entries(preview[weekKey]).forEach(([day, meals]) => {
+                previewHTML += `
+          <div class="preview-day">
+            <strong>${day.charAt(0).toUpperCase() + day.slice(1)}</strong>
+            <div>☀️ ${meals.midi || '(vide)'}</div>
+            <div>🌙 ${meals.soir || '(vide)'}</div>
+          </div>
+        `;
+            });
+
+            previewHTML += '</div>';
+        });
+
+        previewHTML += '</div>';
+
+        // Afficher dans une alerte ou modal personnalisée
+        // (Simplification pour l'exemple)
+        alert('Aperçu des repas générés:\n\n' +
+            Object.entries(preview.week1 || {})
+                .map(([day, meals]) => `${day}: ${meals.midi} / ${meals.soir}`)
+                .join('\n')
+        );
     }
 }
