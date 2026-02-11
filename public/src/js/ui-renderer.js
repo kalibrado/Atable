@@ -3,9 +3,8 @@
 // ========================================
 
 import { DAYS, MEAL_TYPES, MEAL_EMOJIS } from './config.js';
-// import { DateUtils } from './utils.js';
-import { DateUtils } from './utils.js'; // ← IMPORTANT
-import { WeeksManager } from './weeks-manager.js'; // ← AJOUTER
+import { DateUtils } from './utils.js';
+import { WeeksManager } from './weeks-manager.js';
 
 /**
  * Classe de gestion du rendu de l'interface
@@ -83,14 +82,16 @@ export class UIRenderer {
      * @param {Object} mealsData - Les données des repas
      * @param {Set} collapsedDays - Ensemble des jours repliés
      * @param {string} currentDay - Le jour actuel
+     * @param {boolean} isCurrentWeek - True si on affiche la semaine actuelle
      * @returns {string} Le HTML de la carte
      */
-    static createDayCard(day, mealsData, collapsedDays, currentDay) {
+    static createDayCard(day, mealsData, collapsedDays, currentDay, isCurrentWeek) {
         const emoji = this.createCalendarEmoji(day);
         const isCollapsed = collapsedDays.has(day);
         const collapsedClass = isCollapsed ? 'collapsed' : '';
-        const isTodayClass = day === currentDay ? 'today' : '';
-        const todayBadge = day === currentDay 
+        // Ne marquer "aujourd'hui" que si c'est la semaine actuelle ET le bon jour
+        const isTodayClass = (isCurrentWeek && day === currentDay) ? 'today' : '';
+        const todayBadge = (isCurrentWeek && day === currentDay)
             ? '<span class="today-badge">Aujourd\'hui</span>' 
             : '';
 
@@ -119,6 +120,12 @@ export class UIRenderer {
     static renderAllDays(mealsData, collapsedDays) {
         const container = document.getElementById('days-container');
         const currentDay = DateUtils.getCurrentDay();
+        
+        // Déterminer si on affiche la semaine actuelle
+        const currentWeek = WeeksManager.getCurrentWeek();
+        const numberOfWeeks = WeeksManager.getNumberOfWeeks();
+        const currentPlanningWeek = DateUtils.getCurrentPlanningWeek(numberOfWeeks);
+        const isCurrentWeek = currentWeek === currentPlanningWeek;
 
         // Vérifier si on est sur grand écran
         const isLargeScreen = window.innerWidth >= 768;
@@ -127,9 +134,9 @@ export class UIRenderer {
             // Sur grand écran : tout déplier
             collapsedDays.clear();
         } else {
-            // Sur mobile : replier tous les jours sauf le jour actuel
+            // Sur mobile : replier tous les jours sauf le jour actuel (si on est dans la semaine actuelle)
             DAYS.forEach(day => {
-                if (day !== currentDay) {
+                if (!isCurrentWeek || day !== currentDay) {
                     collapsedDays.add(day);
                 }
             });
@@ -137,13 +144,13 @@ export class UIRenderer {
 
         // Générer le HTML de toutes les cartes
         const cardsHTML = DAYS
-            .map(day => this.createDayCard(day, mealsData, collapsedDays, currentDay))
+            .map(day => this.createDayCard(day, mealsData, collapsedDays, currentDay, isCurrentWeek))
             .join('');
 
         container.innerHTML = cardsHTML;
 
-        // Scroll vers le jour actuel après un court délai (seulement sur mobile)
-        if (!isLargeScreen) {
+        // Scroll vers le jour actuel après un court délai (seulement sur mobile et si semaine actuelle)
+        if (!isLargeScreen && isCurrentWeek) {
             this.scrollToCurrentDay(currentDay);
         }
 
