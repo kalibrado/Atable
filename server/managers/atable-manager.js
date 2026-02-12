@@ -1,5 +1,5 @@
 // ========================================
-// Gestion des plans de repas - Structure unifiée
+// Gestion des plans de repas - Basé sur les jours du mois
 // ========================================
 
 const usersManager = require('./users-manager');
@@ -34,10 +34,16 @@ async function writeUseratable(userId, weeksPlans) {
             throw new Error('Format de données invalide');
         }
 
-        const validDays = CONFIG.validDays;
-        for (const day of validDays) {
-            if (!week.days[day] || typeof week.days[day].midi === 'undefined' || typeof week.days[day].soir === 'undefined') {
-                throw new Error(`Données manquantes pour ${day} dans ${weekKey}`);
+        // Valider que les clés sont des nombres de 1 à 31
+        for (const dayKey of Object.keys(week.days)) {
+            const dayNum = parseInt(dayKey);
+            if (isNaN(dayNum) || dayNum < 1 || dayNum > 31) {
+                throw new Error(`Numéro de jour invalide: ${dayKey}`);
+            }
+
+            const dayData = week.days[dayKey];
+            if (typeof dayData.midi === 'undefined' || typeof dayData.soir === 'undefined') {
+                throw new Error(`Données manquantes pour le jour ${dayKey} dans ${weekKey}`);
             }
         }
     }
@@ -47,17 +53,28 @@ async function writeUseratable(userId, weeksPlans) {
 }
 
 /**
- * Crée la structure de semaines par défaut
+ * Crée la structure de semaines par défaut avec jours du mois
  */
 function createDefaultWeeksPlans(numberOfWeeks) {
     const plans = {};
     for (let i = 1; i <= 4; i++) {
         plans[`week${i}`] = {
             enabled: i <= numberOfWeeks,
-            days: { ...CONFIG.default_atable }
+            days: createEmptyMonth()
         };
     }
     return plans;
+}
+
+/**
+ * Crée un mois vide (jours 1 à 31)
+ */
+function createEmptyMonth() {
+    const days = {};
+    for (let day = 1; day <= 31; day++) {
+        days[day] = { midi: '', soir: '' };
+    }
+    return days;
 }
 
 /**
@@ -66,7 +83,7 @@ function createDefaultWeeksPlans(numberOfWeeks) {
 function createEmptyWeek() {
     return {
         enabled: false,
-        days: { ...CONFIG.default_atable }
+        days: createEmptyMonth()
     };
 }
 
@@ -88,5 +105,6 @@ module.exports = {
     writeUseratable,
     deleteUseratable,
     createDefaultWeeksPlans,
-    createEmptyWeek
+    createEmptyWeek,
+    createEmptyMonth
 };

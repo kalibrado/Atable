@@ -1,5 +1,5 @@
 // ========================================
-// Générateur automatique de repas
+// Générateur automatique de repas - Jours du mois
 // ========================================
 
 const CONFIG = require('../../config');
@@ -9,17 +9,27 @@ const CONFIG = require('../../config');
  */
 class MealGenerator {
   /**
-   * Génère les repas pour une semaine
+   * Génère les repas pour une semaine (ensemble de jours)
    * @param {Object} ingredients - Les préférences alimentaires
    * @param {number} weekNumber - Numéro de la semaine (1-4)
+   * @param {Array<number>} daysInWeek - Liste des jours de cette semaine
    * @returns {Object} Les repas générés
    */
-  static generateWeek(ingredients, weekNumber = 1) {
+  static generateWeek(ingredients, weekNumber = 1, daysInWeek = null) {
+    // Si pas de jours spécifiés, générer pour tous les jours du mois
+    if (!daysInWeek) {
+      const totalDays = CONFIG.getDaysInCurrentMonth();
+      daysInWeek = [];
+      for (let day = 1; day <= totalDays; day++) {
+        daysInWeek.push(day);
+      }
+    }
+
     const state = this.initializeState(ingredients);
     const mealsData = {};
     const generatedMeals = new Set();
 
-    for (const day of CONFIG.validDays) {
+    for (const day of daysInWeek) {
       mealsData[day] = {
         midi: '',
         soir: ''
@@ -203,6 +213,42 @@ class MealGenerator {
   }
 
   /**
+   * Calcule les plages de jours pour chaque semaine
+   * @param {number} totalDays - Nombre total de jours dans le mois
+   * @param {number} numberOfWeeks - Nombre de semaines
+   * @returns {Array} Plages de jours pour chaque semaine
+   */
+  static calculateWeekRanges(totalDays, numberOfWeeks) {
+    const ranges = [];
+    const baseDaysPerWeek = Math.floor(totalDays / numberOfWeeks);
+    const extraDays = totalDays % numberOfWeeks;
+
+    let currentDay = 1;
+
+    for (let week = 1; week <= numberOfWeeks; week++) {
+      const daysInThisWeek = baseDaysPerWeek + (week <= extraDays ? 1 : 0);
+      const startDay = currentDay;
+      const endDay = currentDay + daysInThisWeek - 1;
+
+      const days = [];
+      for (let day = startDay; day <= endDay; day++) {
+        days.push(day);
+      }
+
+      ranges.push({
+        weekNumber: week,
+        startDay,
+        endDay,
+        days
+      });
+
+      currentDay = endDay + 1;
+    }
+
+    return ranges;
+  }
+
+  /**
    * Génère tous les repas pour toutes les semaines
    * @param {Object} ingredients - Les préférences alimentaires
    * @param {number} numberOfWeeks - Nombre de semaines
@@ -210,9 +256,15 @@ class MealGenerator {
    */
   static generateAllWeeks(ingredients, numberOfWeeks) {
     const weeks = {};
+    const totalDays = CONFIG.getDaysInCurrentMonth();
+    const weekRanges = this.calculateWeekRanges(totalDays, numberOfWeeks);
 
-    for (let i = 1; i <= numberOfWeeks; i++) {
-      weeks[`week${i}`] = this.generateWeek(ingredients, i);
+    for (const range of weekRanges) {
+      weeks[`week${range.weekNumber}`] = this.generateWeek(
+        ingredients,
+        range.weekNumber,
+        range.days
+      );
     }
 
     return weeks;

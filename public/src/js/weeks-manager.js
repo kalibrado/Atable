@@ -1,13 +1,14 @@
 // ========================================
-// Gestion des semaines multiples
+// Gestion des semaines basées sur les jours du mois
 // ========================================
 
 import { APIManager } from './api.js';
 import { UIRenderer } from './ui-renderer.js';
 import { UIManager } from './ui-handlers.js';
+import { MonthDaysUtils } from './utils.js';
 
 /**
- * Classe de gestion des semaines multiples
+ * Classe de gestion des semaines basées sur les jours du mois
  */
 export class WeeksManager {
 
@@ -18,19 +19,17 @@ export class WeeksManager {
   static state = {
     numberOfWeeks: 1,
     currentWeek: 1,
-    weeksData: {}
+    weeksData: {},
+    weekRanges: [] // Contient les plages de jours pour chaque semaine
   };
 
   /**
-   * Calcule la semaine actuelle du mois (1 à numberOfWeeks max)
+   * Calcule la semaine actuelle basée sur le jour du mois
    * @private
    */
-  static getCurrentWeekOfMonth() {
-    const today = new Date();
-    const week = Math.ceil(today.getDate() / 7);
-
-    // Ne jamais dépasser le nombre configuré
-    return Math.min(week, this.state.numberOfWeeks);
+  static getCurrentWeekNumber() {
+    const currentDay = MonthDaysUtils.getCurrentDayOfMonth();
+    return MonthDaysUtils.findWeekForDay(currentDay, this.state.numberOfWeeks);
   }
 
   /**
@@ -42,8 +41,18 @@ export class WeeksManager {
     this.state.numberOfWeeks = numberOfWeeks;
     this.state.weeksData = weeksData || {};
 
+    // Calculer les plages de jours pour chaque semaine
+    const totalDays = MonthDaysUtils.getDaysInCurrentMonth();
+    this.state.weekRanges = MonthDaysUtils.calculateWeekRanges(totalDays, numberOfWeeks);
+
     // Sélection automatique de la semaine en cours
-    this.state.currentWeek = this.getCurrentWeekOfMonth();
+    this.state.currentWeek = this.getCurrentWeekNumber();
+
+    console.log('WeeksManager initialisé:', {
+      numberOfWeeks,
+      currentWeek: this.state.currentWeek,
+      weekRanges: this.state.weekRanges
+    });
 
     this.renderWeeksTabs();
   }
@@ -66,6 +75,7 @@ export class WeeksManager {
 
     for (let i = 1; i <= this.state.numberOfWeeks; i++) {
       const isActive = i === this.state.currentWeek ? 'active' : '';
+      const label = MonthDaysUtils.formatWeekLabel(i, this.state.numberOfWeeks);
 
       tabsHTML.push(`
         <button 
@@ -73,7 +83,7 @@ export class WeeksManager {
           data-week="${i}"
           onclick="window.weeksHandlers.switchWeek(${i})"
         >
-          Semaine ${i}
+          ${label}
         </button>
       `);
     }
@@ -109,7 +119,11 @@ export class WeeksManager {
 
     // Mise à jour UI
     this.renderWeeksTabs();
-    UIRenderer.renderAllDays(weekData);
+    
+    // Obtenir les jours de cette semaine
+    const daysInWeek = MonthDaysUtils.getDaysForWeek(weekNumber, this.state.numberOfWeeks);
+    
+    UIRenderer.renderDaysForWeek(weekData, daysInWeek);
     UIManager.attachEventListeners();
   }
 
@@ -174,5 +188,21 @@ export class WeeksManager {
    */
   static getNumberOfWeeks() {
     return this.state.numberOfWeeks;
+  }
+
+  /**
+   * Obtient les jours de la semaine actuelle
+   * @returns {Array<number>} Liste des jours
+   */
+  static getCurrentWeekDays() {
+    return MonthDaysUtils.getDaysForWeek(this.state.currentWeek, this.state.numberOfWeeks);
+  }
+
+  /**
+   * Obtient les plages de toutes les semaines
+   * @returns {Array<Object>} Plages des semaines
+   */
+  static getWeekRanges() {
+    return this.state.weekRanges;
   }
 }

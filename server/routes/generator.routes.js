@@ -48,6 +48,7 @@ router.post('/generate', requireAuth, async (req, res) => {
       } else {
         // Fusionner : ne remplacer que les repas vides
         for (const day of Object.keys(generatedWeeks[weekKey])) {
+          console.log({ currentPlans :currentPlans[weekKey] })
           if (!currentPlans[weekKey].days[day].midi || currentPlans[weekKey].days[day].midi.trim() === '') {
             currentPlans[weekKey].days[day].midi = generatedWeeks[weekKey][day].midi;
           }

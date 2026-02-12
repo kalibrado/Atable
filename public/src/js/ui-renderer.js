@@ -1,28 +1,27 @@
 // ========================================
-// Rendu de l'interface utilisateur
+// Rendu de l'interface utilisateur - Jours du mois
 // ========================================
 
-import { DAYS, MEAL_TYPES, MEAL_EMOJIS } from './config.js';
-import { DateUtils } from './utils.js';
+import { MEAL_TYPES, MEAL_EMOJIS } from './config.js';
+import { MonthDaysUtils, StringUtils } from './utils.js';
 import { WeeksManager } from './weeks-manager.js';
 
 /**
- * Classe de gestion du rendu de l'interface
- * Responsable de la génération du HTML et de l'affichage
+ * Classe de gestion du rendu de l'interface basée sur les jours du mois
  */
 export class UIRenderer {
     /**
      * Crée le HTML pour une section de repas (Midi ou Soir)
-     * @param {string} day - Le jour de la semaine (ex: 'lundi')
+     * @param {number} day - Le jour du mois (1-31)
      * @param {string} mealType - Le type de repas ('midi' ou 'soir')
      * @param {Object} mealsData - Les données des repas
      * @returns {string} Le HTML de la section
      */
     static createMealSection(day, mealType, mealsData) {
         const emoji = MEAL_EMOJIS[mealType];
-        const label = mealType.charAt(0).toUpperCase() + mealType.slice(1);
+        const label = StringUtils.capitalize(mealType);
         const value = mealsData[day]?.[mealType] || '';
-
+        console.log({ day, mealsData, label, value })
         return `
             <div class="atable-section">
                 <div class="atable-header">
@@ -32,7 +31,7 @@ export class UIRenderer {
                     </label>
                     <button 
                         class="generate-meal-btn" 
-                        onclick="window.generatorHandlers.generateSingleMeal('${day}', '${mealType}')"
+                        onclick="window.generatorHandlers.generateSingleMeal(${day}, '${mealType}')"
                         title="Générer un repas"
                         aria-label="Générer un repas pour ${label}"
                     >
@@ -52,46 +51,40 @@ export class UIRenderer {
     }
 
     /**
-     * Crée l'emoji de calendrier pour un jour
-     * Affiche le numéro du jour et le mois abrégé
-     * @param {string} dayName - Le nom du jour (ex: 'lundi')
-     * @returns {string} Le HTML de l'emoji calendrier
+     * Crée l'emoji de calendrier pour un jour du mois
+     * @param {number} dayOfMonth - Le numéro du jour (1-31)
+     * @returns {Object} Objet contenant le HTML et les infos du jour
      */
-    static createCalendarEmoji(dayName) {
-        // Calculer l'offset de semaine
-        const currentWeek = WeeksManager.getCurrentWeek();
-        const weekOffset = currentWeek - 1;
-
-        // Utiliser getDateForDayInWeek au lieu de getDateForDay
-        const date = DateUtils.getDateForDayInWeek(dayName, weekOffset);
-
-        const dayNumber = date.getDate();
-        const month = date.toLocaleString('fr-FR', { month: 'short' });
+    static createCalendarEmoji(dayOfMonth) {
+        const now = new Date();
+        const month = now.toLocaleString('fr-FR', { month: 'short' });
 
         return {
             month,
-            dayNumber,
+            dayNumber: dayOfMonth,
             html: `
             <span class="calendar-emoji" aria-hidden="true">
                 <span class="cal-month">${month}</span>
-                <span class="cal-day">${dayNumber}</span>
+                <span class="cal-day">${dayOfMonth}</span>
             </span>
         `};
     }
 
     /**
      * Crée le HTML pour une carte de jour complète
-     * @param {string} day - Le jour de la semaine
+     * @param {number} dayOfMonth - Le jour du mois (1-31)
      * @param {Object} mealsData - Les données des repas
-     * @param {string} currentDay - Le jour actuel
+     * @param {boolean} isLargeScreen - Si l'écran est large
      * @returns {string} Le HTML de la carte
-    */
-    static createDayCard(day, mealsData, isLargeScreen) {
-        const { html, dayNumber, month } = this.createCalendarEmoji(day);
-        const today = new Date();
-        const dd = String(today.getDate()).padStart(2, '0');
-        const mm = today.toLocaleString('fr-FR', { month: 'short' });
-        const isToday = String(dayNumber) === dd && String(month) === mm
+     */
+    static createDayCard(dayOfMonth, mealsData, isLargeScreen) {
+        const { html } = this.createCalendarEmoji(dayOfMonth);
+        const currentDay = MonthDaysUtils.getCurrentDayOfMonth();
+        const isToday = dayOfMonth === currentDay;
+
+        const dayName = MonthDaysUtils.getDayName(dayOfMonth);
+        const dayNameCapitalized = StringUtils.capitalize(dayName);
+
         const collapsedClass = isLargeScreen ? '' : !isToday ? 'collapsed' : 'today';
 
         const todayBadge = isToday
@@ -99,79 +92,100 @@ export class UIRenderer {
             : '';
 
         return `
-            <div class="day-card ${collapsedClass}" data-day="${day}">
+            <div class="day-card ${collapsedClass}" data-day="${dayOfMonth}">
                 <div class="day-header">
                     <div class="day-title">
-                        <h2>${html} ${day}</h2>
+                        <h2>${html} ${dayNameCapitalized} ${dayOfMonth}</h2>
                         ${todayBadge}
                     </div>
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div class="day-content">
-                    ${this.createMealSection(day, MEAL_TYPES.MIDI, mealsData)}
-                    ${this.createMealSection(day, MEAL_TYPES.SOIR, mealsData)}
+                    ${this.createMealSection(dayOfMonth, MEAL_TYPES.MIDI, mealsData)}
+                    ${this.createMealSection(dayOfMonth, MEAL_TYPES.SOIR, mealsData)}
                 </div>
             </div>
         `;
     }
 
     /**
-     * Rend tous les jours de la semaine dans le conteneur
+     * Rend les jours d'une semaine spécifique
      * @param {Object} mealsData - Les données des repas
+     * @param {Array<number>} daysInWeek - Liste des jours à afficher
      */
-    static renderAllDays(mealsData) {
+    static renderDaysForWeek(mealsData, daysInWeek) {
         const container = document.getElementById('days-container');
-        const currentDay = DateUtils.getCurrentDay();
+        const currentDay = MonthDaysUtils.getCurrentDayOfMonth();
+
         // Vérifier si on est sur grand écran
         const isLargeScreen = window.innerWidth >= 768;
         // Générer le HTML de toutes les cartes
-        const cardsHTML = DAYS
+        container.innerHTML = daysInWeek
             .map(day => this.createDayCard(day, mealsData, isLargeScreen))
             .join('');
 
-        container.innerHTML = cardsHTML;
+        const days = [...new Set(
+            [...document.querySelectorAll('[data-day]')].map(el => Number(el.dataset.day))
+        )];
+        
+        const cardsHTML = days
+            .map(day => this.createDayCard(day, mealsData, isLargeScreen))
+            .join('');
 
-        // Scroll vers le jour actuel après un court délai (seulement sur mobile et si semaine actuelle)
-        if (!isLargeScreen) {
-            this.scrollToCurrentDay(currentDay);
+        // container.innerHTML = cardsHTML
+        // Scroll vers le jour actuel si dans cette semaine
+        if (!isLargeScreen && daysInWeek.includes(currentDay)) {
+            this.scrollToDay(currentDay);
         }
 
-        // Écouter le redimensionnement de la fenêtre
-        window.addEventListener('resize', () => {
-            const wasLargeScreen = isLargeScreen;
-            const nowLargeScreen = window.innerWidth >= 768;
-            // Si on change de mode, re-render
-            if (wasLargeScreen !== nowLargeScreen) {
-                this.renderAllDays(mealsData);
-            }
-        });
         // Ajouter l'événement de clic sur chaque carte
-        const allDayCards = document.querySelectorAll('.day-card');
-        allDayCards.forEach(card => {
-            card.addEventListener('click', () => {
-            // Retirer 'collapsed' de toutes les cartes
-            allDayCards.forEach(c => c.classList.add('collapsed'));
-            // Ajouter 'today' ou retirer 'collapsed' de la carte cliquée
-            card.classList.remove('collapsed');
-            });
-        });
-        
+        this.attachCardClickEvents();
     }
 
     /**
-     * Scroll automatique vers le jour actuel
-     * @param {string} currentDay - Le jour actuel
+     * Rend tous les jours du mois actuel
+     * @param {Object} mealsData - Les données des repas
      */
-    static scrollToCurrentDay(currentDay) {
+    static renderAllDays(mealsData) {
+        // Obtenir les jours de la semaine actuelle
+        const daysInWeek = WeeksManager.getCurrentWeekDays();
+        this.renderDaysForWeek(mealsData, daysInWeek);
+    }
+
+    /**
+     * Scroll automatique vers un jour spécifique
+     * @param {number} dayOfMonth - Le jour à afficher
+     */
+    static scrollToDay(dayOfMonth) {
         setTimeout(() => {
-            const currentDayCard = document.querySelector(`.day-card[data-day="${currentDay}"]`);
-            if (currentDayCard) {
-                currentDayCard.scrollIntoView({
+            const dayCard = document.querySelector(`.day-card[data-day="${dayOfMonth}"]`);
+            if (dayCard) {
+                dayCard.scrollIntoView({
                     behavior: 'smooth',
                     block: 'center'
                 });
             }
         }, 100);
+    }
+
+    /**
+     * Attache les événements de clic sur les cartes
+     */
+    static attachCardClickEvents() {
+        const allDayCards = document.querySelectorAll('.day-card');
+        allDayCards.forEach(card => {
+            const header = card.querySelector('.day-header');
+            if (header) {
+                header.addEventListener('click', () => {
+                    // Sur mobile, replier les autres cartes
+                    if (window.innerWidth < 768) {
+                        allDayCards.forEach(c => c.classList.add('collapsed'));
+                    }
+                    // Déplier/replier la carte cliquée
+                    card.classList.toggle('collapsed');
+                });
+            }
+        });
     }
 
     /**
@@ -182,6 +196,17 @@ export class UIRenderer {
         const nameUserSpan = document.getElementById('name-user');
         if (nameUserSpan && userName) {
             nameUserSpan.textContent = ` - ${userName}`;
+        }
+    }
+
+    /**
+     * Affiche le mois actuel dans le header
+     */
+    static displayCurrentMonth() {
+        const subtitleElement = document.querySelector('.subtitle');
+        if (subtitleElement) {
+            const monthName = MonthDaysUtils.getCurrentMonthName();
+            subtitleElement.textContent = `Planifiez vos repas de ${monthName}`;
         }
     }
 }

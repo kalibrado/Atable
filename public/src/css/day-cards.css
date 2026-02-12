@@ -12,7 +12,7 @@
 }
 
 /* ========================================
-   Carte de jour
+   Carte de jour - Jours du mois
    ======================================== */
 .day-card {
   background-color: var(--card-bg);
@@ -25,7 +25,7 @@
   box-shadow: var(--shadow-lg);
 }
 
-/* En-tête de la carte (jour de la semaine) */
+/* En-tête de la carte (jour du mois) */
 .day-header {
   display: flex;
   justify-content: space-between;
@@ -166,12 +166,9 @@
 }
 
 @keyframes pulse {
-
-  0%,
-  100% {
+  0%, 100% {
     opacity: 1;
   }
-
   50% {
     opacity: 0.6;
   }

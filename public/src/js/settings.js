@@ -376,7 +376,6 @@ export class GeneratorManager {
         const button = document.querySelector(
             `.generate-meal-btn[onclick*="${day}"][onclick*="${mealType}"]`
         );
-
         if (!textarea) {
             console.error(`Textarea non trouvée pour ${day} ${mealType}`);
             return;

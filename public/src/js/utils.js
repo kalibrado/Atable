@@ -1,99 +1,132 @@
 // ========================================
-// Fonctions utilitaires multi-semaines
+// Fonctions utilitaires pour la gestion des jours du mois
 // ========================================
 
 /**
- * Classe utilitaire pour les opérations sur les dates (multi-semaines)
+ * Classe utilitaire pour les opérations sur les jours du mois
  */
-export class DateUtils {
+export class MonthDaysUtils {
   /**
-   * Mapping des jours de la semaine
+   * Obtient le nombre de jours dans le mois actuel
    */
-  static DAYS_MAP = [
-    'dimanche',
-    'lundi',
-    'mardi',
-    'mercredi',
-    'jeudi',
-    'vendredi',
-    'samedi'
-  ];
-
-  /**
-   * Mapping des jours pour le format ISO (lundi = 0)
-   */
-  static ISO_DAYS_MAP = {
-    'lundi': 0,
-    'mardi': 1,
-    'mercredi': 2,
-    'jeudi': 3,
-    'vendredi': 4,
-    'samedi': 5,
-    'dimanche': 6
-  };
-
-  /**
-   * Obtient le jour actuel en français
-   */
-  static getCurrentDay() {
-    const today = new Date().getDay();
-    return this.DAYS_MAP[today];
-  }
-
-  /**
-   * Obtient le numéro de la semaine actuelle dans l'année
-   */
-  static getCurrentWeekNumber() {
+  static getDaysInCurrentMonth() {
     const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 1);
-    const diff = now - start;
-    const oneWeek = 1000 * 60 * 60 * 24 * 7;
-    return Math.ceil((diff / oneWeek) + 1);
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   }
 
   /**
-   * Obtient la date pour un jour spécifique dans une semaine donnée
-   * @param {string} dayName - Nom du jour ('lundi', 'mardi', etc.)
-   * @param {number} weekOffset - Décalage de semaine (0 = semaine actuelle, 1 = semaine suivante, etc.)
+   * Obtient le jour actuel du mois (1-31)
    */
-  static getDateForDayInWeek(dayName, weekOffset = 0) {
-    const normalizedDay = dayName
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .trim();
+  static getCurrentDayOfMonth() {
+    return new Date().getDate();
+  }
 
-    const targetIndex = this.ISO_DAYS_MAP[normalizedDay];
+  /**
+   * Obtient le nom du jour de la semaine pour un jour du mois
+   * @param {number} dayOfMonth - Jour du mois (1-31)
+   * @returns {string} Nom du jour (lundi, mardi, etc.)
+   */
+  static getDayName(dayOfMonth) {
+    const now = new Date();
+    const date = new Date(now.getFullYear(), now.getMonth(), dayOfMonth);
+    const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    return days[date.getDay()];
+  }
 
-    if (targetIndex === undefined) {
-      console.error('Jour invalide:', dayName);
-      return new Date();
+  /**
+   * Obtient le nom du mois actuel
+   * @returns {string} Nom du mois et année
+   */
+  static getCurrentMonthName() {
+    return new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  }
+
+  /**
+   * Calcule la répartition des jours par semaine
+   * @param {number} totalDays - Nombre total de jours dans le mois
+   * @param {number} numberOfWeeks - Nombre de semaines à afficher
+   * @returns {Array<Object>} Tableau d'objets {weekNumber, startDay, endDay}
+   */
+  static calculateWeekRanges(totalDays, numberOfWeeks) {
+    const ranges = [];
+    const baseDaysPerWeek = Math.floor(totalDays / numberOfWeeks);
+    const extraDays = totalDays % numberOfWeeks;
+
+    let currentDay = 1;
+
+    for (let week = 1; week <= numberOfWeeks; week++) {
+      const daysInThisWeek = baseDaysPerWeek + (week <= extraDays ? 1 : 0);
+      const startDay = currentDay;
+      const endDay = currentDay + daysInThisWeek - 1;
+
+      ranges.push({
+        weekNumber: week,
+        startDay,
+        endDay,
+        days: this.generateDaysList(startDay, endDay)
+      });
+
+      currentDay = endDay + 1;
     }
 
-    const today = new Date();
-    const jsDay = today.getDay();
-    const isoTodayIndex = jsDay === 0 ? 6 : jsDay - 1;
-
-    const diffInCurrentWeek = targetIndex - isoTodayIndex;
-    const totalDaysDiff = diffInCurrentWeek + (weekOffset * 7);
-
-    const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() + totalDaysDiff);
-
-    return targetDate;
+    return ranges;
   }
 
   /**
-   * Obtient la date du prochain jour spécifié
+   * Génère une liste de jours entre start et end
+   * @param {number} startDay - Jour de début
+   * @param {number} endDay - Jour de fin
+   * @returns {Array<number>} Liste des jours
    */
-  static getDateForDay(dayName) {
-    return this.getDateForDayInWeek(dayName, 0);
+  static generateDaysList(startDay, endDay) {
+    const days = [];
+    for (let day = startDay; day <= endDay; day++) {
+      days.push(day);
+    }
+    return days;
   }
 
   /**
-   * Formate une date en string lisible
+   * Trouve la semaine qui contient un jour donné
+   * @param {number} dayOfMonth - Jour du mois
+   * @param {number} numberOfWeeks - Nombre de semaines configuré
+   * @returns {number} Numéro de la semaine (1-4)
    */
-  static formatDate(date) {
+  static findWeekForDay(dayOfMonth, numberOfWeeks) {
+    const totalDays = this.getDaysInCurrentMonth();
+    const ranges = this.calculateWeekRanges(totalDays, numberOfWeeks);
+
+    for (const range of ranges) {
+      if (dayOfMonth >= range.startDay && dayOfMonth <= range.endDay) {
+        return range.weekNumber;
+      }
+    }
+
+    return 1; // Par défaut
+  }
+
+  /**
+   * Obtient les jours d'une semaine spécifique
+   * @param {number} weekNumber - Numéro de la semaine (1-4)
+   * @param {number} numberOfWeeks - Nombre total de semaines
+   * @returns {Array<number>} Liste des jours de cette semaine
+   */
+  static getDaysForWeek(weekNumber, numberOfWeeks) {
+    const totalDays = this.getDaysInCurrentMonth();
+    const ranges = this.calculateWeekRanges(totalDays, numberOfWeeks);
+
+    const weekRange = ranges.find(r => r.weekNumber === weekNumber);
+    return weekRange ? weekRange.days : [];
+  }
+
+  /**
+   * Formate une date pour affichage
+   * @param {number} dayOfMonth - Jour du mois
+   * @returns {string} Date formatée
+   */
+  static formatDate(dayOfMonth) {
+    const now = new Date();
+    const date = new Date(now.getFullYear(), now.getMonth(), dayOfMonth);
     return date.toLocaleDateString('fr-FR', {
       weekday: 'long',
       day: 'numeric',
@@ -102,54 +135,20 @@ export class DateUtils {
   }
 
   /**
-   * Obtient la semaine courante parmi les semaines de planification
+   * Formate le label d'une semaine
+   * @param {number} weekNumber - Numéro de la semaine
+   * @param {number} numberOfWeeks - Nombre total de semaines
+   * @returns {string} Label formaté (ex: "Semaine 1 (1-7 février)")
    */
-  static getCurrentPlanningWeek(totalWeeks) {
-    const weekNumber = this.getCurrentWeekNumber();
-    return ((weekNumber - 1) % totalWeeks) + 1;
-  }
+  static formatWeekLabel(weekNumber, numberOfWeeks) {
+    const totalDays = this.getDaysInCurrentMonth();
+    const ranges = this.calculateWeekRanges(totalDays, numberOfWeeks);
+    const range = ranges.find(r => r.weekNumber === weekNumber);
 
-  /**
-   * Obtient le premier jour de la semaine (lundi)
-   */
-  static getStartOfWeek(weekOffset = 0) {
-    const today = new Date();
-    const day = today.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + diff + (weekOffset * 7));
-    monday.setHours(0, 0, 0, 0);
-    return monday;
-  }
+    if (!range) return `Semaine ${weekNumber}`;
 
-  /**
-   * Obtient le dernier jour de la semaine (dimanche)
-   */
-  static getEndOfWeek(weekOffset = 0) {
-    const monday = this.getStartOfWeek(weekOffset);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23, 59, 59, 999);
-    return sunday;
-  }
-
-  /**
-   * Formate une plage de dates pour une semaine
-   */
-  static formatWeekRange(weekOffset = 0) {
-    const start = this.getStartOfWeek(weekOffset);
-    const end = this.getEndOfWeek(weekOffset);
-
-    const startDay = start.getDate();
-    const endDay = end.getDate();
-    const month = end.toLocaleDateString('fr-FR', { month: 'long' });
-
-    if (start.getMonth() === end.getMonth()) {
-      return `${startDay}-${endDay} ${month}`;
-    } else {
-      const startMonth = start.toLocaleDateString('fr-FR', { month: 'short' });
-      return `${startDay} ${startMonth} - ${endDay} ${month}`;
-    }
+    const monthName = new Date().toLocaleDateString('fr-FR', { month: 'long' });
+    return `Semaine ${weekNumber} (${range.startDay}-${range.endDay} ${monthName})`;
   }
 }
 

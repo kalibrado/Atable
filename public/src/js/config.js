@@ -1,5 +1,5 @@
 // ========================================
-// Configuration et constantes de l'application
+// Configuration et constantes de l'application - Jours du mois
 // ========================================
 
 /**
@@ -17,18 +17,43 @@ export const API_CONFIG = {
 };
 
 /**
- * Jours de la semaine en français
- * Ordre : du lundi au dimanche
+ * Obtient les jours du mois actuel
+ * @returns {Array<number>} Liste des jours (1 à 28/29/30/31)
  */
-export const DAYS = [
-    'lundi',
-    'mardi',
-    'mercredi',
-    'jeudi',
-    'vendredi',
-    'samedi',
-    'dimanche'
-];
+export function getCurrentMonthDays() {
+    const now = new Date();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const days = [];
+    for (let i = 1; i <= daysInMonth; i++) {
+        days.push(i);
+    }
+    return days;
+}
+
+/**
+ * Obtient le nombre de jours dans le mois actuel
+ * @returns {number} Nombre de jours
+ */
+export function getDaysInCurrentMonth() {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+}
+
+/**
+ * Obtient le jour actuel du mois
+ * @returns {number} Le jour actuel (1-31)
+ */
+export function getCurrentDayOfMonth() {
+    return new Date().getDate();
+}
+
+/**
+ * Obtient le nom du mois actuel
+ * @returns {string} Nom du mois en français
+ */
+export function getCurrentMonthName() {
+    return new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+}
 
 /**
  * Configuration du stockage local

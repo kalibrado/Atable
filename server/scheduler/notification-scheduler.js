@@ -1,5 +1,5 @@
 // ========================================
-// Scheduler de notifications
+// Scheduler de notifications - Basé sur les jours du mois
 // ========================================
 
 const cron = require('node-cron');
@@ -27,12 +27,18 @@ function formatatableText(midi, soir) {
 }
 
 /**
- * Obtient le jour actuel en français
+ * Obtient le jour actuel du mois
  */
-function getCurrentDay() {
-    const daysMap = CONFIG.validDays;
-    const today = new Date().getDay() - 1;
-    return daysMap[today < 0 ? 6 : today];
+function getCurrentDayOfMonth() {
+    return new Date().getDate();
+}
+
+/**
+ * Obtient le nom du jour actuel
+ */
+function getCurrentDayName() {
+    const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    return days[new Date().getDay()];
 }
 
 function formatTime(date) {
@@ -51,21 +57,35 @@ function capitalize(str) {
 }
 
 /**
- * Obtient la semaine actuelle basée sur le numéro de semaine de l'année
+ * Obtient la semaine actuelle basée sur le jour du mois
+ * Calcule quelle semaine contient le jour actuel
  */
-function getCurrentWeekNumber(numberOfWeeks) {
+function getCurrentWeekNumber(numberOfWeeks, currentDay) {
     const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 1);
-    const diff = now - start;
-    const oneWeek = 1000 * 60 * 60 * 24 * 7;
-    const weekNumber = Math.ceil((diff / oneWeek) + 1);
-    return ((weekNumber - 1) % numberOfWeeks) + 1;
+    const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    
+    // Calculer combien de jours par semaine
+    const baseDaysPerWeek = Math.floor(totalDays / numberOfWeeks);
+    const extraDays = totalDays % numberOfWeeks;
+    
+    let cumulativeDays = 0;
+    
+    for (let week = 1; week <= numberOfWeeks; week++) {
+        const daysInThisWeek = baseDaysPerWeek + (week <= extraDays ? 1 : 0);
+        cumulativeDays += daysInThisWeek;
+        
+        if (currentDay <= cumulativeDays) {
+            return week;
+        }
+    }
+    
+    return numberOfWeeks; // Par défaut, dernière semaine
 }
 
 async function sendUserNotification(userId, permissionNotification, date) {
     try {
-        const currentDay = getCurrentDay();
-        const dayLabel = capitalize(currentDay);
+        const currentDay = getCurrentDayOfMonth();
+        const dayName = capitalize(getCurrentDayName());
 
         const userData = await usersManager.readUserData(userId);
         if (!userData || !userData.weeksPlans) {
@@ -73,7 +93,7 @@ async function sendUserNotification(userId, permissionNotification, date) {
         }
 
         const numberOfWeeks = userData.preference?.showWeeks || CONFIG.defaultWeeks;
-        const currentWeek = getCurrentWeekNumber(numberOfWeeks);
+        const currentWeek = getCurrentWeekNumber(numberOfWeeks, currentDay);
         const weekKey = `week${currentWeek}`;
 
         const weekPlan = userData.weeksPlans[weekKey];
@@ -81,16 +101,17 @@ async function sendUserNotification(userId, permissionNotification, date) {
             return;
         }
 
+        // Récupérer les repas pour le jour du mois actuel
         const dayatable = weekPlan.days[currentDay] || { midi: '', soir: '' };
         const hasatable = dayatable.midi.trim() || dayatable.soir.trim();
 
         const notification = hasatable
             ? {
-                title: `🍽️ Vos repas du ${dayLabel}`,
+                title: `🍽️ Vos repas du ${dayName} ${currentDay}`,
                 body: formatatableText(dayatable.midi, dayatable.soir)
             }
             : {
-                title: `⚠️ Aucun repas prévu pour ${dayLabel}`,
+                title: `⚠️ Aucun repas prévu pour ${dayName} ${currentDay}`,
                 body: 'Vous n\'avez pas encore défini vos repas pour aujourd\'hui.'
             };
 
@@ -105,7 +126,7 @@ async function sendUserNotification(userId, permissionNotification, date) {
             }
         });
 
-        console.log(`Notification envoyée à l'utilisateur ${userId} à ${formatTime(date)}`);
+        console.log(`Notification envoyée à l'utilisateur ${userId} à ${formatTime(date)} pour le jour ${currentDay}`);
     } catch (error) {
         console.error(`Erreur envoi notification à ${userId}:`, error);
     }
