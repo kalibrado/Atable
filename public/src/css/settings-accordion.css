@@ -1,0 +1,165 @@
+/* ========================================
+   Accordéon des paramètres
+   ======================================== */
+
+.settings-section {
+  margin-bottom: 12px;
+  background-color: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.settings-section:hover {
+  border-color: var(--primary-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header de section cliquable */
+.settings-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+  background: linear-gradient(135deg, var(--background), var(--card-bg));
+  transition: var(--transition);
+}
+
+.settings-section-header:hover {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  color: white;
+}
+
+.settings-section-header:hover .settings-section-title {
+  color: white;
+}
+
+.settings-section-header:hover .section-toggle-icon {
+  color: white;
+}
+
+.settings-section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: var(--transition);
+}
+
+.settings-section-title .emoji {
+  font-size: 1.4rem;
+}
+
+/* Icône de toggle */
+.section-toggle-icon {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.settings-section.collapsed .section-toggle-icon {
+  transform: rotate(-90deg);
+}
+
+/* Contenu de la section */
+.settings-section-content {
+  max-height: 1000px;
+  opacity: 1;
+  padding: 20px;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+  background-color: var(--background);
+}
+
+.settings-section.collapsed .settings-section-content {
+  max-height: 0;
+  opacity: 0;
+  padding: 0 20px;
+}
+
+/* Badge "Nouveau" ou "Premium" */
+.section-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 8px;
+}
+
+.section-badge.new {
+  background-color: var(--success);
+}
+
+.section-badge.premium {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+
+/* Sections spéciales */
+.settings-section.danger-zone .settings-section-header {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(220, 38, 38, 0.05));
+  border-bottom: 2px solid var(--error);
+}
+
+.settings-section.danger-zone {
+  border-color: var(--error);
+}
+
+.settings-section.danger-zone .settings-section-title {
+  color: var(--error);
+}
+
+/* Animation de l'ouverture */
+@keyframes slideDown {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  to {
+    max-height: 1000px;
+    opacity: 1;
+  }
+}
+
+.settings-section:not(.collapsed) .settings-section-content {
+  animation: slideDown 0.4s ease;
+}
+
+/* Mode sombre */
+[data-theme="dark"] .settings-section {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .settings-section-header {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+[data-theme="dark"] .settings-section-content {
+  background-color: #0f172a;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .settings-section-header {
+    padding: 14px 16px;
+  }
+
+  .settings-section-title {
+    font-size: 1rem;
+  }
+
+  .settings-section-content {
+    padding: 16px;
+  }
+}

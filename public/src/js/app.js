@@ -11,6 +11,8 @@ import { ThemeManager } from './theme.js';
 import { WeeksManager } from './weeks-manager.js';
 import { UserManager } from './user-manager.js';
 import { WindowDynamique } from './dynamique.js'
+import { SettingsAccordion } from './settings-accordion.js';
+
 /**
  * Classe principale de l'application
  * Orchestre l'initialisation et la coordination des modules
@@ -43,6 +45,8 @@ class AtableApp {
 
             // Configurer les événements de la modal
             SettingsManager.setupModalEvents();
+
+            SettingsAccordion.exposeHandlers();
 
             // Configurer le toggle du mode sombre
             ThemeManager.setupToggleListener();

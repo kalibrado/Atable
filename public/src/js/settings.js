@@ -7,6 +7,7 @@ import { UIManager } from './ui-handlers.js';
 import { STATUS_MESSAGES, STATUS_TYPES } from './config.js';
 import { WeeksManager } from './weeks-manager.js';
 import { IngredientsManager } from './ingredients-manager.js';
+import { SettingsAccordion } from './settings-accordion.js';
 
 /**
  * Classe de gestion des paramètres de l'application
@@ -249,6 +250,8 @@ export class SettingsManager {
 
         // Initialiser les ingrédients
         IngredientsManager.exposeHandlers();
+
+        SettingsAccordion.initialize();
 
         // Mettre à jour l'UI si la modal est ouverte
         const modal = document.getElementById('settings-modal');
