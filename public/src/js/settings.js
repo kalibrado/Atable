@@ -32,7 +32,6 @@ export class SettingsManager {
         if (select) {
             select.value = numberOfWeeks;
             select.addEventListener('change', async (e) => {
-                console.log('change', e)
                 await SettingsManager.updateNumberOfWeeks(parseInt(e.target.value));
             });
         }

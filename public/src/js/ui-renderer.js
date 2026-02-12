@@ -167,16 +167,17 @@ export class UIRenderer {
         const allDayCards = document.querySelectorAll('.day-card');
         allDayCards.forEach(card => {
             const header = card.querySelector('.day-header');
-            if (header) {
-                header.addEventListener('click', () => {
-                    // Sur mobile, replier les autres cartes
-                    if (window.innerWidth < 768) {
-                        allDayCards.forEach(c => c.classList.add('collapsed'));
-                    }
-                    // Déplier/replier la carte cliquée
-                    card.classList.toggle('collapsed');
-                });
-            }
+            header.addEventListener('click', () => {
+                const wasOpen = !card.classList.contains('collapsed');
+                // Fermer toutes les cartes
+                if (window.innerWidth < 768) {
+                    allDayCards.forEach(c => c.classList.add('collapsed'));
+                }
+                // Ouvrir la carte cliquée si elle était fermée
+                if (!wasOpen) {
+                    card.classList.remove('collapsed');
+                }
+            });
         });
     }
 

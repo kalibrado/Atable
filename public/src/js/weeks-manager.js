@@ -48,12 +48,6 @@ export class WeeksManager {
     // Sélection automatique de la semaine en cours
     this.state.currentWeek = this.getCurrentWeekNumber();
 
-    console.log('WeeksManager initialisé:', {
-      numberOfWeeks,
-      currentWeek: this.state.currentWeek,
-      weekRanges: this.state.weekRanges
-    });
-
     this.renderWeeksTabs();
   }
 
