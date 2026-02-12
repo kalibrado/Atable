@@ -48,10 +48,17 @@ router.post('/generate', requireAuth, async (req, res) => {
       } else {
         // Fusionner : ne remplacer que les repas vides
         for (const day of Object.keys(generatedWeeks[weekKey])) {
-          console.log({ currentPlans :currentPlans[weekKey] })
+          // Initialiser le jour s'il n'existe pas
+          if (!currentPlans[weekKey].days[day]) {
+            currentPlans[weekKey].days[day] = { midi: '', soir: '' };
+          }
+          
+          // Remplacer midi si vide
           if (!currentPlans[weekKey].days[day].midi || currentPlans[weekKey].days[day].midi.trim() === '') {
             currentPlans[weekKey].days[day].midi = generatedWeeks[weekKey][day].midi;
           }
+          
+          // Remplacer soir si vide
           if (!currentPlans[weekKey].days[day].soir || currentPlans[weekKey].days[day].soir.trim() === '') {
             currentPlans[weekKey].days[day].soir = generatedWeeks[weekKey][day].soir;
           }

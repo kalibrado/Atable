@@ -21,7 +21,6 @@ export class UIRenderer {
         const emoji = MEAL_EMOJIS[mealType];
         const label = StringUtils.capitalize(mealType);
         const value = mealsData[day]?.[mealType] || '';
-        console.log({ day, mealsData, label, value })
         return `
             <div class="atable-section">
                 <div class="atable-header">
@@ -77,7 +76,7 @@ export class UIRenderer {
      * @param {boolean} isLargeScreen - Si l'écran est large
      * @returns {string} Le HTML de la carte
      */
-    static createDayCard(dayOfMonth, mealsData, isLargeScreen) {
+    static createDayCard(dayOfMonth, index, mealsData, isLargeScreen) {
         const { html } = this.createCalendarEmoji(dayOfMonth);
         const currentDay = MonthDaysUtils.getCurrentDayOfMonth();
         const isToday = dayOfMonth === currentDay;
@@ -101,8 +100,8 @@ export class UIRenderer {
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div class="day-content">
-                    ${this.createMealSection(dayOfMonth, MEAL_TYPES.MIDI, mealsData)}
-                    ${this.createMealSection(dayOfMonth, MEAL_TYPES.SOIR, mealsData)}
+                    ${this.createMealSection(index, MEAL_TYPES.MIDI, mealsData)}
+                    ${this.createMealSection(index, MEAL_TYPES.SOIR, mealsData)}
                 </div>
             </div>
         `;
@@ -120,19 +119,12 @@ export class UIRenderer {
         // Vérifier si on est sur grand écran
         const isLargeScreen = window.innerWidth >= 768;
         // Générer le HTML de toutes les cartes
-        container.innerHTML = daysInWeek
-            .map(day => this.createDayCard(day, mealsData, isLargeScreen))
+        const cardsHTML = daysInWeek
+            .map(day => this.createDayCard(day, daysInWeek.indexOf(day) + 1, mealsData, isLargeScreen))
             .join('');
 
-        const days = [...new Set(
-            [...document.querySelectorAll('[data-day]')].map(el => Number(el.dataset.day))
-        )];
-        
-        const cardsHTML = days
-            .map(day => this.createDayCard(day, mealsData, isLargeScreen))
-            .join('');
+        container.innerHTML = cardsHTML;
 
-        // container.innerHTML = cardsHTML
         // Scroll vers le jour actuel si dans cette semaine
         if (!isLargeScreen && daysInWeek.includes(currentDay)) {
             this.scrollToDay(currentDay);

@@ -343,9 +343,15 @@ export class GeneratorManager {
             return;
         }
 
-        UIManager.showStatus('🔄 Génération en cours...', STATUS_TYPES.SUCCESS);
+        UIManager.showStatus('💾 Sauvegarde en cours...', STATUS_TYPES.SUCCESS);
 
         try {
+            // IMPORTANT: Sauvegarder d'abord toutes les semaines (y compris la semaine active)
+            // pour s'assurer que le serveur a les données les plus récentes avant la génération
+            await WeeksManager.saveAllWeeks();
+
+            UIManager.showStatus('🔄 Génération en cours...', STATUS_TYPES.SUCCESS);
+
             const result = await APIManager.generateMeals(replaceAll);
 
             if (result.success) {
