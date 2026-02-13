@@ -51,7 +51,10 @@ export class IngredientsManager {
     }
 
     const categoriesHTML = Object.entries(this.state.ingredients)
-      .map(([category, data]) => this.renderCategory(category, data))
+      .map(([category, data]) => {
+        this.state.collapsedCategories.add(category)
+        return this.renderCategory(category, data)
+      })
       .join('');
 
     container.innerHTML = categoriesHTML;

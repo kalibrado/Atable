@@ -27,18 +27,53 @@
                     <p class="subtitle">Planifiez vos repas du lundi au dimanche</p>
                 </div>
                 <div class="header-actions">
-                    <button id="settings-btn" class="settings-btn" onclick="window.location.reload()" title="Actualiser"
-                        aria-label="Actualiser">
-                        🔄️
+                    <!-- Bouton hamburger (visible uniquement sur mobile) -->
+                    <button id="hamburger-btn" class="hamburger-btn" onclick="toggleMobileMenu()" title="Menu"
+                        aria-label="Menu">
+                        ☰
                     </button>
-                    <button id="settings-btn" class="settings-btn" onclick="openSettings()" title="Paramètres"
-                        aria-label="Paramètres">
-                        ⚙️
-                    </button>
-                    <button id="logout-btn" class="logout-btn" onclick="handleLogout()" title="Déconnexion"
-                        aria-label="Déconnexion">
-                        🚪
-                    </button>
+
+                    <!-- Boutons originaux (cachés sur mobile) -->
+                    <div class="desktop-buttons">
+                        <button id="refresh-btn" class="settings-btn" onclick="window.location.reload()"
+                            title="Actualiser" aria-label="Actualiser">
+                            🔄️
+                        </button>
+                        <button id="settings-btn" class="settings-btn" onclick="openSettings()" title="Paramètres"
+                            aria-label="Paramètres">
+                            ⚙️
+                        </button>
+                        <button id="logout-btn" class="logout-btn" onclick="handleLogout()" title="Déconnexion"
+                            aria-label="Déconnexion">
+                            🚪
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modale mobile -->
+                <div id="mobile-menu-modal" class="mobile-menu-modal">
+                    <div class="mobile-menu-content">
+                        <div class="mobile-menu-header">
+                            <h3>Menu</h3>
+                            <button class="close-menu-btn" onclick="toggleMobileMenu()" aria-label="Fermer">
+                                ✕
+                            </button>
+                        </div>
+                        <div class="mobile-menu-buttons">
+                            <button class="mobile-menu-item" onclick="window.location.reload(); toggleMobileMenu()">
+                                <span class="menu-icon">🔄️</span>
+                                <span>Actualiser</span>
+                            </button>
+                            <button class="mobile-menu-item" onclick="openSettings(); toggleMobileMenu()">
+                                <span class="menu-icon">⚙️</span>
+                                <span>Paramètres</span>
+                            </button>
+                            <button class="mobile-menu-item logout" onclick="handleLogout()">
+                                <span class="menu-icon">🚪</span>
+                                <span>Déconnexion</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="weeks-tabs-container" class="weeks-tabs" style="display: none;">
