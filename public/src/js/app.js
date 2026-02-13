@@ -10,7 +10,7 @@ import { SettingsManager, AuthManager, GeneratorManager } from './settings.js';
 import { ThemeManager } from './theme.js';
 import { WeeksManager } from './weeks-manager.js';
 import { UserManager } from './user-manager.js';
-import { WindowDynamique } from './dynamique.js'
+
 import { SettingsAccordion } from './settings-accordion.js';
 
 /**
@@ -50,7 +50,7 @@ class AtableApp {
 
             // Configurer le toggle du mode sombre
             ThemeManager.setupToggleListener();
-            WindowDynamique.init();
+
             // Exposer les handlers globalement
             this.exposeGlobalHandlers();
 

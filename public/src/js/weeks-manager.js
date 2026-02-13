@@ -83,13 +83,27 @@ export class WeeksManager {
     }
 
     container.innerHTML = tabsHTML.join('');
+    const tabs = document.querySelectorAll('#weeks-tabs-container .week-tab');
+    if (!tabs.length) return;
+
+    const isMobile = window.innerWidth <= 600;
+
+    tabs.forEach(tab => {
+      if (!tab.dataset.fullLabel) {
+        tab.dataset.fullLabel = tab.textContent.trim();
+      }
+
+      tab.textContent = isMobile
+        ? `S. ${tab.dataset.week}`
+        : tab.dataset.fullLabel;
+    });
   }
 
   /**
    * Change la semaine affichée
    * @param {number} weekNumber
    */
-  static switchWeek(weekNumber) {
+  static async switchWeek(weekNumber) {
     if (
       weekNumber < 1 ||
       weekNumber > this.state.numberOfWeeks ||
@@ -103,16 +117,19 @@ export class WeeksManager {
 
     // Chargement sécurisé
     const weekKey = `week${weekNumber}`;
-    const weekData = this.state.weeksData[weekKey] || {};
+    // this.state.weeksData[weekKey] || {};
+    const response = await fetch(`/api/atable/${weekNumber}`)
+    let weekData = {}
+    if (response.ok) {
+      weekData = await response.json()
+    }
 
     UIManager.getState().mealsData = weekData;
-
     // Mise à jour UI
     this.renderWeeksTabs();
-    
+
     // Obtenir les jours de cette semaine
     const daysInWeek = MonthDaysUtils.getDaysForWeek(weekNumber, this.state.numberOfWeeks);
-    
     UIRenderer.renderDaysForWeek(weekData, daysInWeek);
     UIManager.attachEventListeners();
   }

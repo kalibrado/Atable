@@ -162,7 +162,6 @@ export class ThemeManager {
    * @param {string} theme - Le nouveau thème
    */
   static showThemeChangeNotification(theme) {
-    // Import dynamique pour éviter la circularité
     import('./ui-handlers.js').then(({ UIManager }) => {
       const message = theme === this.THEMES.DARK
         ? '🌙 Mode sombre activé'

@@ -313,7 +313,6 @@ export class AuthManager {
         try {
             const { user, notifications } = await APIManager.fetchUserInfo();
             if (user && user.name) {
-                // Import dynamique pour éviter la circularité
                 const { UIRenderer } = await import('./ui-renderer.js');
                 UIRenderer.displayUserName(user.name);
 

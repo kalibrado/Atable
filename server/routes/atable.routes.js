@@ -35,6 +35,40 @@ router.get('/', requireAuth, async (req, res) => {
     }
 });
 
+
+// GET /api/meals/:week - Récupérer UNE semaine spécifique
+router.get('/:weeknumber', async (req, res) => {
+    try {
+        const { weeknumber } = req.params;
+        const weeksPlans = await atableManager.readUseratable(req.session.userId);
+        // Retourner la semaine demandée ou un objet vide
+        res.json(weeksPlans[`week${weeknumber}`].days || {});
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur lecture données' });
+    }
+});
+
+// PUT /:week - Sauvegarder UNE semaine
+router.put('/:weeknumber', async (req, res) => {
+    try {
+        const { weeknumber } = req.params;
+        const weekData = req.body;
+
+        // Lire toutes les données
+        const weeksPlans = await atableManager.readUseratable(req.session.userId);
+        
+        // Mettre à jour uniquement cette semaine
+        weeksPlans[`week${weeknumber}`] = weekData;
+
+        // Sauvegarder
+        await atableManager.writeUseratable(req.session.userId, weeksPlans)
+
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur sauvegarde' });
+    }
+});
+
 /**
  * PUT /api/atable
  */

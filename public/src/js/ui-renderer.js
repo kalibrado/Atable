@@ -18,24 +18,12 @@ export class UIRenderer {
      * @returns {string} Le HTML de la section
      */
     static createMealSection(day, mealType, mealsData) {
-        function findDay(weeksPlans, dayNumber) {
-            for (const [weekKey, weekValue] of Object.entries(weeksPlans)) {
-                if (weekValue[dayNumber]) {
-                    return {
-                        week: weekKey,
-                        data: weekValue[dayNumber]
-                    };
-                }
-            }
-            return null;
-        }
 
-        const res = findDay(mealsData, day)
         const emoji = MEAL_EMOJIS[mealType];
         const label = StringUtils.capitalize(mealType);
-        const value = res?.data?.[mealType] || mealsData[day]?.[mealType] || '';
-        console.log({ day, mealType, mealsData, value, res })
-        debugger
+        const value = mealsData[mealType] || '';
+        console.log({ day, mealType, mealsData, value })
+
         return `
             <div class="atable-section">
                 <div class="atable-header">
@@ -92,6 +80,7 @@ export class UIRenderer {
      * @returns {string} Le HTML de la carte
      */
     static createDayCard(dayOfMonth, mealsData, isLargeScreen) {
+        console.log({ mealsData })
         const { html } = this.createCalendarEmoji(dayOfMonth);
         const currentDay = MonthDaysUtils.getCurrentDayOfMonth();
         const isToday = dayOfMonth === currentDay;
@@ -104,6 +93,8 @@ export class UIRenderer {
         const todayBadge = isToday
             ? '<span class="today-badge">Aujourd\'hui</span>'
             : '';
+
+
         return `
             <div class="day-card ${collapsedClass}" data-day="${dayOfMonth}">
                 <div class="day-header">
@@ -132,9 +123,13 @@ export class UIRenderer {
 
         // Vérifier si on est sur grand écran
         const isLargeScreen = window.innerWidth >= 768;
+
+        const days = Object.keys(mealsData)
+        const val = Object.values(mealsData)
+
         // Générer le HTML de toutes les cartes
-        const cardsHTML = daysInWeek
-            .map(day => this.createDayCard(day, mealsData, isLargeScreen))
+        const cardsHTML = days
+            .map(day => this.createDayCard(day, val[days.indexOf(day)], isLargeScreen))
             .join('');
 
         container.innerHTML = cardsHTML;
@@ -155,6 +150,7 @@ export class UIRenderer {
     static renderAllDays(mealsData) {
         // Obtenir les jours de la semaine actuelle
         const daysInWeek = WeeksManager.getCurrentWeekDays();
+
         this.renderDaysForWeek(mealsData, daysInWeek);
     }
 
@@ -204,6 +200,15 @@ export class UIRenderer {
         if (nameUserSpan && userName) {
             nameUserSpan.textContent = ` - ${userName}`;
         }
+        const header = document.querySelector('#name-user');
+        if (!header) return;
+        const isMobile = window.innerWidth <= 600;
+        if (!header.dataset.fullTitle) {
+            header.dataset.fullTitle = header.textContent.trim();
+        }
+        header.textContent = isMobile
+            ? header.dataset.fullTitle.split(' ').map(word => word.charAt(0)).join('.')
+            : header.dataset.fullTitle;
     }
 
     /**

@@ -153,22 +153,16 @@ export class UIManager {
             const { weeks, numberOfWeeks } = await APIManager.loadMeals();
             // Initialiser le gestionnaire de semaines
             WeeksManager.initialize(numberOfWeeks, weeks);
-
-            // Charger les données de la première semaine
-            // BUGFIX : week load
-            UIManager.state.mealsData = weeks // .week1;
-
+            UIManager.state.mealsData = weeks
+            const currentWeek = WeeksManager.getCurrentWeekNumber()
             // Rendre l'interface
             UIRenderer.renderAllDays(
-                UIManager.state.mealsData
+                UIManager.state.mealsData[`week${currentWeek}`] // Charge uniquement la semain en cours
             );
-
             // Attacher les événements
             UIManager.attachEventListeners();
-
             // Tenter de synchroniser les données en attente
             await APIManager.syncPendingData();
-
         } catch (error) {
             console.error('Erreur chargement et rendu:', error);
             UIManager.showStatus(
