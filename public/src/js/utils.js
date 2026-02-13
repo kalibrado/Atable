@@ -137,18 +137,17 @@ export class MonthDaysUtils {
   /**
    * Formate le label d'une semaine
    * @param {number} weekNumber - Numéro de la semaine
-   * @param {number} numberOfWeeks - Nombre total de semaines
    * @returns {string} Label formaté (ex: "Semaine 1 (1-7 février)")
    */
-  static formatWeekLabel(weekNumber, numberOfWeeks) {
+  static formatWeekLabel(weekNumber, isMobile = false) {
     const totalDays = this.getDaysInCurrentMonth();
-    const ranges = this.calculateWeekRanges(totalDays, numberOfWeeks);
+    const ranges = this.calculateWeekRanges(totalDays, 4);
     const range = ranges.find(r => r.weekNumber === weekNumber);
 
     if (!range) return `Semaine ${weekNumber}`;
 
     const monthName = new Date().toLocaleDateString('fr-FR', { month: 'long' });
-    return `Semaine ${weekNumber} (${range.startDay}-${range.endDay} ${monthName})`;
+    return isMobile ? `S.${weekNumber} (${range.startDay}-${range.endDay} ${new Date().toLocaleDateString('fr-FR', { month: 'short' })}) ` : `Semaine ${weekNumber} (${range.startDay}-${range.endDay} ${monthName})`;
   }
 }
 

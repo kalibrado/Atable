@@ -67,10 +67,11 @@ export class WeeksManager {
 
     const tabsHTML = [];
 
+    const isMobile = window.innerWidth <= 600;
+
     for (let i = 1; i <= this.state.numberOfWeeks; i++) {
       const isActive = i === this.state.currentWeek ? 'active' : '';
-      const label = MonthDaysUtils.formatWeekLabel(i, this.state.numberOfWeeks);
-
+      const label = MonthDaysUtils.formatWeekLabel(i, isMobile);
       tabsHTML.push(`
         <button 
           class="week-tab ${isActive}" 
@@ -83,20 +84,6 @@ export class WeeksManager {
     }
 
     container.innerHTML = tabsHTML.join('');
-    const tabs = document.querySelectorAll('#weeks-tabs-container .week-tab');
-    if (!tabs.length) return;
-
-    const isMobile = window.innerWidth <= 600;
-
-    tabs.forEach(tab => {
-      if (!tab.dataset.fullLabel) {
-        tab.dataset.fullLabel = tab.textContent.trim();
-      }
-
-      tab.textContent = isMobile
-        ? `S. ${tab.dataset.week}`
-        : tab.dataset.fullLabel;
-    });
   }
 
   /**
