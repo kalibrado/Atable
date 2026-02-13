@@ -26,7 +26,6 @@ export class ThemeManager {
    * Charge la préférence sauvegardée ou détecte la préférence système
    */
   static initialize() {
-    console.log('🎨 Initialisation du gestionnaire de thème...');
 
     // Charger le thème sauvegardé ou détecter la préférence système
     const savedTheme = this.getSavedTheme();
@@ -42,7 +41,6 @@ export class ThemeManager {
     // Écouter les changements de préférence système
     this.watchSystemTheme();
 
-    console.log(`Thème initialisé: ${initialTheme}`);
   }
 
   /**
@@ -94,7 +92,6 @@ export class ThemeManager {
     // Mettre à jour la couleur de la barre d'adresse (PWA)
     this.updateMetaThemeColor(theme);
 
-    console.log(`Thème appliqué: ${theme}`);
   }
 
   /**
@@ -215,8 +212,6 @@ export class ThemeManager {
 
         this.applyTheme(systemTheme);
         this.updateToggle();
-
-        console.log('Thème mis à jour selon préférence système:', systemTheme);
       }
     });
   }
@@ -230,8 +225,6 @@ export class ThemeManager {
       const systemTheme = this.getSystemTheme();
       this.applyTheme(systemTheme);
       this.updateToggle();
-
-      console.log('Thème réinitialisé à la préférence système');
     } catch (error) {
       console.error('Erreur réinitialisation thème:', error);
     }

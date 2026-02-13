@@ -32,7 +32,6 @@ export class IngredientsManager {
       // Récupérer les catégories depuis la config serveur
       this.state.categories = Object.keys(this.state.ingredients);
 
-      console.log('✅ Ingrédients initialisés');
     } catch (error) {
       console.error('Erreur initialisation ingrédients:', error);
       UIManager.showStatus('Erreur lors du chargement des ingrédients', STATUS_TYPES.ERROR);

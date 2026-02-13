@@ -22,8 +22,6 @@ class AtableApp {
      * Initialise l'application au chargement de la page
      */
     static async initialize() {
-        console.log('🚀 Initialisation de l\'application Atable...');
-
         try {
             // Initialiser le thème (doit être fait en premier pour éviter le flash)
             ThemeManager.initialize();
@@ -53,9 +51,6 @@ class AtableApp {
 
             // Exposer les handlers globalement
             this.exposeGlobalHandlers();
-
-            console.log('Application prête');
-
         } catch (error) {
             console.error('Erreur lors de l\'initialisation:', error);
             UIManager.showStatus(

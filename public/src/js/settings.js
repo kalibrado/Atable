@@ -60,7 +60,6 @@ export class SettingsManager {
 
     static async updateNumberOfWeeks(newValue) {
         try {
-            console.log(newValue)
             await WeeksManager.updateNumberOfWeeks(newValue);
             UIManager.showStatus(
                 `Planification sur ${newValue} semaine(s) activée`,
@@ -317,9 +316,7 @@ export class AuthManager {
                 UIRenderer.displayUserName(user.name);
 
             }
-            if (notifications) {
-                console.log('Notifications utilisateur chargées:', notifications);
-            }
+
         } catch (error) {
             UIManager.showStatus(`Erreur chargement infos utilisateur: ${error}`, STATUS_TYPES.ERROR)
         }

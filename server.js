@@ -109,10 +109,8 @@ async function startServer() {
 
         app.listen(PORT, () => {
             console.log('========================================');
-            console.log('🚀 Serveur Atable! démarré');
-            console.log(`📍 URL: http://localhost:${PORT}`);
-            console.log(`🔐 Mode: Authentification activée`);
-            console.log(`🔔 Notifications: ${pushConfigured ? 'Activées' : 'Désactivées'}`);
+            console.log('Serveur Atable! démarré');
+            console.log(`URL: http://localhost:${PORT}`);
             console.log('========================================');
         });
     } catch (error) {

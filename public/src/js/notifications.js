@@ -59,7 +59,6 @@ async function registerServiceWorker() {
     try {
         const registration = await navigator.serviceWorker.register('/service-worker.js');
         await navigator.serviceWorker.ready;
-        console.log('Service Worker enregistré:', registration);
         return registration;
     } catch (error) {
         console.error('Erreur Service Worker:', error);
@@ -131,7 +130,6 @@ async function subscribe(settings = {}) {
             })
         });
         const data = await response.json();
-        console.log('Réponse abonnement:', data);
         if (!response.ok) {
             throw new Error('Erreur serveur lors de l\'inscription');
         }
@@ -160,7 +158,6 @@ async function unsubscribe() {
             method: 'DELETE'
         });
         const data = await response.json();
-        console.log('Réponse désabonnement:', data);
         if (!response.ok) {
             throw new Error(data.error || 'Erreur serveur lors de la désinscription');
         }

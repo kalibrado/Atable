@@ -22,7 +22,6 @@ export class UIRenderer {
         const emoji = MEAL_EMOJIS[mealType];
         const label = StringUtils.capitalize(mealType);
         const value = mealsData[mealType] || '';
-        console.log({ day, mealType, mealsData, value })
 
         return `
             <div class="atable-section">
@@ -80,11 +79,9 @@ export class UIRenderer {
      * @returns {string} Le HTML de la carte
      */
     static createDayCard(dayOfMonth, mealsData, isLargeScreen) {
-        console.log({ mealsData })
         const { html } = this.createCalendarEmoji(dayOfMonth);
         const currentDay = MonthDaysUtils.getCurrentDayOfMonth();
-        const isToday = dayOfMonth === currentDay;
-
+        const isToday = dayOfMonth === String(currentDay);
         const dayName = MonthDaysUtils.getDayName(dayOfMonth);
         const dayNameCapitalized = StringUtils.capitalize(dayName);
 

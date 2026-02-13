@@ -30,14 +30,13 @@ router.post('/generate', requireAuth, async (req, res) => {
     }
 
     // Générer les repas
-    const numberOfWeeks = preferences.showWeeks || 2;
-    const generatedWeeks = MealGenerator.generateAllWeeks(ingredients, numberOfWeeks);
+    const generatedWeeks = MealGenerator.generateAllWeeks(ingredients);
 
     // Récupérer les plans actuels
     const currentPlans = await atableManager.readUseratable(req.session.userId);
 
     // Fusionner ou remplacer
-    for (let i = 1; i <= numberOfWeeks; i++) {
+    for (let i = 1; i <= 4; i++) {
       const weekKey = `week${i}`;
 
       if (replaceAll || !currentPlans[weekKey]) {
@@ -170,8 +169,7 @@ router.get('/preview', requireAuth, async (req, res) => {
     }
 
     // Générer un aperçu
-    const numberOfWeeks = preferences.showWeeks || 2;
-    const preview = MealGenerator.generateAllWeeks(ingredients, numberOfWeeks);
+    const preview = MealGenerator.generateAllWeeks(ingredients, 4);
 
     res.json({
       success: true,

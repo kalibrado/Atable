@@ -1,10 +1,8 @@
 self.addEventListener('install', (event) => {
-    console.log('[SW] Install');
     self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-    console.log('[SW] Activate');
     event.waitUntil(self.clients.claim());
 });
 
@@ -12,8 +10,6 @@ self.addEventListener('activate', (event) => {
  * Réception d’un push depuis le serveur (VAPID)
  */
 self.addEventListener('push', (event) => {
-    console.log('[SW] Push reçu', event);
-
     let data = {};
     if (event.data) {
         try {

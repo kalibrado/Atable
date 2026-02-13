@@ -115,9 +115,6 @@ export class WeeksManager {
     // Changement
     this.state.currentWeek = weekNumber;
 
-    // Chargement sécurisé
-    const weekKey = `week${weekNumber}`;
-    // this.state.weeksData[weekKey] || {};
     const response = await fetch(`/api/atable/${weekNumber}`)
     let weekData = {}
     if (response.ok) {

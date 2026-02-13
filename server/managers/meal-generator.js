@@ -230,6 +230,7 @@ class MealGenerator {
       const startDay = currentDay;
       const endDay = currentDay + daysInThisWeek - 1;
 
+      // ✅ CORRECTION : Générer les VRAIS numéros de jours du mois
       const days = [];
       for (let day = startDay; day <= endDay; day++) {
         days.push(day);
@@ -239,7 +240,7 @@ class MealGenerator {
         weekNumber: week,
         startDay,
         endDay,
-        days
+        days  // Ex: [1,2,3,4,5,6,7] puis [8,9,10,11,12,13,14] etc.
       });
 
       currentDay = endDay + 1;
@@ -254,10 +255,10 @@ class MealGenerator {
    * @param {number} numberOfWeeks - Nombre de semaines
    * @returns {Object} Tous les repas générés
    */
-  static generateAllWeeks(ingredients, numberOfWeeks) {
+  static generateAllWeeks(ingredients) {
     const weeks = {};
     const totalDays = CONFIG.getDaysInCurrentMonth();
-    const weekRanges = this.calculateWeekRanges(totalDays, numberOfWeeks);
+    const weekRanges = this.calculateWeekRanges(totalDays, 4);
 
     for (const range of weekRanges) {
       weeks[`week${range.weekNumber}`] = this.generateWeek(
