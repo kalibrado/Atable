@@ -52,6 +52,7 @@ export class SettingsManager {
                 await SettingsManager.toggleNotifications();
             });
         }
+        window.menuHandlers.close()
     }
 
     /**

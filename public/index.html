@@ -28,51 +28,52 @@
                 </div>
                 <div class="header-actions">
                     <!-- Bouton hamburger (visible uniquement sur mobile) -->
-                    <button id="hamburger-btn" class="hamburger-btn" onclick="toggleMobileMenu()" title="Menu"
-                        aria-label="Menu">
+                    <button id="hamburger-btn" class="hamburger-btn" title="Menu" aria-label="Ouvrir le menu"
+                        aria-expanded="false" aria-controls="mobile-menu-modal">
                         ☰
                     </button>
 
                     <!-- Boutons originaux (cachés sur mobile) -->
                     <div class="desktop-buttons">
                         <button id="refresh-btn" class="settings-btn" onclick="window.location.reload()"
-                            title="Actualiser" aria-label="Actualiser">
+                            title="Actualiser" aria-label="Actualiser la page">
                             🔄️
                         </button>
                         <button id="settings-btn" class="settings-btn" onclick="openSettings()" title="Paramètres"
-                            aria-label="Paramètres">
+                            aria-label="Ouvrir les paramètres">
                             ⚙️
                         </button>
                         <button id="logout-btn" class="logout-btn" onclick="handleLogout()" title="Déconnexion"
-                            aria-label="Déconnexion">
+                            aria-label="Se déconnecter">
                             🚪
                         </button>
                     </div>
                 </div>
 
                 <!-- Modale mobile -->
-                <div id="mobile-menu-modal" class="mobile-menu-modal">
+                <div id="mobile-menu-modal" class="mobile-menu-modal" role="dialog" aria-modal="true"
+                    aria-labelledby="mobile-menu-title">
                     <div class="mobile-menu-content">
                         <div class="mobile-menu-header">
-                            <h3>Menu</h3>
-                            <button class="close-menu-btn" onclick="toggleMobileMenu()" aria-label="Fermer">
+                            <h3 id="mobile-menu-title">Menu</h3>
+                            <button class="close-menu-btn" aria-label="Fermer le menu">
                                 ✕
                             </button>
                         </div>
-                        <div class="mobile-menu-buttons">
-                            <button class="mobile-menu-item" onclick="window.location.reload(); toggleMobileMenu()">
-                                <span class="menu-icon">🔄️</span>
+                        <nav class="mobile-menu-buttons" aria-label="Menu principal">
+                            <button class="mobile-menu-item" onclick="window.location.reload()">
+                                <span class="menu-icon" aria-hidden="true">🔄️</span>
                                 <span>Actualiser</span>
                             </button>
-                            <button class="mobile-menu-item" onclick="openSettings(); toggleMobileMenu()">
-                                <span class="menu-icon">⚙️</span>
+                            <button class="mobile-menu-item" onclick="openSettings()">
+                                <span class="menu-icon" aria-hidden="true">⚙️</span>
                                 <span>Paramètres</span>
                             </button>
                             <button class="mobile-menu-item logout" onclick="handleLogout()">
-                                <span class="menu-icon">🚪</span>
+                                <span class="menu-icon" aria-hidden="true">🚪</span>
                                 <span>Déconnexion</span>
                             </button>
-                        </div>
+                        </nav>
                     </div>
                 </div>
             </div>

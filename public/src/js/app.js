@@ -10,7 +10,7 @@ import { SettingsManager, AuthManager, GeneratorManager } from './settings.js';
 import { ThemeManager } from './theme.js';
 import { WeeksManager } from './weeks-manager.js';
 import { UserManager } from './user-manager.js';
-import { Menu } from './menu.js'
+import { Menu } from './menu.js';
 
 import { SettingsAccordion } from './settings-accordion.js';
 
@@ -50,6 +50,7 @@ class AtableApp {
             // Configurer le toggle du mode sombre
             ThemeManager.setupToggleListener();
 
+            // Initialiser le menu hamburger
             Menu.init();
 
             // Exposer les handlers globalement
@@ -73,6 +74,7 @@ class AtableApp {
         window.closeSettings = () => SettingsManager.closeModal();
         window.toggleNotifications = () => SettingsManager.toggleNotifications();
         window.updateNotificationTime = () => SettingsManager.updateNotificationTime();
+
         // Handler pour la déconnexion
         window.handleLogout = () => AuthManager.handleLogout();
 
@@ -82,11 +84,13 @@ class AtableApp {
             reset: () => ThemeManager.resetToSystemTheme(),
             isDark: () => ThemeManager.isDarkMode()
         };
+
         // Handlers pour les semaines
         window.weeksHandlers = {
             switchWeek: (weekNumber) => WeeksManager.switchWeek(weekNumber),
             updateNumberOfWeeks: (number) => WeeksManager.updateNumberOfWeeks(number)
         };
+
         // Handlers pour la génération de repas
         window.generatorHandlers = {
             generateFillEmpty: () => GeneratorManager.generateAllMeals(false),
@@ -95,11 +99,23 @@ class AtableApp {
             generateSingleMeal: (day, mealType) => GeneratorManager.generateSingleMeal(day, mealType)
         };
 
+        // Handlers pour la gestion utilisateur
         window.userManager = {
             changePassword: () => UserManager.changePassword(),
             changeEmail: () => UserManager.changeEmail(),
             deleteAccount: () => UserManager.deleteAccount()
-        }
+        };
+
+        // Handlers pour le menu hamburger
+        window.menuHandlers = {
+            toggle: () => Menu.toggle(),
+            open: () => Menu.open(),
+            close: () => Menu.close(),
+            isOpen: () => Menu.isMenuOpen()
+        };
+
+        // Pour compatibilité avec le HTML existant (onclick="toggleMobileMenu()")
+        window.toggleMobileMenu = () => Menu.toggle();
     }
 }
 
