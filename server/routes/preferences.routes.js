@@ -1,6 +1,7 @@
-// ========================================
-// Routes API des préférences utilisateur
-// ========================================
+/**
+ * @fileoverview Routes API des préférences utilisateur
+ * @module routes/preferences
+ */
 
 const express = require('express');
 const router = express.Router();
@@ -8,8 +9,13 @@ const preferencesManager = require('../managers/preferences-manager');
 const { requireAuth } = require('../middleware/auth-middleware');
 
 /**
- * GET /api/preferences
  * Récupère les préférences de l'utilisateur connecté
+ * @route GET /api/preferences
+ * @group Preferences - Gestion des préférences utilisateur
+ * @security JWT
+ * @returns {Object} 200 - Préférences utilisateur
+ * @returns {Error} 401 - Non authentifié
+ * @returns {Error} 500 - Erreur serveur
  */
 router.get('/', requireAuth, async (req, res) => {
   try {
@@ -24,8 +30,16 @@ router.get('/', requireAuth, async (req, res) => {
 });
 
 /**
- * PUT /api/preferences
  * Met à jour les préférences de l'utilisateur connecté
+ * @route PUT /api/preferences
+ * @group Preferences - Gestion des préférences utilisateur
+ * @param {Object} body.required - Préférences à mettre à jour
+ * @param {number} body.numberOfWeeks - Nombre de semaines (1-4)
+ * @security JWT
+ * @returns {Object} 200 - Préférences mises à jour
+ * @returns {Error} 400 - Données invalides
+ * @returns {Error} 401 - Non authentifié
+ * @returns {Error} 500 - Erreur serveur
  */
 router.put('/', requireAuth, async (req, res) => {
   try {
@@ -56,8 +70,13 @@ router.put('/', requireAuth, async (req, res) => {
 });
 
 /**
- * GET /api/preferences/ingredients
  * Récupère les ingrédients de l'utilisateur
+ * @route GET /api/preferences/ingredients
+ * @group Preferences - Gestion des ingrédients
+ * @security JWT
+ * @returns {Object} 200 - Ingrédients de l'utilisateur
+ * @returns {Error} 401 - Non authentifié
+ * @returns {Error} 500 - Erreur serveur
  */
 router.get('/ingredients', requireAuth, async (req, res) => {
   try {
@@ -72,40 +91,16 @@ router.get('/ingredients', requireAuth, async (req, res) => {
 });
 
 /**
- * PUT /api/preferences/ingredients
- * Met à jour tous les ingrédients de l'utilisateur
- */
-router.put('/ingredients', requireAuth, async (req, res) => {
-  try {
-    const { ingredients } = req.body;
-
-    if (!ingredients) {
-      return res.status(400).json({
-        error: 'Données d\'ingrédients manquantes'
-      });
-    }
-
-    const updatedIngredients = await preferencesManager.updateUserIngredients(
-      req.session.userId,
-      ingredients
-    );
-
-    res.json({
-      success: true,
-      message: 'Ingrédients mis à jour avec succès',
-      ingredients: updatedIngredients
-    });
-  } catch (error) {
-    console.error('Erreur sauvegarde ingrédients:', error);
-    res.status(400).json({
-      error: error.message || 'Erreur lors de la sauvegarde des ingrédients'
-    });
-  }
-});
-
-/**
- * POST /api/preferences/ingredients/:category/item
- * Ajoute un item à une catégorie
+ * Ajoute un item à une catégorie d'ingrédients
+ * @route POST /api/preferences/ingredients/:category/item
+ * @group Preferences - Gestion des ingrédients
+ * @param {string} category.path.required - Catégorie d'ingrédients
+ * @param {Object} body.required - Item à ajouter
+ * @param {string} body.item.required - Nom de l'item
+ * @security JWT
+ * @returns {Object} 200 - Item ajouté avec succès
+ * @returns {Error} 400 - Données invalides
+ * @returns {Error} 401 - Non authentifié
  */
 router.post('/ingredients/:category/item', requireAuth, async (req, res) => {
   try {
@@ -135,78 +130,6 @@ router.post('/ingredients/:category/item', requireAuth, async (req, res) => {
     console.error('Erreur ajout item:', error);
     res.status(400).json({
       error: error.message || 'Erreur lors de l\'ajout de l\'item'
-    });
-  }
-});
-
-/**
- * DELETE /api/preferences/ingredients/:category/item
- * Supprime un item d'une catégorie
- */
-router.delete('/ingredients/:category/item', requireAuth, async (req, res) => {
-  try {
-    const { category } = req.params;
-    const { item } = req.body;
-
-    const decodedCategory = decodeURIComponent(category);
-
-    if (!item) {
-      return res.status(400).json({
-        error: 'Item manquant'
-      });
-    }
-
-    const ingredients = await preferencesManager.removeIngredientItem(
-      req.session.userId,
-      decodedCategory,
-      item
-    );
-
-    res.json({
-      success: true,
-      message: 'Item supprimé avec succès',
-      ingredients
-    });
-  } catch (error) {
-    console.error('Erreur suppression item:', error);
-    res.status(400).json({
-      error: error.message || 'Erreur lors de la suppression de l\'item'
-    });
-  }
-});
-
-/**
- * PUT /api/preferences/ingredients/:category/repas
- * Met à jour les préférences de repas pour une catégorie
- */
-router.put('/ingredients/:category/repas', requireAuth, async (req, res) => {
-  try {
-    const { category } = req.params;
-    const { midi, soir } = req.body;
-
-    const decodedCategory = decodeURIComponent(category);
-
-    if (typeof midi !== 'boolean' || typeof soir !== 'boolean') {
-      return res.status(400).json({
-        error: 'Paramètres midi/soir invalides'
-      });
-    }
-
-    const ingredients = await preferencesManager.updateCategoryRepas(
-      req.session.userId,
-      decodedCategory,
-      { midi, soir }
-    );
-
-    res.json({
-      success: true,
-      message: 'Préférences de repas mises à jour',
-      ingredients
-    });
-  } catch (error) {
-    console.error('Erreur mise à jour repas:', error);
-    res.status(400).json({
-      error: error.message || 'Erreur lors de la mise à jour'
     });
   }
 });

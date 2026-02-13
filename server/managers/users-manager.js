@@ -1,6 +1,7 @@
-// ========================================
-// Gestion des utilisateurs - Structure unifiée
-// ========================================
+/**
+ * @fileoverview Gestion des utilisateurs avec structure unifiée
+ * @module managers/users-manager
+ */
 
 const fs = require('fs').promises;
 const bcrypt = require('bcrypt');
@@ -12,6 +13,8 @@ const SALT_ROUNDS = 12;
 
 /**
  * Initialise le dossier des utilisateurs
+ * @async
+ * @returns {Promise<void>}
  */
 async function initializeUsersDir() {
     try {
@@ -24,6 +27,8 @@ async function initializeUsersDir() {
 
 /**
  * Obtient le chemin du fichier d'un utilisateur
+ * @param {string} userId - ID de l'utilisateur
+ * @returns {string} Chemin complet du fichier
  */
 function getUserFilePath(userId) {
     return path.join(USERS_DIR, `${userId}.json`);
@@ -31,6 +36,7 @@ function getUserFilePath(userId) {
 
 /**
  * Crée la structure par défaut des ingrédients
+ * @returns {Object} Objet avec catégories d'ingrédients
  */
 function createDefaultIngredients() {
     const ingredients = {};
@@ -45,6 +51,11 @@ function createDefaultIngredients() {
 
 /**
  * Crée la structure par défaut d'un utilisateur
+ * @param {string} email - Email de l'utilisateur
+ * @param {string} passwordHash - Hash du mot de passe
+ * @param {string} [firstname=''] - Prénom
+ * @param {string} [lastname=''] - Nom
+ * @returns {Object} Structure utilisateur complète
  */
 function createDefaultUserStructure(email, passwordHash, firstname = '', lastname = '') {
     const now = new Date().toISOString();
@@ -67,6 +78,8 @@ function createDefaultUserStructure(email, passwordHash, firstname = '', lastnam
 
 /**
  * Crée les plans de semaines par défaut
+ * @param {number} numberOfWeeks - Nombre de semaines à créer
+ * @returns {Object} Plans des semaines
  */
 function createDefaultWeeksPlans(numberOfWeeks) {
     const plans = {};
@@ -81,6 +94,9 @@ function createDefaultWeeksPlans(numberOfWeeks) {
 
 /**
  * Lit les données d'un utilisateur
+ * @async
+ * @param {string} userId - ID de l'utilisateur
+ * @returns {Promise<Object|null>} Données utilisateur ou null
  */
 async function readUserData(userId) {
     const filePath = getUserFilePath(userId);
@@ -88,7 +104,6 @@ async function readUserData(userId) {
         const data = await fs.readFile(filePath, 'utf8');
         const userData = JSON.parse(data);
 
-        // Migration : ajouter ingredients si manquant
         if (!userData.preference) {
             userData.preference = {};
         }
@@ -105,6 +120,10 @@ async function readUserData(userId) {
 
 /**
  * Sauvegarde les données d'un utilisateur
+ * @async
+ * @param {string} userId - ID de l'utilisateur
+ * @param {Object} userData - Données à sauvegarder
+ * @returns {Promise<void>}
  */
 async function writeUserData(userId, userData) {
     const filePath = getUserFilePath(userId);
@@ -114,6 +133,8 @@ async function writeUserData(userId, userData) {
 
 /**
  * Liste tous les utilisateurs
+ * @async
+ * @returns {Promise<Array<Object>>} Liste des utilisateurs
  */
 async function listAllUsers() {
     try {
@@ -138,6 +159,9 @@ async function listAllUsers() {
 
 /**
  * Trouve un utilisateur par email
+ * @async
+ * @param {string} email - Email de l'utilisateur
+ * @returns {Promise<Object|null>} Utilisateur ou null
  */
 async function findUserByEmail(email) {
     const users = await listAllUsers();
@@ -146,6 +170,9 @@ async function findUserByEmail(email) {
 
 /**
  * Trouve un utilisateur par ID
+ * @async
+ * @param {string} userId - ID de l'utilisateur
+ * @returns {Promise<Object|null>} Utilisateur ou null
  */
 async function findUserById(userId) {
     return await readUserData(userId);
@@ -153,6 +180,13 @@ async function findUserById(userId) {
 
 /**
  * Crée un nouvel utilisateur
+ * @async
+ * @param {string} email - Email
+ * @param {string} password - Mot de passe
+ * @param {string} [firstname=''] - Prénom
+ * @param {string} [lastname=''] - Nom
+ * @returns {Promise<Object>} Utilisateur créé (sans mot de passe)
+ * @throws {Error} Si l'email existe déjà
  */
 async function createUser(email, password, firstname = '', lastname = '') {
     const existingUser = await findUserByEmail(email);
@@ -161,7 +195,6 @@ async function createUser(email, password, firstname = '', lastname = '') {
     }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-
     const userData = createDefaultUserStructure(email, passwordHash, firstname, lastname);
     await writeUserData(userData.id, userData);
 
@@ -170,7 +203,11 @@ async function createUser(email, password, firstname = '', lastname = '') {
 }
 
 /**
- * Vérifie les credentials
+ * Vérifie les credentials d'un utilisateur
+ * @async
+ * @param {string} email - Email
+ * @param {string} password - Mot de passe
+ * @returns {Promise<Object|null>} Utilisateur (sans mot de passe) ou null
  */
 async function verifyUser(email, password) {
     const user = await findUserByEmail(email);
@@ -185,6 +222,11 @@ async function verifyUser(email, password) {
 
 /**
  * Met à jour un utilisateur
+ * @async
+ * @param {string} userId - ID de l'utilisateur
+ * @param {Object} updates - Mises à jour à appliquer
+ * @returns {Promise<Object>} Utilisateur mis à jour (sans mot de passe)
+ * @throws {Error} Si l'utilisateur n'existe pas
  */
 async function updateUser(userId, updates) {
     const userData = await readUserData(userId);
@@ -207,6 +249,12 @@ async function updateUser(userId, updates) {
 
 /**
  * Ajoute ou met à jour un device
+ * @async
+ * @param {string} userId - ID de l'utilisateur
+ * @param {string} deviceId - ID du device
+ * @param {boolean} [isMobile=false] - Si c'est un appareil mobile
+ * @returns {Promise<Object>} Données utilisateur mises à jour
+ * @throws {Error} Si l'utilisateur n'existe pas
  */
 async function updateDevice(userId, deviceId, isMobile = false) {
     const userData = await readUserData(userId);
@@ -231,6 +279,7 @@ async function updateDevice(userId, deviceId, isMobile = false) {
 
 /**
  * Génère un ID unique
+ * @returns {string} ID unique basé sur timestamp et random
  */
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);

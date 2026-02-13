@@ -1,12 +1,16 @@
-// ========================================
-// Gestion des plans de repas - Basé sur les jours du mois
-// ========================================
+/**
+ * @fileoverview Gestion des plans de repas basés sur les jours du mois
+ * @module managers/atable-manager
+ */
 
 const usersManager = require('./users-manager');
 const CONFIG = require('../../config');
 
 /**
  * Lit les plans de repas d'un utilisateur
+ * @async
+ * @param {string} userId - ID de l'utilisateur
+ * @returns {Promise<Object>} Plans des semaines
  */
 async function readUseratable(userId) {
     const userData = await usersManager.readUserData(userId);
@@ -18,6 +22,11 @@ async function readUseratable(userId) {
 
 /**
  * Sauvegarde les plans de repas d'un utilisateur
+ * @async
+ * @param {string} userId - ID de l'utilisateur
+ * @param {Object} weeksPlans - Plans des semaines à sauvegarder
+ * @returns {Promise<void>}
+ * @throws {Error} Si l'utilisateur n'existe pas ou données invalides
  */
 async function writeUseratable(userId, weeksPlans) {
     const userData = await usersManager.readUserData(userId);
@@ -25,7 +34,6 @@ async function writeUseratable(userId, weeksPlans) {
         throw new Error('Utilisateur non trouvé');
     }
 
-    // Valider les données
     for (const weekKey in weeksPlans) {
         if (!weekKey.startsWith('week')) continue;
         
@@ -34,7 +42,6 @@ async function writeUseratable(userId, weeksPlans) {
             throw new Error('Format de données invalide');
         }
 
-        // Valider que les clés sont des nombres de 1 à 31
         for (const dayKey of Object.keys(week.days)) {
             const dayNum = parseInt(dayKey);
             if (isNaN(dayNum) || dayNum < 1 || dayNum > 31) {
@@ -54,6 +61,8 @@ async function writeUseratable(userId, weeksPlans) {
 
 /**
  * Crée la structure de semaines par défaut avec jours du mois
+ * @param {number} numberOfWeeks - Nombre de semaines à créer
+ * @returns {Object} Structure des semaines
  */
 function createDefaultWeeksPlans(numberOfWeeks) {
     const plans = {};
@@ -68,6 +77,7 @@ function createDefaultWeeksPlans(numberOfWeeks) {
 
 /**
  * Crée un mois vide (jours 1 à 31)
+ * @returns {Object} Objet avec jours 1-31
  */
 function createEmptyMonth() {
     const days = {};
@@ -78,17 +88,10 @@ function createEmptyMonth() {
 }
 
 /**
- * Crée une structure de semaine vide
- */
-function createEmptyWeek() {
-    return {
-        enabled: false,
-        days: createEmptyMonth()
-    };
-}
-
-/**
  * Supprime les plans de repas d'un utilisateur (remise à zéro)
+ * @async
+ * @param {string} userId - ID de l'utilisateur
+ * @returns {Promise<void>}
  */
 async function deleteUseratable(userId) {
     const userData = await usersManager.readUserData(userId);
@@ -105,6 +108,5 @@ module.exports = {
     writeUseratable,
     deleteUseratable,
     createDefaultWeeksPlans,
-    createEmptyWeek,
     createEmptyMonth
 };

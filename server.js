@@ -1,6 +1,7 @@
-// ========================================
-// Serveur Express avec authentification et notifications push
-// ========================================
+/**
+ * @fileoverview Serveur Express principal avec authentification et notifications push
+ * @module server
+ */
 
 require('dotenv').config();
 const express = require('express');
@@ -19,10 +20,9 @@ const app = express();
 const PORT = process.env.PORT || 3030;
 const CONFIG = require('./config');
 
-// ========================================
-// Configuration des middlewares
-// ========================================
-
+/**
+ * Configuration des middlewares
+ */
 app.use(express.json());
 app.use(cookieParser());
 
@@ -49,16 +49,15 @@ if (process.env.NODE_ENV !== 'production') {
     }));
 }
 
-// ========================================
-// Configuration des routes
-// ========================================
-
+/**
+ * Configuration des routes
+ */
 setupRoutes(app);
 
-// ========================================
-// Pages statiques
-// ========================================
-
+/**
+ * Page de login
+ * @route GET /login
+ */
 app.get('/login', (req, res) => {
     if (req.session && req.session.userId) {
         return res.redirect('/');
@@ -66,14 +65,17 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
+/**
+ * Page principale (protégée)
+ * @route GET /
+ */
 app.get('/', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ========================================
-// Gestion des erreurs
-// ========================================
-
+/**
+ * Gestion des erreurs 404
+ */
 app.use((req, res) => {
     res.status(404).json({
         error: 'Route non trouvée',
@@ -81,6 +83,9 @@ app.use((req, res) => {
     });
 });
 
+/**
+ * Gestion des erreurs serveur
+ */
 app.use((err, req, res, next) => {
     console.error('Erreur serveur:', err);
     res.status(500).json({
@@ -89,10 +94,11 @@ app.use((err, req, res, next) => {
     });
 });
 
-// ========================================
-// Initialisation et démarrage
-// ========================================
-
+/**
+ * Initialise et démarre le serveur
+ * @async
+ * @returns {Promise<void>}
+ */
 async function startServer() {
     try {
         await fs.mkdir(path.join(__dirname, 'data'), { recursive: true });
