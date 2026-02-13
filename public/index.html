@@ -54,31 +54,6 @@
                 </div>
 
                 <div class="modal-body">
-                    <!-- Section: Personnalisation -->
-                    <div class="settings-section collapsed" data-section="customization">
-                        <div class="settings-section-header">
-                            <div class="settings-section-title">
-                                <span class="emoji">🎨</span>
-                                <span>Personnalisation</span>
-                            </div>
-                            <span class="section-toggle-icon">▼</span>
-                        </div>
-                        <div class="settings-section-content">
-                            <div class="settings-group">
-                                <div class="setting-group">
-                                    <label class="toggle-label">
-                                        <input type="checkbox" id="dark-mode">
-                                        <span class="toggle-slider"></span>
-                                        <span class="toggle-text">Mode sombre</span>
-                                    </label>
-                                    <p class="setting-description">
-                                        Activez le thème sombre pour réduire la fatigue oculaire
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Section: Planification -->
                     <div class="settings-section collapsed" data-section="planning">
                         <div class="settings-section-header">
@@ -108,13 +83,33 @@
                         </div>
                     </div>
 
+                    <!-- Section: Préférences alimentaires -->
+                    <div class="settings-section collapsed" data-section="ingredients">
+                        <div class="settings-section-header">
+                            <div class="settings-section-title">
+                                <span class="emoji">🍽️</span>
+                                <span>Préférences alimentaires</span>
+                            </div>
+                            <span class="section-toggle-icon">▼</span>
+                        </div>
+                        <div class="settings-section-content">
+                            <p class="setting-description">
+                                Définissez vos catégories d'ingrédients préférés et indiquez pour quels repas vous les
+                                utilisez.
+                            </p>
+                            <div id="ingredients-container" class="ingredients-container">
+                                <!-- Les catégories d'ingrédients seront générées ici par JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Section: Génération automatique -->
                     <div class="settings-section collapsed" data-section="generator">
                         <div class="settings-section-header">
                             <div class="settings-section-title">
                                 <span class="emoji">🤖</span>
                                 <span>Génération automatique</span>
-                                <span class="section-badge new">Nouveau</span>
+                                <!-- <span class="section-badge new">Nouveau</span> -->
                             </div>
                             <span class="section-toggle-icon">▼</span>
                         </div>
@@ -143,26 +138,6 @@
                                         ⚠️ Remplace TOUS vos repas par des repas générés automatiquement
                                     </p>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section: Préférences alimentaires -->
-                    <div class="settings-section collapsed" data-section="ingredients">
-                        <div class="settings-section-header">
-                            <div class="settings-section-title">
-                                <span class="emoji">🍽️</span>
-                                <span>Préférences alimentaires</span>
-                            </div>
-                            <span class="section-toggle-icon">▼</span>
-                        </div>
-                        <div class="settings-section-content">
-                            <p class="setting-description">
-                                Définissez vos catégories d'ingrédients préférés et indiquez pour quels repas vous les
-                                utilisez.
-                            </p>
-                            <div id="ingredients-container" class="ingredients-container">
-                                <!-- Les catégories d'ingrédients seront générées ici par JavaScript -->
                             </div>
                         </div>
                     </div>
@@ -198,6 +173,31 @@
                                     <div id="permission-status" class="permission-status">
                                         <span id="permission-text"></span>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Personnalisation -->
+                    <div class="settings-section collapsed" data-section="customization">
+                        <div class="settings-section-header">
+                            <div class="settings-section-title">
+                                <span class="emoji">🎨</span>
+                                <span>Personnalisation</span>
+                            </div>
+                            <span class="section-toggle-icon">▼</span>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-group">
+                                <div class="setting-group">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="dark-mode">
+                                        <span class="toggle-slider"></span>
+                                        <span class="toggle-text">Mode sombre</span>
+                                    </label>
+                                    <p class="setting-description">
+                                        Activez le thème sombre pour réduire la fatigue oculaire
+                                    </p>
                                 </div>
                             </div>
                         </div>

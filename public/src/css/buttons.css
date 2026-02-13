@@ -34,7 +34,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
-  margin-bottom: 16px;
+  margin: 5px auto;
 }
 
 .submit-btn:hover {

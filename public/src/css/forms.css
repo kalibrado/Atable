@@ -127,12 +127,12 @@
    Form Groups (Login)
    ======================================== */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 5px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: px;
   font-weight: 600;
   color: var(--text-primary);
   font-size: 0.95rem;

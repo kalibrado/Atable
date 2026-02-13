@@ -62,17 +62,9 @@
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 5px;
   margin-bottom: 20px;
 }
-
-@media (max-width: 480px) {
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-}
-
 /* ========================================
    Password Input avec bouton toggle
    ======================================== */
