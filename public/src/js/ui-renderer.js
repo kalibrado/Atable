@@ -18,9 +18,24 @@ export class UIRenderer {
      * @returns {string} Le HTML de la section
      */
     static createMealSection(day, mealType, mealsData) {
+        function findDay(weeksPlans, dayNumber) {
+            for (const [weekKey, weekValue] of Object.entries(weeksPlans)) {
+                if (weekValue[dayNumber]) {
+                    return {
+                        week: weekKey,
+                        data: weekValue[dayNumber]
+                    };
+                }
+            }
+            return null;
+        }
+
+        const res = findDay(mealsData, day)
         const emoji = MEAL_EMOJIS[mealType];
         const label = StringUtils.capitalize(mealType);
-        const value = mealsData[day]?.[mealType] || '';
+        const value = res?.data?.[mealType] || mealsData[day]?.[mealType] || '';
+        console.log({ day, mealType, mealsData, value, res })
+        debugger
         return `
             <div class="atable-section">
                 <div class="atable-header">
@@ -76,7 +91,7 @@ export class UIRenderer {
      * @param {boolean} isLargeScreen - Si l'écran est large
      * @returns {string} Le HTML de la carte
      */
-    static createDayCard(dayOfMonth, index, mealsData, isLargeScreen) {
+    static createDayCard(dayOfMonth, mealsData, isLargeScreen) {
         const { html } = this.createCalendarEmoji(dayOfMonth);
         const currentDay = MonthDaysUtils.getCurrentDayOfMonth();
         const isToday = dayOfMonth === currentDay;
@@ -89,7 +104,6 @@ export class UIRenderer {
         const todayBadge = isToday
             ? '<span class="today-badge">Aujourd\'hui</span>'
             : '';
-
         return `
             <div class="day-card ${collapsedClass}" data-day="${dayOfMonth}">
                 <div class="day-header">
@@ -100,8 +114,8 @@ export class UIRenderer {
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div class="day-content">
-                    ${this.createMealSection(index, MEAL_TYPES.MIDI, mealsData)}
-                    ${this.createMealSection(index, MEAL_TYPES.SOIR, mealsData)}
+                    ${this.createMealSection(dayOfMonth, MEAL_TYPES.MIDI, mealsData)}
+                    ${this.createMealSection(dayOfMonth, MEAL_TYPES.SOIR, mealsData)}
                 </div>
             </div>
         `;
@@ -120,7 +134,7 @@ export class UIRenderer {
         const isLargeScreen = window.innerWidth >= 768;
         // Générer le HTML de toutes les cartes
         const cardsHTML = daysInWeek
-            .map(day => this.createDayCard(day, daysInWeek.indexOf(day) + 1, mealsData, isLargeScreen))
+            .map(day => this.createDayCard(day, mealsData, isLargeScreen))
             .join('');
 
         container.innerHTML = cardsHTML;

@@ -155,7 +155,8 @@ export class UIManager {
             WeeksManager.initialize(numberOfWeeks, weeks);
 
             // Charger les données de la première semaine
-            UIManager.state.mealsData = weeks.week1;
+            // BUGFIX : week load
+            UIManager.state.mealsData = weeks // .week1;
 
             // Rendre l'interface
             UIRenderer.renderAllDays(

@@ -98,10 +98,6 @@ export class WeeksManager {
       return;
     }
 
-    // Sauvegarde de la semaine actuelle
-    const currentWeekData = UIManager.getState().mealsData;
-    this.state.weeksData[`week${this.state.currentWeek}`] = currentWeekData;
-
     // Changement
     this.state.currentWeek = weekNumber;
 
