@@ -7,6 +7,7 @@ const fs = require('fs').promises;
 const bcrypt = require('bcrypt');
 const path = require('path');
 const CONFIG = require('../../config');
+const logger = require('../../logger');
 
 const USERS_DIR = CONFIG.usersDir;
 const SALT_ROUNDS = 12;
@@ -19,9 +20,9 @@ const SALT_ROUNDS = 12;
 async function initializeUsersDir() {
     try {
         await fs.mkdir(USERS_DIR, { recursive: true });
-        console.log('Dossier utilisateurs initialisé');
+        logger.info('Dossier utilisateurs initialisé');
     } catch (error) {
-        console.error('Erreur création dossier users:', error);
+        logger.error('Erreur création dossier users:', error);
     }
 }
 

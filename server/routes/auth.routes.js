@@ -5,11 +5,20 @@
 const express = require('express');
 const router = express.Router();
 const usersManager = require('../managers/users-manager');
+const { asyncHandler } = require('../middleware/handler-middleware')
+const logger = require('../../logger');
+
+const z = require('zod')
+
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6)
+});
 
 /**
  * POST /auth/register
  */
-router.post('/register', async (req, res) => {
+router.post('/register', asyncHandler(async (req, res) => {
   const { email, password, firstname, lastname, machineId } = req.body;
 
   if (!email || !password) {
@@ -52,16 +61,20 @@ router.post('/register', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Erreur inscription:', error);
+    logger.error('Erreur inscription:', error);
     res.status(400).json({ error: error.message || 'Erreur lors de l\'inscription' });
   }
-});
+}));
 
 /**
  * POST /auth/login
  */
-router.post('/login', async (req, res) => {
-  const { email, password, machineId } = req.body;
+router.post('/login', asyncHandler(async (req, res) => {
+  const validated = loginSchema.parse(req.body)
+  if (!validated) {
+    return res.json({ error: 'Email et mot de passe erronée ' });
+  }
+  const { email, password, machineId } = loginSchema.parse(req.body);
 
   if (!email || !password) {
     return res.json({ error: 'Email et mot de passe requis' });
@@ -94,15 +107,15 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Erreur login:', error);
+    logger.error('Erreur login:', error);
     res.status(500).json({ error: 'Erreur lors de la connexion' });
   }
-});
+}));
 
 /**
  * POST /auth/logout
  */
-router.post('/logout', (req, res) => {
+router.post('/logout', asyncHandler((req, res) => {
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).json({ error: 'Erreur lors de la déconnexion' });
@@ -110,12 +123,12 @@ router.post('/logout', (req, res) => {
     res.clearCookie('connect.sid');
     res.json({ success: true });
   });
-});
+}));
 
 /**
  * GET /auth/me
  */
-router.get('/me', async (req, res) => {
+router.get('/me', asyncHandler(async (req, res) => {
   const pushManager = require('../managers/push-manager');
 
   try {
@@ -146,9 +159,9 @@ router.get('/me', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Erreur récupération utilisateur:', error);
+    logger.error('Erreur récupération utilisateur:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
-});
+}));
 
 module.exports = router;

@@ -7,11 +7,13 @@ const router = express.Router();
 const atableManager = require('../managers/atable-manager');
 const preferencesManager = require('../managers/preferences-manager');
 const { requireAuth } = require('../middleware/auth-middleware');
+const { asyncHandler } = require('../middleware/handler-middleware')
+const logger = require('../../logger');
 
 /**
  * GET /api/atable
  */
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireAuth, asyncHandler(async (req, res) => {
     try {
         const preferences = await preferencesManager.readUserPreferences(req.session.userId);
         const numberOfWeeks = preferences.showWeeks || 2;
@@ -30,14 +32,14 @@ router.get('/', requireAuth, async (req, res) => {
             numberOfWeeks
         });
     } catch (error) {
-        console.error('Erreur lecture repas:', error);
+        logger.error('Erreur lecture repas:', error);
         res.status(500).json({ error: 'Erreur lors de la lecture des données' });
     }
-});
+}));
 
 
 // GET /api/meals/:week - Récupérer UNE semaine spécifique
-router.get('/:weeknumber', async (req, res) => {
+router.get('/:weeknumber', asyncHandler(async (req, res) => {
     try {
         const { weeknumber } = req.params;
         const weeksPlans = await atableManager.readUseratable(req.session.userId);
@@ -46,17 +48,17 @@ router.get('/:weeknumber', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Erreur lecture données' });
     }
-});
+}));
 
 // PUT /:week - Sauvegarder UNE semaine
-router.put('/:weeknumber', async (req, res) => {
+router.put('/:weeknumber', asyncHandler(async (req, res) => {
     try {
         const { weeknumber } = req.params;
         const weekData = req.body;
 
         // Lire toutes les données
         const weeksPlans = await atableManager.readUseratable(req.session.userId);
-        
+
         // Mettre à jour uniquement cette semaine
         weeksPlans[`week${weeknumber}`] = weekData;
 
@@ -67,12 +69,12 @@ router.put('/:weeknumber', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Erreur sauvegarde' });
     }
-});
+}));
 
 /**
  * PUT /api/atable
  */
-router.put('/', requireAuth, async (req, res) => {
+router.put('/', requireAuth, asyncHandler(async (req, res) => {
     try {
         const newData = req.body;
 
@@ -93,9 +95,9 @@ router.put('/', requireAuth, async (req, res) => {
             message: 'Données sauvegardées avec succès'
         });
     } catch (error) {
-        console.error('Erreur sauvegarde repas:', error);
+        logger.error('Erreur sauvegarde repas:', error);
         res.status(400).json({ error: error.message || 'Erreur lors de la sauvegarde' });
     }
-});
+}));
 
 module.exports = router;

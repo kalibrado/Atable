@@ -5,6 +5,7 @@
 
 const usersManager = require('./users-manager');
 const CONFIG = require('../../config');
+const logger = require('../../logger');
 
 /**
  * Lit les plans de repas d'un utilisateur

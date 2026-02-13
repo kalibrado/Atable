@@ -23,6 +23,7 @@
 const webPush = require('web-push');
 const fs = require('fs').promises;
 const CONFIG = require('../../config');
+const logger = require('../../logger');
 
 /**
  * Constantes de configuration
@@ -38,12 +39,12 @@ function setupWebPush() {
     const subject = CONFIG.vapidSubject;
 
     if (!publicKey || !privateKey) {
-        console.warn('Clés VAPID non configurées. Exécutez: npm run generate-vapid');
+        logger.warn('Clés VAPID non configurées. Exécutez: npm run generate-vapid');
         return false;
     }
 
     webPush.setVapidDetails(subject, publicKey, privateKey);
-    console.log('Web-push configuré avec VAPID');
+    logger.info('Web-push configuré avec VAPID');
     return true;
 }
 
@@ -56,7 +57,7 @@ async function initializeNotificationsFile() {
     } catch (error) {
         // Le fichier n'existe pas, on le crée
         await fs.writeFile(SUBSCRIPTIONS_FILE, JSON.stringify([], null, 2));
-        console.log('Fichier notifications.json créé');
+        logger.info('Fichier notifications.json créé');
     }
 }
 
@@ -68,7 +69,7 @@ async function readNotifications() {
         const data = await fs.readFile(SUBSCRIPTIONS_FILE, 'utf8');
         return JSON.parse(data);
     } catch (error) {
-        console.error('Erreur lecture notifications:', error);
+        logger.error('Erreur lecture notifications:', error);
         return [];
     }
 }
@@ -132,7 +133,7 @@ async function updateNotificationSettings(userId, machineId, settings) {
         };
         notifications[index].updatedAt = new Date().toISOString();
         await writeNotifications(notifications);
-        console.log(`Paramètres mis à jour pour utilisateur ${userId}`)
+        logger.info(`Paramètres mis à jour pour utilisateur ${userId}`)
         return true;
     }
 
@@ -154,7 +155,7 @@ async function getUserNotification(userId, machineId) {
  * @param {string} userId
  */
 async function disabledNotification(userId, machineId) {
-    console.log(`Notification désactivé pour utilisateur ${userId}`);
+    logger.info(`Notification désactivé pour utilisateur ${userId}`);
     await updateNotificationSettings(userId, machineId, { enabled: false });
     const notification = await getUserNotification(userId, machineId)
     return notification
@@ -172,10 +173,10 @@ async function sendNotificationToUser(userId, permissionNotification, payload) {
             permissionNotification,
             JSON.stringify(payload)
         );
-        console.log(`📬 Notification envoyée à utilisateur ${userId}`);
+        logger.info(`📬 Notification envoyée à utilisateur ${userId}`);
         return { success: true };
     } catch (error) {
-        console.error(`❌ Erreur envoi notification à ${userId}:`, error);
+        logger.error(`❌ Erreur envoi notification à ${userId}:`, error);
 
         // Si la notification est invalide (410 Gone), la supprimer
         if (error.statusCode === 410) {

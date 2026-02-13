@@ -6,6 +6,7 @@ const cron = require('node-cron');
 const pushManager = require('../managers/push-manager');
 const usersManager = require('../managers/users-manager');
 const CONFIG = require('../../config');
+const logger = require('../../logger');
 
 /**
  * Formate le texte des repas pour la notification
@@ -126,9 +127,9 @@ async function sendUserNotification(userId, permissionNotification, date) {
             }
         });
 
-        console.log(`Notification envoyée à l'utilisateur ${userId} à ${formatTime(date)} pour le jour ${currentDay}`);
+        logger.info(`Notification envoyée à l'utilisateur ${userId} à ${formatTime(date)} pour le jour ${currentDay}`);
     } catch (error) {
-        console.error(`Erreur envoi notification à ${userId}:`, error);
+        logger.error(`Erreur envoi notification à ${userId}:`, error);
     }
 }
 
@@ -136,7 +137,7 @@ async function sendUserNotification(userId, permissionNotification, date) {
  * Démarre le scheduler de notifications
  */
 function startNotificationScheduler() {
-    console.log('Démarrage du scheduler de notifications...');
+    logger.info('Démarrage du scheduler de notifications...');
 
     cron.schedule('* * * * *', async () => {
         try {
@@ -150,7 +151,7 @@ function startNotificationScheduler() {
                 await sendUserNotification(userId, permissionNotification, now);
             }
         } catch (error) {
-            console.error('Erreur scheduler notifications:', error);
+            logger.error('Erreur scheduler notifications:', error);
         }
     });
 }

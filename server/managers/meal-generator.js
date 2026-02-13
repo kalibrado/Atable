@@ -4,6 +4,7 @@
  */
 
 const CONFIG = require('../../config');
+const logger = require('../../logger');
 
 /**
  * Classe de gestion de la génération automatique de repas

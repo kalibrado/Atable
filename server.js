@@ -9,22 +9,31 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const fs = require('fs').promises;
+const logger = require('./logger');
 
 const usersManager = require('./server/managers/users-manager');
 const pushManager = require('./server/managers/push-manager');
 const notificationScheduler = require('./server/scheduler/notification-scheduler');
 const { requireAuth, logRequest, protectAllRoutes } = require('./server/middleware/auth-middleware');
 const setupRoutes = require('./server/routes');
-
+const rateLimit = require('express-rate-limit')
+const compression = require('compression');
 const app = express();
 const PORT = process.env.PORT || 3030;
 const CONFIG = require('./config');
 
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 tentatives
+    message: 'Trop de tentatives, réessayez plus tard'
+});
 /**
  * Configuration des middlewares
- */
+*/
+app.set('trust proxy', 1);
 app.use(express.json());
 app.use(cookieParser());
+app.use(compression());
 
 app.use(session({
     secret: CONFIG.sessionSecret,
@@ -58,7 +67,7 @@ setupRoutes(app);
  * Page de login
  * @route GET /login
  */
-app.get('/login', (req, res) => {
+app.get('/login', loginLimiter, (req, res) => {
     if (req.session && req.session.userId) {
         return res.redirect('/');
     }
@@ -87,7 +96,7 @@ app.use((req, res) => {
  * Gestion des erreurs serveur
  */
 app.use((err, req, res, next) => {
-    console.error('Erreur serveur:', err);
+    logger.error('Erreur serveur:', err);
     res.status(500).json({
         error: 'Erreur interne du serveur',
         message: process.env.NODE_ENV === 'production' ? 'Une erreur est survenue' : err.message
@@ -109,18 +118,18 @@ async function startServer() {
             await pushManager.initializeNotificationsFile();
             notificationScheduler.startNotificationScheduler();
         } else {
-            console.warn('⚠️  Notifications push non configurées');
-            console.warn('   Exécutez: npm run generate-vapid');
+            logger.warn('⚠️  Notifications push non configurées');
+            logger.warn('   Exécutez: npm run generate-vapid');
         }
 
         app.listen(PORT, () => {
-            console.log('========================================');
-            console.log('Serveur Atable! démarré');
-            console.log(`URL: http://localhost:${PORT}`);
-            console.log('========================================');
+            logger.info('========================================');
+            logger.info('Serveur Atable! démarré');
+            logger.info(`URL: http://localhost:${PORT}`);
+            logger.info('========================================');
         });
     } catch (error) {
-        console.error('❌ Erreur au démarrage:', error);
+        logger.error('❌ Erreur au démarrage:', error);
         process.exit(1);
     }
 }

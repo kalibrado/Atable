@@ -8,12 +8,14 @@ const MealGenerator = require('../managers/meal-generator');
 const preferencesManager = require('../managers/preferences-manager');
 const atableManager = require('../managers/atable-manager');
 const { requireAuth } = require('../middleware/auth-middleware');
+const { asyncHandler } = require('../middleware/handler-middleware')
+const logger = require('../../logger');
 
 /**
  * POST /api/generator/generate
  * Génère automatiquement les repas pour toutes les semaines
  */
-router.post('/generate', requireAuth, async (req, res) => {
+router.post('/generate', requireAuth, asyncHandler(async (req, res) => {
   try {
     const { replaceAll = false } = req.body;
 
@@ -51,12 +53,12 @@ router.post('/generate', requireAuth, async (req, res) => {
           if (!currentPlans[weekKey].days[day]) {
             currentPlans[weekKey].days[day] = { midi: '', soir: '' };
           }
-          
+
           // Remplacer midi si vide
           if (!currentPlans[weekKey].days[day].midi || currentPlans[weekKey].days[day].midi.trim() === '') {
             currentPlans[weekKey].days[day].midi = generatedWeeks[weekKey][day].midi;
           }
-          
+
           // Remplacer soir si vide
           if (!currentPlans[weekKey].days[day].soir || currentPlans[weekKey].days[day].soir.trim() === '') {
             currentPlans[weekKey].days[day].soir = generatedWeeks[weekKey][day].soir;
@@ -77,19 +79,19 @@ router.post('/generate', requireAuth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur génération repas:', error);
+    logger.error('Erreur génération repas:', error);
     res.status(500).json({
       error: 'Erreur lors de la génération',
       message: error.message
     });
   }
-});
+}));
 
 /**
  * POST /api/generator/generate-single
  * Génère une suggestion pour un seul repas
  */
-router.post('/generate-single', requireAuth, async (req, res) => {
+router.post('/generate-single', requireAuth, asyncHandler(async (req, res) => {
   try {
     const { mealType = 'midi', usedMeals = [] } = req.body;
 
@@ -122,12 +124,12 @@ router.post('/generate-single', requireAuth, async (req, res) => {
 
     while (attempts < maxAttempts) {
       suggestion = MealGenerator.generateSingleMeal(ingredients, mealType, usedMealsSet);
-      
+
       // Vérifier que la suggestion n'est pas déjà utilisée
       if (suggestion && !usedMealsSet.has(suggestion.toLowerCase().trim())) {
         break;
       }
-      
+
       attempts++;
     }
 
@@ -145,18 +147,18 @@ router.post('/generate-single', requireAuth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur génération repas unique:', error);
+    logger.error('Erreur génération repas unique:', error);
     res.status(500).json({
       error: 'Erreur lors de la génération'
     });
   }
-});
+}));
 
 /**
  * GET /api/generator/preview
  * Prévisualise les repas sans les sauvegarder
  */
-router.get('/preview', requireAuth, async (req, res) => {
+router.get('/preview', requireAuth, asyncHandler(async (req, res) => {
   try {
     // Récupérer les préférences
     const preferences = await preferencesManager.readUserPreferences(req.session.userId);
@@ -177,11 +179,11 @@ router.get('/preview', requireAuth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur prévisualisation:', error);
+    logger.error('Erreur prévisualisation:', error);
     res.status(500).json({
       error: 'Erreur lors de la prévisualisation'
     });
   }
-});
+}));
 
 module.exports = router;

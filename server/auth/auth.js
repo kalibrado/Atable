@@ -2,6 +2,8 @@
 // Routes d'authentification
 // ========================================
 const app = require('../server');
+const logger = require('../../logger');
+
 /**
  * POST /auth/register
  * Inscription d'un nouvel utilisateur
@@ -47,7 +49,7 @@ app.post('/auth/register', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Erreur inscription:', error);
+        logger.error('Erreur inscription:', error);
         res.status(400).json({
             error: error.message || 'Erreur lors de l\'inscription'
         });
@@ -89,7 +91,7 @@ app.post('/auth/login', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Erreur login:', error);
+        logger.error('Erreur login:', error);
         res.status(500).json({
             error: 'Erreur lors de la connexion'
         });

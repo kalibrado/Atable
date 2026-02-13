@@ -1,3 +1,5 @@
+const logger = require('../../logger');
+
 /**
  * @fileoverview Middleware d'authentification et sécurité
  * @module middleware/auth-middleware
@@ -33,7 +35,7 @@ function logRequest(req, res, next) {
     const timestamp = new Date().toISOString();
     const userId = req.session?.userId || 'guest';
     const machineId = req.session?.machineId || 'Unknown';
-    console.log(`[${timestamp}] ${req.method} ${req.path} - User: ${userId} - Machine: ${machineId}`);
+    logger.info(`[${timestamp}] ${req.method} ${req.path} - User: ${userId} - Machine: ${machineId}`);
     next();
 }
 

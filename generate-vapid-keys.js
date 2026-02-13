@@ -6,17 +6,18 @@
 const webPush = require('web-push');
 const fs = require('fs');
 const path = require('path');
+const logger = require('./logger');
 
-console.log('Génération des clés VAPID...\n');
+logger.info('Génération des clés VAPID...\n');
 
 // Générer les clés VAPID
 const vapidKeys = webPush.generateVAPIDKeys();
 
-console.log('Clés VAPID générées avec succès !\n');
-console.log('Copiez ces clés dans votre fichier .env :\n');
-console.log('VAPID_PUBLIC_KEY=' + vapidKeys.publicKey);
-console.log('VAPID_PRIVATE_KEY=' + vapidKeys.privateKey);
-console.log('\n');
+logger.info('Clés VAPID générées avec succès !\n');
+logger.info('Copiez ces clés dans votre fichier .env :\n');
+logger.info('VAPID_PUBLIC_KEY=' + vapidKeys.publicKey);
+logger.info('VAPID_PRIVATE_KEY=' + vapidKeys.privateKey);
+logger.info('\n');
 
 // Créer ou mettre à jour le fichier .env
 const envPath = path.join(__dirname, '.env');
@@ -30,9 +31,9 @@ try {
 
 // Vérifier si les clés VAPID existent déjà
 if (envContent.includes('VAPID_PUBLIC_KEY')) {
-  console.log('ATTENTION: Des clés VAPID existent déjà dans .env');
-  console.log('   Les remplacer invalidera toutes les inscriptions aux notifications existantes.');
-  console.log('   Pour créer le fichier .env avec les nouvelles clés, supprimez d\'abord l\'ancien.\n');
+  logger.info('ATTENTION: Des clés VAPID existent déjà dans .env');
+  logger.info('   Les remplacer invalidera toutes les inscriptions aux notifications existantes.');
+  logger.info('   Pour créer le fichier .env avec les nouvelles clés, supprimez d\'abord l\'ancien.\n');
 } else {
   // Ajouter les clés au fichier .env
   const newEnvContent = `
@@ -46,10 +47,10 @@ PORT=3030
 `;
 
   fs.writeFileSync(envPath, envContent + newEnvContent);
-  console.log('Fichier .env créé avec les clés VAPID\n');
+  logger.info('Fichier .env créé avec les clés VAPID\n');
 }
 
-console.log('Prochaines étapes :');
-console.log('   1. Vérifiez le fichier .env');
-console.log('   2. Redémarrez le serveur (npm start)');
-console.log('   3. Les utilisateurs pourront s\'abonner aux notifications\n');
+logger.info('Prochaines étapes :');
+logger.info('   1. Vérifiez le fichier .env');
+logger.info('   2. Redémarrez le serveur (npm start)');
+logger.info('   3. Les utilisateurs pourront s\'abonner aux notifications\n');

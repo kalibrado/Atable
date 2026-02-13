@@ -5,9 +5,11 @@
 
 const express = require('express');
 const router = express.Router();
+const logger = require('../../logger');
+
 const preferencesManager = require('../managers/preferences-manager');
 const { requireAuth } = require('../middleware/auth-middleware');
-
+const { asyncHandler } = require('../middleware/handler-middleware')
 /**
  * Récupère les préférences de l'utilisateur connecté
  * @route GET /api/preferences
@@ -17,17 +19,17 @@ const { requireAuth } = require('../middleware/auth-middleware');
  * @returns {Error} 401 - Non authentifié
  * @returns {Error} 500 - Erreur serveur
  */
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireAuth, asyncHandler(async (req, res) => {
   try {
     const preferences = await preferencesManager.readUserPreferences(req.session.userId);
     res.json(preferences);
   } catch (error) {
-    console.error('Erreur lecture préférences:', error);
+    logger.error('Erreur lecture préférences:', error);
     res.status(500).json({
       error: 'Erreur lors de la lecture des préférences'
     });
   }
-});
+}));
 
 /**
  * Met à jour les préférences de l'utilisateur connecté
@@ -41,7 +43,7 @@ router.get('/', requireAuth, async (req, res) => {
  * @returns {Error} 401 - Non authentifié
  * @returns {Error} 500 - Erreur serveur
  */
-router.put('/', requireAuth, async (req, res) => {
+router.put('/', requireAuth, asyncHandler(async (req, res) => {
   try {
     const { numberOfWeeks } = req.body;
 
@@ -62,12 +64,12 @@ router.put('/', requireAuth, async (req, res) => {
       preferences
     });
   } catch (error) {
-    console.error('Erreur sauvegarde préférences:', error);
+    logger.error('Erreur sauvegarde préférences:', error);
     res.status(400).json({
       error: error.message || 'Erreur lors de la sauvegarde'
     });
   }
-});
+}));
 
 /**
  * Récupère les ingrédients de l'utilisateur
@@ -78,17 +80,17 @@ router.put('/', requireAuth, async (req, res) => {
  * @returns {Error} 401 - Non authentifié
  * @returns {Error} 500 - Erreur serveur
  */
-router.get('/ingredients', requireAuth, async (req, res) => {
+router.get('/ingredients', requireAuth, asyncHandler(async (req, res) => {
   try {
     const ingredients = await preferencesManager.readUserIngredients(req.session.userId);
     res.json({ ingredients });
   } catch (error) {
-    console.error('Erreur lecture ingrédients:', error);
+    logger.error('Erreur lecture ingrédients:', error);
     res.status(500).json({
       error: 'Erreur lors de la lecture des ingrédients'
     });
   }
-});
+}));
 
 /**
  * Ajoute un item à une catégorie d'ingrédients
@@ -102,7 +104,7 @@ router.get('/ingredients', requireAuth, async (req, res) => {
  * @returns {Error} 400 - Données invalides
  * @returns {Error} 401 - Non authentifié
  */
-router.post('/ingredients/:category/item', requireAuth, async (req, res) => {
+router.post('/ingredients/:category/item', requireAuth, asyncHandler(async (req, res) => {
   try {
     const { category } = req.params;
     const { item } = req.body;
@@ -127,11 +129,11 @@ router.post('/ingredients/:category/item', requireAuth, async (req, res) => {
       ingredients
     });
   } catch (error) {
-    console.error('Erreur ajout item:', error);
+    logger.error('Erreur ajout item:', error);
     res.status(400).json({
       error: error.message || 'Erreur lors de l\'ajout de l\'item'
     });
   }
-});
+}));
 
 module.exports = router;
