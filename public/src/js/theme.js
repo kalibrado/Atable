@@ -1,6 +1,7 @@
-// ========================================
-// Gestion du thème (Mode Sombre / Mode Clair)
-// ========================================
+/**
+ * @fileoverview Gestion du thème (Mode Sombre / Mode Clair)
+ * @module theme
+ */
 
 /**
  * Classe de gestion du thème de l'application
@@ -10,11 +11,13 @@ export class ThemeManager {
   /**
    * Clé de stockage local pour le thème
    * @private
+   * @type {string}
    */
   static STORAGE_KEY = 'atable-theme-preference';
 
   /**
    * Thèmes disponibles
+   * @constant {Object}
    */
   static THEMES = {
     LIGHT: 'light',
@@ -24,23 +27,16 @@ export class ThemeManager {
   /**
    * Initialise le gestionnaire de thème
    * Charge la préférence sauvegardée ou détecte la préférence système
+   * @returns {void}
    */
   static initialize() {
-
-    // Charger le thème sauvegardé ou détecter la préférence système
     const savedTheme = this.getSavedTheme();
     const systemTheme = this.getSystemTheme();
     const initialTheme = savedTheme || systemTheme;
 
-    // Appliquer le thème
     this.applyTheme(initialTheme);
-
-    // Mettre à jour le toggle dans l'UI
     this.updateToggle();
-
-    // Écouter les changements de préférence système
     this.watchSystemTheme();
-
   }
 
   /**
@@ -78,6 +74,7 @@ export class ThemeManager {
   /**
    * Applique un thème à l'application
    * @param {string} theme - Le thème à appliquer ('dark' ou 'light')
+   * @returns {void}
    */
   static applyTheme(theme) {
     if (theme === this.THEMES.DARK) {
@@ -86,12 +83,8 @@ export class ThemeManager {
       document.documentElement.removeAttribute('data-theme');
     }
 
-    // Sauvegarder la préférence
     this.saveTheme(theme);
-
-    // Mettre à jour la couleur de la barre d'adresse (PWA)
     this.updateMetaThemeColor(theme);
-
   }
 
   /**
@@ -113,6 +106,7 @@ export class ThemeManager {
   /**
    * Sauvegarde la préférence de thème
    * @param {string} theme - Le thème à sauvegarder
+   * @returns {void}
    */
   static saveTheme(theme) {
     try {
@@ -124,6 +118,7 @@ export class ThemeManager {
 
   /**
    * Met à jour l'état du toggle dans l'interface
+   * @returns {void}
    */
   static updateToggle() {
     const darkModeToggle = document.getElementById('dark-mode');
@@ -136,6 +131,7 @@ export class ThemeManager {
 
   /**
    * Configure l'écouteur d'événements pour le toggle
+   * @returns {void}
    */
   static setupToggleListener() {
     const darkModeToggle = document.getElementById('dark-mode');
@@ -147,8 +143,6 @@ export class ThemeManager {
           : this.THEMES.LIGHT;
 
         this.applyTheme(theme);
-
-        // Feedback visuel
         this.showThemeChangeNotification(theme);
       });
     }
@@ -157,6 +151,7 @@ export class ThemeManager {
   /**
    * Affiche une notification de changement de thème
    * @param {string} theme - Le nouveau thème
+   * @returns {void}
    */
   static showThemeChangeNotification(theme) {
     import('./ui-handlers.js').then(({ UIManager }) => {
@@ -171,6 +166,7 @@ export class ThemeManager {
   /**
    * Met à jour la couleur de la barre d'adresse (meta theme-color)
    * @param {string} theme - Le thème actuel
+   * @returns {void}
    */
   static updateMetaThemeColor(theme) {
     let metaThemeColor = document.querySelector('meta[name="theme-color"]');
@@ -181,7 +177,6 @@ export class ThemeManager {
       document.head.appendChild(metaThemeColor);
     }
 
-    // Couleurs pour la barre d'adresse
     const colors = {
       [this.THEMES.LIGHT]: '#069494',
       [this.THEMES.DARK]: '#1e293b'
@@ -193,6 +188,7 @@ export class ThemeManager {
   /**
    * Écoute les changements de préférence système
    * Met à jour automatiquement si l'utilisateur n'a pas de préférence sauvegardée
+   * @returns {void}
    */
   static watchSystemTheme() {
     if (!window.matchMedia) {
@@ -202,7 +198,6 @@ export class ThemeManager {
     const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     darkModeQuery.addEventListener('change', (event) => {
-      // Ne changer que si pas de préférence manuelle sauvegardée
       const savedTheme = this.getSavedTheme();
 
       if (!savedTheme) {
@@ -218,6 +213,7 @@ export class ThemeManager {
 
   /**
    * Réinitialise le thème à la préférence système
+   * @returns {void}
    */
   static resetToSystemTheme() {
     try {

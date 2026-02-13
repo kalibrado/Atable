@@ -1,6 +1,7 @@
-// ========================================
-// Gestion du stockage local et de la synchronisation
-// ========================================
+/**
+ * @fileoverview Gestion du stockage local et de la synchronisation
+ * @module storage
+ */
 
 import { STORAGE_KEYS } from './config.js';
 
@@ -12,6 +13,7 @@ export class StorageManager {
   /**
    * Sauvegarde les données dans le cache local
    * @param {Object} data - Les données à sauvegarder
+   * @returns {void}
    */
   static saveToCache(data) {
     try {
@@ -39,6 +41,7 @@ export class StorageManager {
    * Sauvegarde les données en attente de synchronisation
    * Utilisé quand l'application est hors ligne
    * @param {Object} data - Les données à synchroniser plus tard
+   * @returns {void}
    */
   static savePendingData(data) {
     try {
@@ -64,6 +67,7 @@ export class StorageManager {
 
   /**
    * Supprime les données en attente après synchronisation réussie
+   * @returns {void}
    */
   static clearPendingData() {
     try {
@@ -74,16 +78,9 @@ export class StorageManager {
   }
 
   /**
-   * Vérifie s'il y a des données en attente de synchronisation
-   * @returns {boolean} True s'il y a des données en attente
-   */
-  static hasPendingData() {
-    return localStorage.getItem(STORAGE_KEYS.PENDING_SAVE) !== null;
-  }
-
-  /**
    * Efface tout le cache local
    * Utile pour le débogage ou la déconnexion
+   * @returns {void}
    */
   static clearAll() {
     try {

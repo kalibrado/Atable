@@ -1,6 +1,7 @@
-// ========================================
-// Rendu de l'interface utilisateur - Jours du mois
-// ========================================
+/**
+ * @fileoverview Rendu de l'interface utilisateur basée sur les jours du mois
+ * @module ui-renderer
+ */
 
 import { MEAL_TYPES, MEAL_EMOJIS } from './config.js';
 import { MonthDaysUtils, StringUtils } from './utils.js';
@@ -18,7 +19,6 @@ export class UIRenderer {
      * @returns {string} Le HTML de la section
      */
     static createMealSection(day, mealType, mealsData) {
-
         const emoji = MEAL_EMOJIS[mealType];
         const label = StringUtils.capitalize(mealType);
         const value = mealsData[mealType] || '';
@@ -64,11 +64,12 @@ export class UIRenderer {
             month,
             dayNumber: dayOfMonth,
             html: `
-            <span class="calendar-emoji" aria-hidden="true">
-                <span class="cal-month">${month}</span>
-                <span class="cal-day">${dayOfMonth}</span>
-            </span>
-        `};
+                <span class="calendar-emoji" aria-hidden="true">
+                    <span class="cal-month">${month}</span>
+                    <span class="cal-day">${dayOfMonth}</span>
+                </span>
+            `
+        };
     }
 
     /**
@@ -91,7 +92,6 @@ export class UIRenderer {
             ? '<span class="today-badge">Aujourd\'hui</span>'
             : '';
 
-
         return `
             <div class="day-card ${collapsedClass}" data-day="${dayOfMonth}">
                 <div class="day-header">
@@ -113,47 +113,43 @@ export class UIRenderer {
      * Rend les jours d'une semaine spécifique
      * @param {Object} mealsData - Les données des repas
      * @param {Array<number>} daysInWeek - Liste des jours à afficher
+     * @returns {void}
      */
     static renderDaysForWeek(mealsData, daysInWeek) {
         const container = document.getElementById('days-container');
         const currentDay = MonthDaysUtils.getCurrentDayOfMonth();
-
-        // Vérifier si on est sur grand écran
         const isLargeScreen = window.innerWidth >= 768;
 
-        const days = Object.keys(mealsData)
-        const val = Object.values(mealsData)
+        const days = Object.keys(mealsData);
+        const values = Object.values(mealsData);
 
-        // Générer le HTML de toutes les cartes
         const cardsHTML = days
-            .map(day => this.createDayCard(day, val[days.indexOf(day)], isLargeScreen))
+            .map(day => this.createDayCard(day, values[days.indexOf(day)], isLargeScreen))
             .join('');
 
         container.innerHTML = cardsHTML;
 
-        // Scroll vers le jour actuel si dans cette semaine
         if (!isLargeScreen && daysInWeek.includes(currentDay)) {
             this.scrollToDay(currentDay);
         }
 
-        // Ajouter l'événement de clic sur chaque carte
         this.attachCardClickEvents();
     }
 
     /**
      * Rend tous les jours du mois actuel
      * @param {Object} mealsData - Les données des repas
+     * @returns {void}
      */
     static renderAllDays(mealsData) {
-        // Obtenir les jours de la semaine actuelle
         const daysInWeek = WeeksManager.getCurrentWeekDays();
-
         this.renderDaysForWeek(mealsData, daysInWeek);
     }
 
     /**
      * Scroll automatique vers un jour spécifique
      * @param {number} dayOfMonth - Le jour à afficher
+     * @returns {void}
      */
     static scrollToDay(dayOfMonth) {
         setTimeout(() => {
@@ -169,6 +165,7 @@ export class UIRenderer {
 
     /**
      * Attache les événements de clic sur les cartes
+     * @returns {void}
      */
     static attachCardClickEvents() {
         const allDayCards = document.querySelectorAll('.day-card');
@@ -176,11 +173,11 @@ export class UIRenderer {
             const header = card.querySelector('.day-header');
             header.addEventListener('click', () => {
                 const wasOpen = !card.classList.contains('collapsed');
-                // Fermer toutes les cartes
+
                 if (window.innerWidth < 768) {
                     allDayCards.forEach(c => c.classList.add('collapsed'));
                 }
-                // Ouvrir la carte cliquée si elle était fermée
+
                 if (!wasOpen) {
                     card.classList.remove('collapsed');
                 }
@@ -191,31 +188,25 @@ export class UIRenderer {
     /**
      * Affiche le nom de l'utilisateur dans le header
      * @param {string} userName - Le nom de l'utilisateur
+     * @returns {void}
      */
     static displayUserName(userName) {
         const nameUserSpan = document.getElementById('name-user');
         if (nameUserSpan && userName) {
             nameUserSpan.textContent = ` - ${userName}`;
         }
+
         const header = document.querySelector('#name-user');
         if (!header) return;
+
         const isMobile = window.innerWidth <= 600;
+
         if (!header.dataset.fullTitle) {
             header.dataset.fullTitle = header.textContent.trim();
         }
+
         header.textContent = isMobile
             ? header.dataset.fullTitle.split(' ').map(word => word.charAt(0)).join('.')
             : header.dataset.fullTitle;
-    }
-
-    /**
-     * Affiche le mois actuel dans le header
-     */
-    static displayCurrentMonth() {
-        const subtitleElement = document.querySelector('.subtitle');
-        if (subtitleElement) {
-            const monthName = MonthDaysUtils.getCurrentMonthName();
-            subtitleElement.textContent = `Planifiez vos repas de ${monthName}`;
-        }
     }
 }

@@ -1,6 +1,7 @@
-// ========================================
-// Fonctions utilitaires pour la gestion des jours du mois
-// ========================================
+/**
+ * @fileoverview Fonctions utilitaires pour la gestion des jours du mois
+ * @module utils
+ */
 
 /**
  * Classe utilitaire pour les opérations sur les jours du mois
@@ -8,6 +9,7 @@
 export class MonthDaysUtils {
   /**
    * Obtient le nombre de jours dans le mois actuel
+   * @returns {number} Nombre de jours dans le mois
    */
   static getDaysInCurrentMonth() {
     const now = new Date();
@@ -16,6 +18,7 @@ export class MonthDaysUtils {
 
   /**
    * Obtient le jour actuel du mois (1-31)
+   * @returns {number} Le jour actuel
    */
   static getCurrentDayOfMonth() {
     return new Date().getDate();
@@ -45,7 +48,7 @@ export class MonthDaysUtils {
    * Calcule la répartition des jours par semaine
    * @param {number} totalDays - Nombre total de jours dans le mois
    * @param {number} numberOfWeeks - Nombre de semaines à afficher
-   * @returns {Array<Object>} Tableau d'objets {weekNumber, startDay, endDay}
+   * @returns {Array<Object>} Tableau d'objets {weekNumber, startDay, endDay, days}
    */
   static calculateWeekRanges(totalDays, numberOfWeeks) {
     const ranges = [];
@@ -102,7 +105,7 @@ export class MonthDaysUtils {
       }
     }
 
-    return 1; // Par défaut
+    return 1;
   }
 
   /**
@@ -137,6 +140,7 @@ export class MonthDaysUtils {
   /**
    * Formate le label d'une semaine
    * @param {number} weekNumber - Numéro de la semaine
+   * @param {boolean} [isMobile=false] - Format mobile ou desktop
    * @returns {string} Label formaté (ex: "Semaine 1 (1-7 février)")
    */
   static formatWeekLabel(weekNumber, isMobile = false) {
@@ -147,7 +151,11 @@ export class MonthDaysUtils {
     if (!range) return `Semaine ${weekNumber}`;
 
     const monthName = new Date().toLocaleDateString('fr-FR', { month: 'long' });
-    return isMobile ? `S.${weekNumber} (${range.startDay}-${range.endDay} ${new Date().toLocaleDateString('fr-FR', { month: 'short' })}) ` : `Semaine ${weekNumber} (${range.startDay}-${range.endDay} ${monthName})`;
+    const shortMonth = new Date().toLocaleDateString('fr-FR', { month: 'short' });
+
+    return isMobile
+      ? `S.${weekNumber} (${range.startDay}-${range.endDay} ${shortMonth})`
+      : `Semaine ${weekNumber} (${range.startDay}-${range.endDay} ${monthName})`;
   }
 }
 
@@ -155,28 +163,24 @@ export class MonthDaysUtils {
  * Classe utilitaire pour les opérations sur les strings
  */
 export class StringUtils {
+  /**
+   * Capitalise la première lettre d'une chaîne
+   * @param {string} str - La chaîne à capitaliser
+   * @returns {string} La chaîne capitalisée
+   */
   static capitalize(str) {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
+  /**
+   * Tronque une chaîne à une longueur maximale
+   * @param {string} str - La chaîne à tronquer
+   * @param {number} [maxLength=50] - Longueur maximale
+   * @returns {string} La chaîne tronquée
+   */
   static truncate(str, maxLength = 50) {
     if (!str || str.length <= maxLength) return str;
     return str.substring(0, maxLength) + '...';
-  }
-}
-
-/**
- * Classe utilitaire pour le debouncing
- */
-export class DebounceUtils {
-  static debounce(func, delay) {
-    let timeoutId;
-    return function (...args) {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        func(...args);
-      }, delay);
-    };
   }
 }

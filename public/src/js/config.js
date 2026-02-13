@@ -1,38 +1,22 @@
-// ========================================
-// Configuration et constantes de l'application - Jours du mois
-// ========================================
+/**
+ * @fileoverview Configuration et constantes de l'application
+ * @module config
+ */
 
 /**
  * Configuration de l'API
+ * @constant {Object}
+ * @property {string} MEALS_URL - URL de l'endpoint API des repas
+ * @property {number} SAVE_DELAY - Délai avant sauvegarde automatique en millisecondes
  */
 export const API_CONFIG = {
-    // URL de l'API des repas
     MEALS_URL: '/api/atable',
-
-    // Délai avant sauvegarde automatique (en millisecondes)
-    SAVE_DELAY: 1000,
-
-    // Timeout pour les requêtes réseau (en millisecondes)
-    REQUEST_TIMEOUT: 5000
+    SAVE_DELAY: 1000
 };
 
 /**
- * Obtient les jours du mois actuel
- * @returns {Array<number>} Liste des jours (1 à 28/29/30/31)
- */
-export function getCurrentMonthDays() {
-    const now = new Date();
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const days = [];
-    for (let i = 1; i <= daysInMonth; i++) {
-        days.push(i);
-    }
-    return days;
-}
-
-/**
  * Obtient le nombre de jours dans le mois actuel
- * @returns {number} Nombre de jours
+ * @returns {number} Nombre de jours dans le mois
  */
 export function getDaysInCurrentMonth() {
     const now = new Date();
@@ -49,7 +33,7 @@ export function getCurrentDayOfMonth() {
 
 /**
  * Obtient le nom du mois actuel
- * @returns {string} Nom du mois en français
+ * @returns {string} Nom du mois en français avec l'année
  */
 export function getCurrentMonthName() {
     return new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
@@ -57,17 +41,20 @@ export function getCurrentMonthName() {
 
 /**
  * Configuration du stockage local
+ * @constant {Object}
+ * @property {string} CACHE - Clé pour le cache des données des repas
+ * @property {string} PENDING_SAVE - Clé pour les données en attente de synchronisation
  */
 export const STORAGE_KEYS = {
-    // Cache des données des repas
     CACHE: 'atable-planner-cache',
-
-    // Données en attente de synchronisation
     PENDING_SAVE: 'atable-planner-pending-save'
 };
 
 /**
  * Types de repas disponibles
+ * @constant {Object}
+ * @property {string} MIDI - Repas du midi
+ * @property {string} SOIR - Repas du soir
  */
 export const MEAL_TYPES = {
     MIDI: 'midi',
@@ -76,6 +63,7 @@ export const MEAL_TYPES = {
 
 /**
  * Emojis pour les types de repas
+ * @constant {Object}
  */
 export const MEAL_EMOJIS = {
     [MEAL_TYPES.MIDI]: '☀️',
@@ -84,6 +72,7 @@ export const MEAL_EMOJIS = {
 
 /**
  * Messages de statut pour l'utilisateur
+ * @constant {Object}
  */
 export const STATUS_MESSAGES = {
     SAVED: '✓ Sauvegardé',
@@ -102,6 +91,10 @@ export const STATUS_MESSAGES = {
 
 /**
  * Types de messages de statut
+ * @constant {Object}
+ * @property {string} SUCCESS - Type de message de succès
+ * @property {string} ERROR - Type de message d'erreur
+ * @property {string} WARNING - Type de message d'avertissement
  */
 export const STATUS_TYPES = {
     SUCCESS: 'success',

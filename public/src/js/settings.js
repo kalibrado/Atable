@@ -1,6 +1,7 @@
-// ========================================
-// Gestion des paramètres et notifications
-// ========================================
+/**
+ * @fileoverview Gestion des paramètres et notifications
+ * @module settings
+ */
 
 import { APIManager } from './api.js';
 import { UIManager } from './ui-handlers.js';
@@ -10,12 +11,12 @@ import { IngredientsManager } from './ingredients-manager.js';
 import { SettingsAccordion } from './settings-accordion.js';
 
 /**
- * Classe de gestion des paramètres de l'application
- * Gère les notifications, les préférences utilisateur, etc.
+ * Gestionnaire des paramètres de l'application
  */
 export class SettingsManager {
     /**
      * Ouvre la modal de paramètres
+     * @returns {Promise<void>}
      */
     static async openModal() {
         const modal = document.getElementById('settings-modal');
@@ -27,7 +28,6 @@ export class SettingsManager {
 
         modal.classList.add('show');
 
-        // Initialiser le nombre de semaines
         const numberOfWeeks = WeeksManager.getNumberOfWeeks();
         const select = document.getElementById('number-of-weeks');
         if (select) {
@@ -37,19 +37,15 @@ export class SettingsManager {
             });
         }
 
-        // Initialiser l'heure de notification
-        document.getElementById('notification-time')?.addEventListener('change', async (e) => {
-            await SettingsManager.updateNotificationTime()
+        document.getElementById('notification-time')?.addEventListener('change', async () => {
+            await SettingsManager.updateNotificationTime();
         });
 
-        // Mettre à jour l'UI
         await SettingsManager.updateUI();
 
-        // Initialiser et afficher les ingrédients
         await IngredientsManager.initialize();
         IngredientsManager.render();
 
-        // Attacher l'événement au toggle de notifications
         const notifToggle = document.getElementById('enable-notifications');
         if (notifToggle) {
             notifToggle.addEventListener('change', async () => {
@@ -58,6 +54,11 @@ export class SettingsManager {
         }
     }
 
+    /**
+     * Met à jour le nombre de semaines
+     * @param {number} newValue - Nouveau nombre de semaines
+     * @returns {Promise<void>}
+     */
     static async updateNumberOfWeeks(newValue) {
         try {
             await WeeksManager.updateNumberOfWeeks(newValue);
@@ -73,6 +74,7 @@ export class SettingsManager {
 
     /**
      * Ferme la modal de paramètres
+     * @returns {void}
      */
     static closeModal() {
         const modal = document.getElementById('settings-modal');
@@ -83,16 +85,15 @@ export class SettingsManager {
 
     /**
      * Met à jour l'interface des paramètres
+     * @returns {Promise<void>}
      */
     static async updateUI() {
-        // Vérifier que le système de notifications est disponible
         if (!window.notificationSystem) {
             console.warn('Système de notifications non chargé');
             return;
         }
 
         try {
-            // État du toggle (basé sur la notification)
             const userInfo = await APIManager.fetchUserInfo();
             const enableCheckbox = document.getElementById('enable-notifications');
             const { hour, minute } = userInfo?.notifications?.settings;
@@ -102,11 +103,12 @@ export class SettingsManager {
             if (enableCheckbox) {
                 enableCheckbox.checked = userInfo?.notifications?.settings?.enabled;
             }
+
             if (timeInput) {
                 timeInput.value = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
             }
 
-            if (timeInput) {
+            if (timeSetting) {
                 if (enableCheckbox.checked) {
                     timeSetting.style.opacity = '1';
                     timeInput.disabled = false;
@@ -116,16 +118,15 @@ export class SettingsManager {
                 }
             }
 
-            // Mettre à jour le statut de la permission
             SettingsManager.updatePermissionStatus();
-
         } catch (error) {
-            UIManager.showStatus(`Erreur mise à jour UI paramètres: ${error}`, STATUS_TYPES.ERROR)
+            UIManager.showStatus(`Erreur mise à jour UI: ${error}`, STATUS_TYPES.ERROR);
         }
     }
 
     /**
      * Met à jour l'affichage du statut de permission des notifications
+     * @returns {void}
      */
     static updatePermissionStatus() {
         const statusDiv = document.getElementById('permission-status');
@@ -137,22 +138,19 @@ export class SettingsManager {
 
         const notificationIsEnabled = document.getElementById('enable-notifications')?.checked;
 
-        // Vérifier le support des notifications
         if (!('Notification' in window)) {
-            UIManager.showStatus('Notifications non supportées par ce navigateur', STATUS_TYPES.WARNING)
+            UIManager.showStatus('Notifications non supportées', STATUS_TYPES.WARNING);
             statusDiv.className = 'permission-status denied';
-            statusText.textContent = '❌ Votre navigateur ne supporte pas les notifications';
+            statusText.textContent = '❌ Navigateur non compatible';
             return;
         }
 
-        // Si les notifications ne sont pas activées
         if (!notificationIsEnabled) {
             statusDiv.className = 'permission-status default';
-            statusText.textContent = '⚠️ Activez les notifications pour voir le statut de permission';
+            statusText.textContent = '⚠️ Activez les notifications';
             return;
         }
 
-        // Afficher le statut de la permission
         switch (Notification.permission) {
             case 'granted':
                 statusDiv.className = 'permission-status granted';
@@ -161,18 +159,19 @@ export class SettingsManager {
 
             case 'denied':
                 statusDiv.className = 'permission-status denied';
-                statusText.textContent = '❌ Notifications refusées. Autorisez-les dans les paramètres de votre navigateur.';
+                statusText.textContent = '❌ Notifications refusées';
                 break;
 
             default:
                 statusDiv.className = 'permission-status default';
-                statusText.textContent = '⚠️ Permission non accordée. Activez les notifications pour demander l\'autorisation.';
+                statusText.textContent = '⚠️ Permission non accordée';
                 break;
         }
     }
 
     /**
      * Active/désactive les notifications
+     * @returns {Promise<void>}
      */
     static async toggleNotifications() {
         const checkbox = document.getElementById('enable-notifications');
@@ -191,31 +190,34 @@ export class SettingsManager {
                 hour,
                 minute
             });
+
             if (!success) {
                 checkbox.checked = false;
-                UIManager.showStatus('Impossible d\'activer les notifications. Vérifiez les permissions de votre navigateur.', STATUS_TYPES.ERROR)
+                UIManager.showStatus(
+                    'Impossible d\'activer les notifications',
+                    STATUS_TYPES.ERROR
+                );
                 return;
             }
         } else {
-            // Se désabonner
             const success = await window.notificationSystem.unsubscribe();
             if (!success) {
                 checkbox.checked = true;
-                UIManager.showStatus(STATUS_MESSAGES.ERROR, STATUS_TYPES.ERROR)
+                UIManager.showStatus(STATUS_MESSAGES.ERROR, STATUS_TYPES.ERROR);
                 return;
             }
-
         }
-        // Mettre à jour l'UI
-        await SettingsManager.updateUI();
-        enabled
-            ? UIManager.showStatus(STATUS_MESSAGES.NOTIFICATION_ENABLED, STATUS_TYPES.SUCCESS)
-            : UIManager.showStatus(STATUS_MESSAGES.NOTIFICATION_DISABLED, STATUS_TYPES.SUCCESS)
 
+        await SettingsManager.updateUI();
+        UIManager.showStatus(
+            enabled ? STATUS_MESSAGES.NOTIFICATION_ENABLED : STATUS_MESSAGES.NOTIFICATION_DISABLED,
+            STATUS_TYPES.SUCCESS
+        );
     }
 
     /**
      * Met à jour l'heure de notification
+     * @returns {Promise<void>}
      */
     static async updateNotificationTime() {
         const timeInput = document.getElementById('notification-time');
@@ -226,9 +228,7 @@ export class SettingsManager {
 
         const [hour, minute] = timeInput.value.split(':').map(Number);
 
-        await APIManager.updateSettings({
-            hour, minute
-        })
+        await APIManager.updateSettings({ hour, minute });
         UIManager.showStatus(
             STATUS_MESSAGES.NOTIFICATION_TIME_UPDATED,
             STATUS_TYPES.SUCCESS
@@ -237,22 +237,19 @@ export class SettingsManager {
 
     /**
      * Initialise le système de notifications
+     * @returns {Promise<void>}
      */
     static async initialize() {
         if (!window.notificationSystem) {
-            UIManager.showStatus('Système de notifications non disponible', STATUS_TYPES.WARNING)
+            UIManager.showStatus('Système de notifications non disponible', STATUS_TYPES.WARNING);
             return;
         }
 
-        // Démarrer le système de notifications
         await window.notificationSystem.start();
 
-        // Initialiser les ingrédients
         IngredientsManager.exposeHandlers();
-
         SettingsAccordion.initialize();
 
-        // Mettre à jour l'UI si la modal est ouverte
         const modal = document.getElementById('settings-modal');
         if (modal && modal.classList.contains('show')) {
             await SettingsManager.updateUI();
@@ -261,9 +258,9 @@ export class SettingsManager {
 
     /**
      * Configure les événements de fermeture de la modal
+     * @returns {void}
      */
     static setupModalEvents() {
-        // Fermer en cliquant en dehors
         window.addEventListener('click', (event) => {
             const modal = document.getElementById('settings-modal');
             if (event.target === modal) {
@@ -273,13 +270,13 @@ export class SettingsManager {
     }
 }
 
-
 /**
- * Classe de gestion de l'authentification
+ * Gestionnaire d'authentification
  */
 export class AuthManager {
     /**
      * Gère la déconnexion de l'utilisateur
+     * @returns {Promise<void>}
      */
     static async handleLogout() {
         if (!confirm('Voulez-vous vraiment vous déconnecter ?')) {
@@ -289,7 +286,6 @@ export class AuthManager {
         try {
             const success = await APIManager.logout();
             if (success) {
-                // Rediriger vers la page de login 
                 window.location.href = '/login';
             } else {
                 UIManager.showStatus(
@@ -307,34 +303,33 @@ export class AuthManager {
 
     /**
      * Charge et affiche les informations utilisateur
+     * @returns {Promise<void>}
      */
     static async loadUserInfo() {
         try {
-            const { user, notifications } = await APIManager.fetchUserInfo();
+            const { user } = await APIManager.fetchUserInfo();
             if (user && user.name) {
                 const { UIRenderer } = await import('./ui-renderer.js');
                 UIRenderer.displayUserName(user.name);
-
             }
-
         } catch (error) {
-            UIManager.showStatus(`Erreur chargement infos utilisateur: ${error}`, STATUS_TYPES.ERROR)
+            UIManager.showStatus(`Erreur: ${error}`, STATUS_TYPES.ERROR);
         }
     }
 }
 
-
 /**
- * Classe de gestion de la génération automatique
+ * Gestionnaire de génération automatique
  */
 export class GeneratorManager {
     /**
      * Génère tous les repas et recharge la page
-     * @param {boolean} replaceAll - Remplacer tous les repas
+     * @param {boolean} [replaceAll=false] - Remplacer tous les repas
+     * @returns {Promise<void>}
      */
     static async generateAllMeals(replaceAll = false) {
         const confirmMsg = replaceAll
-            ? 'Voulez-vous remplacer TOUS les repas existants par des repas générés automatiquement ?'
+            ? 'Voulez-vous remplacer TOUS les repas existants ?'
             : 'Voulez-vous générer automatiquement les repas pour les cases vides ?';
 
         if (!confirm(confirmMsg)) {
@@ -344,8 +339,6 @@ export class GeneratorManager {
         UIManager.showStatus('💾 Sauvegarde en cours...', STATUS_TYPES.SUCCESS);
 
         try {
-            // IMPORTANT: Sauvegarder d'abord toutes les semaines (y compris la semaine active)
-            // pour s'assurer que le serveur a les données les plus récentes avant la génération
             await WeeksManager.saveAllWeeks();
 
             UIManager.showStatus('🔄 Génération en cours...', STATUS_TYPES.SUCCESS);
@@ -355,7 +348,6 @@ export class GeneratorManager {
             if (result.success) {
                 UIManager.showStatus('✅ ' + result.message, STATUS_TYPES.SUCCESS);
 
-                // Recharger l'application après 1 seconde
                 setTimeout(() => {
                     window.location.reload();
                 }, 1000);
@@ -370,22 +362,22 @@ export class GeneratorManager {
     }
 
     /**
-     * Génère un seul repas pour un jour et type de repas spécifique
-     * @param {string} day - Le jour (lundi, mardi, etc.)
-     * @param {string} mealType - Le type de repas ('midi' ou 'soir')
+     * Génère un seul repas pour un jour spécifique
+     * @param {string} day - Le jour
+     * @param {string} mealType - Type de repas ('midi' ou 'soir')
+     * @returns {Promise<void>}
      */
     static async generateSingleMeal(day, mealType) {
-        // Récupérer la textarea correspondante
         const textarea = document.getElementById(`${day}-${mealType}`);
         const button = document.querySelector(
             `.generate-meal-btn[onclick*="${day}"][onclick*="${mealType}"]`
         );
+
         if (!textarea) {
             console.error(`Textarea non trouvée pour ${day} ${mealType}`);
             return;
         }
 
-        // Désactiver le bouton et afficher l'état de chargement
         if (button) {
             button.disabled = true;
             button.classList.add('generating');
@@ -393,23 +385,18 @@ export class GeneratorManager {
         }
 
         try {
-            // Récupérer tous les repas de la semaine actuelle pour éviter les doublons
             const currentWeekData = UIManager.getState().mealsData;
             const usedMeals = new Set();
 
-            // Collecter tous les repas déjà utilisés dans la semaine
             Object.values(currentWeekData).forEach(dayMeals => {
                 if (dayMeals.midi) usedMeals.add(dayMeals.midi.trim().toLowerCase());
                 if (dayMeals.soir) usedMeals.add(dayMeals.soir.trim().toLowerCase());
             });
 
-            // Appeler l'API pour générer un repas
             const result = await APIManager.generateSingleMeal(mealType, usedMeals);
 
             if (result.success && result.suggestion) {
-                // Vérifier une dernière fois que le repas n'est pas déjà utilisé
                 if (usedMeals.has(result.suggestion.trim().toLowerCase())) {
-                    // Réessayer une fois
                     const retry = await APIManager.generateSingleMeal(mealType, usedMeals);
                     if (retry.success && retry.suggestion && !usedMeals.has(retry.suggestion.trim().toLowerCase())) {
                         textarea.value = retry.suggestion;
@@ -421,11 +408,9 @@ export class GeneratorManager {
                         return;
                     }
                 } else {
-                    // Insérer le repas dans la textarea
                     textarea.value = result.suggestion;
                 }
 
-                // Déclencher l'événement de changement pour sauvegarder
                 const event = new Event('input', { bubbles: true });
                 textarea.dispatchEvent(event);
 
@@ -435,80 +420,22 @@ export class GeneratorManager {
                 );
             } else {
                 UIManager.showStatus(
-                    'Impossible de générer un repas. Vérifiez vos préférences alimentaires.',
+                    'Impossible de générer un repas',
                     STATUS_TYPES.WARNING
                 );
             }
         } catch (error) {
-            console.error('Erreur génération repas unique:', error);
+            console.error('Erreur génération:', error);
             UIManager.showStatus(
                 error.message || 'Erreur lors de la génération',
                 STATUS_TYPES.ERROR
             );
         } finally {
-            // Réactiver le bouton
             if (button) {
                 button.disabled = false;
                 button.classList.remove('generating');
                 button.textContent = '🎲 Générer';
             }
         }
-    }
-
-    /**
-     * Affiche un aperçu des repas générés
-     */
-    static async showPreview() {
-        try {
-            const result = await APIManager.previewGeneratedMeals();
-
-            if (result.success && result.preview) {
-                this.displayPreviewModal(result.preview);
-            }
-        } catch (error) {
-            console.error('Erreur aperçu:', error);
-            UIManager.showStatus(
-                error.message || 'Erreur lors de l\'aperçu',
-                STATUS_TYPES.ERROR
-            );
-        }
-    }
-
-    /**
-     * Affiche la modal d'aperçu
-     * @param {Object} preview - Les repas générés
-     */
-    static displayPreviewModal(preview) {
-        const weeks = Object.keys(preview);
-
-        let previewHTML = '<div class="preview-container">';
-
-        weeks.forEach(weekKey => {
-            const weekNumber = weekKey.replace('week', '');
-            previewHTML += `<h4>Semaine ${weekNumber}</h4>`;
-            previewHTML += '<div class="preview-week">';
-
-            Object.entries(preview[weekKey]).forEach(([day, meals]) => {
-                previewHTML += `
-          <div class="preview-day">
-            <strong>${day.charAt(0).toUpperCase() + day.slice(1)}</strong>
-            <div>☀️ ${meals.midi || '(vide)'}</div>
-            <div>🌙 ${meals.soir || '(vide)'}</div>
-          </div>
-        `;
-            });
-
-            previewHTML += '</div>';
-        });
-
-        previewHTML += '</div>';
-
-        // Afficher dans une alerte ou modal personnalisée
-        // (Simplification pour l'exemple)
-        alert('Aperçu des repas générés:\n\n' +
-            Object.entries(preview.week1 || {})
-                .map(([day, meals]) => `${day}: ${meals.midi} / ${meals.soir}`)
-                .join('\n')
-        );
     }
 }
