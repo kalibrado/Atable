@@ -7,6 +7,9 @@ const router = express.Router();
 const pushManager = require('../managers/push-manager');
 const { requireAuth } = require('../middleware/auth-middleware');
 const { asyncHandler } = require('../middleware/handler-middleware')
+const logger = require('../../logger');
+
+
 /**
  * GET /api/notifications/vapid-public-key
  * Retourne la clé publique VAPID pour les inscriptions

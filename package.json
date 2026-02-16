@@ -9,8 +9,9 @@
     "generate-vapid": "node generate-vapid-keys.js",
     "build:notif": "esbuild public/src/js/notifications.js --bundle --minify --target=es2017 --outfile=public/dist/notifications.min.js",
     "build:js": "esbuild public/src/js/app.js --bundle --minify --target=es2017 --outfile=public/dist/app.min.js",
-    "build:css": "csso public/src/css/style.css --output public/dist/style.min.css",
-    "build": "npm run build:js && npm run build:notif && npm run build:css"
+    "build:css": "postcss public/src/css/main.css --output public/dist/style.min.css",
+    "build:all": "npm run build:js && npm run build:css && npm run build:notif",
+    "watch": "concurrently \"npm run watch:js\" \"npm run watch:css\""
   },
   "keywords": [
     "atable",
@@ -37,7 +38,11 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "cssnano": "^7.1.2",
     "csso-cli": "^4.0.2",
-    "esbuild": "^0.27.2"
+    "esbuild": "^0.27.2",
+    "postcss": "^8.5.6",
+    "postcss-cli": "^11.0.1",
+    "postcss-import": "^16.1.1"
   }
 }

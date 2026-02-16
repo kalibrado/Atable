@@ -152,12 +152,13 @@ export class UIRenderer {
      * @returns {void}
      */
     static scrollToDay(dayOfMonth) {
-        setTimeout(() => {
+        setTimeout(() => { 
             const dayCard = document.querySelector(`.day-card[data-day="${dayOfMonth}"]`);
             if (dayCard) {
                 dayCard.scrollIntoView({
                     behavior: 'smooth',
-                    block: 'center'
+                    block: 'start',
+                    inline: "nearest"
                 });
             }
         }, 100);

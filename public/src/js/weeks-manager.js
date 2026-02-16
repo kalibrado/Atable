@@ -31,7 +31,7 @@ export class WeeksManager {
    */
   static getCurrentWeekNumber() {
     const currentDay = MonthDaysUtils.getCurrentDayOfMonth();
-    return MonthDaysUtils.findWeekForDay(currentDay, this.state.numberOfWeeks);
+    return MonthDaysUtils.findWeekForDay(currentDay);
   }
 
   /**
@@ -118,7 +118,6 @@ export class WeeksManager {
     UIRenderer.renderDaysForWeek(weekData, daysInWeek);
     UIManager.attachEventListeners();
   }
-
   /**
    * Obtient toutes les données des semaines
    * @returns {Object} Les données de toutes les semaines

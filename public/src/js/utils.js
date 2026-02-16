@@ -50,7 +50,7 @@ export class MonthDaysUtils {
    * @param {number} numberOfWeeks - Nombre de semaines à afficher
    * @returns {Array<Object>} Tableau d'objets {weekNumber, startDay, endDay, days}
    */
-  static calculateWeekRanges(totalDays, numberOfWeeks) {
+  static calculateWeekRanges(totalDays, numberOfWeeks=4) {
     const ranges = [];
     const baseDaysPerWeek = Math.floor(totalDays / numberOfWeeks);
     const extraDays = totalDays % numberOfWeeks;
@@ -92,12 +92,11 @@ export class MonthDaysUtils {
   /**
    * Trouve la semaine qui contient un jour donné
    * @param {number} dayOfMonth - Jour du mois
-   * @param {number} numberOfWeeks - Nombre de semaines configuré
    * @returns {number} Numéro de la semaine (1-4)
    */
-  static findWeekForDay(dayOfMonth, numberOfWeeks) {
+  static findWeekForDay(dayOfMonth) {
     const totalDays = this.getDaysInCurrentMonth();
-    const ranges = this.calculateWeekRanges(totalDays, numberOfWeeks);
+    const ranges = this.calculateWeekRanges(totalDays, 4);
 
     for (const range of ranges) {
       if (dayOfMonth >= range.startDay && dayOfMonth <= range.endDay) {
@@ -111,12 +110,11 @@ export class MonthDaysUtils {
   /**
    * Obtient les jours d'une semaine spécifique
    * @param {number} weekNumber - Numéro de la semaine (1-4)
-   * @param {number} numberOfWeeks - Nombre total de semaines
    * @returns {Array<number>} Liste des jours de cette semaine
    */
-  static getDaysForWeek(weekNumber, numberOfWeeks) {
+  static getDaysForWeek(weekNumber) {
     const totalDays = this.getDaysInCurrentMonth();
-    const ranges = this.calculateWeekRanges(totalDays, numberOfWeeks);
+    const ranges = this.calculateWeekRanges(totalDays, 4);
 
     const weekRange = ranges.find(r => r.weekNumber === weekNumber);
     return weekRange ? weekRange.days : [];

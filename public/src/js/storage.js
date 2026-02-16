@@ -17,6 +17,7 @@ export class StorageManager {
    */
   static saveToCache(data) {
     try {
+      console.log(data)
       localStorage.setItem(STORAGE_KEYS.CACHE, JSON.stringify(data));
     } catch (error) {
       console.error('Erreur sauvegarde cache:', error);

@@ -156,6 +156,7 @@ export class UIManager {
 
             const currentWeek = WeeksManager.getCurrentWeekNumber();
 
+
             UIRenderer.renderAllDays(
                 UIManager.state.mealsData[`week${currentWeek}`]
             );
