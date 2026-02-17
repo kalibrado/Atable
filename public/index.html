@@ -35,9 +35,9 @@
 
                     <!-- Boutons originaux (cachés sur mobile) -->
                     <div class="desktop-buttons">
-                        <button id="refresh-btn" class="settings-btn" onclick="window.location.reload()"
-                            title="Actualiser" aria-label="Actualiser la page">
-                            🔄️
+                        <button id="shopping-list-btn" class="settings-btn" onclick="window.shoppingListHandlers.open()"
+                            title="Liste de courses" aria-label="Ouvrir la liste de courses">
+                            🛒
                         </button>
                         <button id="settings-btn" class="settings-btn" onclick="openSettings()" title="Paramètres"
                             aria-label="Ouvrir les paramètres">
@@ -64,6 +64,11 @@
                             <button class="mobile-menu-item" onclick="window.location.reload()">
                                 <span class="menu-icon" aria-hidden="true">🔄️</span>
                                 <span>Actualiser</span>
+                            </button>
+                            <button class="mobile-menu-item"
+                                onclick="window.shoppingListHandlers.open(); window.menuHandlers.close();">
+                                <span class="menu-icon" aria-hidden="true">🛒</span>
+                                <span>Liste de courses</span>
                             </button>
                             <button class="mobile-menu-item" onclick="openSettings()">
                                 <span class="menu-icon" aria-hidden="true">⚙️</span>
@@ -282,6 +287,37 @@
             </div>
         </div>
 
+        <!-- Modale Liste de Courses -->
+        <div id="shopping-list-modal" class="modal" role="dialog" aria-modal="true"
+            aria-label="Liste de courses">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="sl-title-group">
+                        <span class="sl-icon">🛒</span>
+                        <h2 class="sl-title">Liste de courses</h2>
+                    </div>
+                    <button class="sl-close-btn" onclick="window.shoppingListHandlers.close()"
+                        aria-label="Fermer">✕</button>
+                </div>
+                <div class="sl-meta">
+                    <span class="sl-counter"></span>
+                    <button class="sl-reset-btn" onclick="window.shoppingListHandlers.resetAll()">↺
+                        Réinitialiser</button>
+                </div>
+                <div class="sl-progress-bar">
+                    <div class="sl-progress-fill" id="sl-progress"></div>
+                </div>
+                <div class="sl-divider"></div>
+                <div class="modal-body">
+                    <div class="sl-empty hidden">
+                        <span class="sl-empty-icon">🍽️</span>
+                        <p>Aucun repas planifié.<br>Ajoutez des repas pour générer votre liste de courses.</p>
+                    </div>
+                    <ul class="sl-list" role="group" aria-label="Ingrédients"></ul>
+                </div>
+            </div>
+        </div>
+
         <!-- Message de statut -->
         <div id="status-message" class="status-message"></div>
 
@@ -290,7 +326,7 @@
             <!-- Les cartes des jours seront générées dynamiquement par JavaScript -->
         </main>
     </div>
-    <div id="category-impact-modal" class="cim-overlay" style="display:none">
+    <div id="category-impact-modal" class="modal cim-overlay" style="display:none">
         <div class="cim-modal">
             <h3 class="cim-title"></h3>
             <p class="cim-body"></p>

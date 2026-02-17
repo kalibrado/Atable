@@ -11,7 +11,7 @@ import { ThemeManager } from './theme.js';
 import { WeeksManager } from './weeks-manager.js';
 import { UserManager } from './user-manager.js';
 import { Menu } from './menu.js';
-
+import { ShoppingList } from './shopping-list.js';
 import { SettingsAccordion } from './settings-accordion.js';
 
 /**
@@ -52,7 +52,7 @@ class AtableApp {
 
             // Initialiser le menu hamburger
             Menu.init();
-
+            ShoppingList.init();
             // Exposer les handlers globalement
             this.exposeGlobalHandlers();
         } catch (error) {
@@ -112,7 +112,12 @@ class AtableApp {
             close: () => Menu.close(),
             isOpen: () => Menu.isMenuOpen()
         };
-
+        window.shoppingListHandlers = {
+            open: () => ShoppingList.open(),
+            close: () => ShoppingList.close(),
+            toggleItem: (key) => ShoppingList.toggleItem(key),
+            resetAll: () => ShoppingList.resetAll()
+        };
         // Pour compatibilité avec le HTML existant (onclick="toggleMobileMenu()")
         window.toggleMobileMenu = () => Menu.toggle();
     }

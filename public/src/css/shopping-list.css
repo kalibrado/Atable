@@ -1,0 +1,355 @@
+/* ========================================
+   Liste de Courses - Modal
+   ======================================== */
+
+/* ====================================
+   Overlay
+   ==================================== */
+ 
+.shopping-list-modal.show {
+  display: flex;
+  animation: sl-fadeIn 0.25s ease forwards;
+}
+
+@keyframes sl-fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ====================================
+   Contenu de la modale (bottom sheet)
+   ==================================== */
+.sl-content {
+  background: var(--card-bg, #fff);
+  width: 90%;
+  max-width: 90vw;
+  max-height: 95vh;
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: sl-slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  box-shadow: 0 -4px 40px rgba(0, 0, 0, 0.15);
+}
+
+@media (min-width: 600px) {
+  .shopping-list-modal {
+    align-items: center;
+  }
+
+  .sl-content {
+    border-radius: 20px;
+    max-height: 80vh;
+  }
+}
+
+@keyframes sl-slideUp {
+  from { transform: translateY(60px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ====================================
+   En-tête
+   ==================================== */
+.sl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 0;
+  gap: 12px;
+}
+
+.sl-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sl-icon {
+  font-size: 26px;
+  flex-shrink: 0;
+}
+
+.sl-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.sl-close-btn {
+  background: var(--background, #f5f5f5);
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.sl-close-btn:hover {
+  background: var(--border-color);
+  transform: scale(1.1);
+}
+
+/* ====================================
+   Barre de progression
+   ==================================== */
+.sl-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px 0;
+  gap: 12px;
+}
+
+.sl-counter {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.sl-counter--done {
+  color: var(--primary-color, #069494);
+}
+
+.sl-reset-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 10px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.sl-reset-btn:hover {
+  border-color: var(--primary-color, #069494);
+  color: var(--primary-color, #069494);
+}
+
+/* Barre de progression */
+.sl-progress-bar {
+  height: 4px;
+  background: var(--border-color, #e5e7eb);
+  border-radius: 2px;
+  margin: 10px 20px 0;
+  overflow: hidden;
+}
+
+.sl-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color, #069494), var(--primary-light, #0bbcbc));
+  border-radius: 2px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 0%;
+}
+
+/* Séparateur */
+.sl-divider {
+  height: 1px;
+  background: var(--border-color, #e5e7eb);
+  margin: 14px 0 0;
+}
+
+/* ====================================
+   Liste des ingrédients
+   ==================================== */
+.sl-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color, #069494) transparent;
+}
+
+.sl-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sl-body::-webkit-scrollbar-thumb {
+  background: var(--primary-color, #069494);
+  border-radius: 3px;
+}
+
+.sl-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ====================================
+   Item de la liste
+   ==================================== */
+.sl-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  position: relative;
+  border: 1px solid transparent;
+}
+
+.sl-item:hover {
+  background: rgba(6, 148, 148, 0.06);
+  border-color: rgba(6, 148, 148, 0.15);
+}
+
+.sl-item:active {
+  transform: scale(0.98);
+}
+
+.sl-item:focus-visible {
+  outline: 2px solid var(--primary-color, #069494);
+  outline-offset: 2px;
+}
+
+/* Checkbox custom */
+.sl-item-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 2px solid var(--border-color, #d1d5db);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: white;
+}
+
+.sl-item-check svg {
+  width: 12px;
+  height: 10px;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Label */
+.sl-item-label {
+  flex: 1;
+  font-size: 1rem;
+  color: var(--text-primary);
+  transition: all 0.25s ease;
+  font-weight: 500;
+}
+
+/* Badge quantité */
+.sl-item-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary-color, #069494);
+  background: rgba(6, 148, 148, 0.1);
+  border-radius: 20px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.sl-times {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+/* ====================================
+   État acheté
+   ==================================== */
+.sl-item.purchased {
+  opacity: 0.55;
+}
+
+.sl-item.purchased .sl-item-check {
+  background: var(--primary-color, #069494);
+  border-color: var(--primary-color, #069494);
+}
+
+.sl-item.purchased .sl-item-check svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.sl-item.purchased .sl-item-label {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.sl-item.purchased .sl-item-badge {
+  opacity: 0.4;
+}
+
+/* ====================================
+   État vide
+   ==================================== */
+.sl-empty {
+  text-align: center;
+  padding: 40px 24px;
+  color: var(--text-secondary);
+}
+
+.sl-empty-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.sl-empty p {
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.sl-empty.hidden {
+  display: none;
+}
+
+/* ====================================
+   Mode Sombre
+   ==================================== */
+[data-theme="dark"] .sl-item:hover {
+  background: rgba(6, 148, 148, 0.1);
+}
+
+[data-theme="dark"] .sl-close-btn {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .sl-close-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ====================================
+   Animation item :nth-child au scroll
+   ==================================== */
+.shopping-list-modal.show .sl-item {
+  animation: sl-itemIn 0.3s ease both;
+}
+
+.shopping-list-modal.show .sl-item:nth-child(1)  { animation-delay: 0.05s; }
+.shopping-list-modal.show .sl-item:nth-child(2)  { animation-delay: 0.08s; }
+.shopping-list-modal.show .sl-item:nth-child(3)  { animation-delay: 0.11s; }
+.shopping-list-modal.show .sl-item:nth-child(4)  { animation-delay: 0.14s; }
+.shopping-list-modal.show .sl-item:nth-child(5)  { animation-delay: 0.17s; }
+.shopping-list-modal.show .sl-item:nth-child(6)  { animation-delay: 0.20s; }
+.shopping-list-modal.show .sl-item:nth-child(7)  { animation-delay: 0.22s; }
+.shopping-list-modal.show .sl-item:nth-child(8)  { animation-delay: 0.24s; }
+
+@keyframes sl-itemIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
