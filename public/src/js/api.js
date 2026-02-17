@@ -377,4 +377,80 @@ export class APIManager {
             throw error;
         }
     }
+    /**
+     * Crée une nouvelle catégorie d'ingrédients
+     * @param {string} categoryName - Nom de la nouvelle catégorie
+     * @returns {Promise<Object>} Résultat de l'opération
+     */
+    static async addCategory(categoryName) {
+        try {
+            const response = await fetch('/api/preferences/ingredients/category', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ categoryName })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Erreur serveur');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erreur création catégorie:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Renomme une catégorie existante
+     * @param {string} oldName - Nom actuel
+     * @param {string} newName - Nouveau nom
+     * @returns {Promise<Object>} Résultat de l'opération
+     */
+    static async renameCategory(oldName, newName) {
+        try {
+            const encoded = encodeURIComponent(oldName);
+            const response = await fetch(`/api/preferences/ingredients/${encoded}/rename`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newName })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Erreur serveur');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erreur renommage catégorie:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Supprime une catégorie et tous ses items
+     * @param {string} categoryName - Nom de la catégorie à supprimer
+     * @returns {Promise<Object>} Résultat de l'opération
+     */
+    static async deleteCategory(categoryName) {
+        try {
+            const encoded = encodeURIComponent(categoryName);
+            const response = await fetch(`/api/preferences/ingredients/${encoded}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Erreur serveur');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erreur suppression catégorie:', error);
+            throw error;
+        }
+    }
 }

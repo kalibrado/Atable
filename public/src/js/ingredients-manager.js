@@ -57,8 +57,14 @@ export class IngredientsManager {
       })
       .join('');
 
-    container.innerHTML = categoriesHTML;
-
+    container.innerHTML = `
+    <div class="category-manager-header">
+      <button class="add-category-btn" onclick="window.ingredientsHandlers.openAddCategoryModal()">
+        ➕ Nouvelle catégorie
+      </button>
+    </div>
+    ${categoriesHTML}
+    `;
     // Attacher les événements
     this.attachEventListeners();
   }
@@ -75,12 +81,20 @@ export class IngredientsManager {
     const itemsHTML = data.items && data.items.length > 0
       ? data.items.map(item => this.renderItem(category, item)).join('')
       : '<span class="empty-items">Aucun ingrédient ajouté</span>';
-
+    let safeCategory = category.replace(/'/g, "\\'")
     return `
-            <div class="ingredient-category ${collapsedClass}" data-category="${category}">
+      <div class="ingredient-category ${collapsedClass}" data-category="${category}" >
                 <div class="category-header" onclick="window.ingredientsHandlers.toggleCategory('${category}')">
-                    <span class="category-title">${category}</span>
-                    <span class="category-toggle">▼</span>
+                  <span class="category-name">${category}</span>
+                  <div class="category-actions" onclick="event.stopPropagation()">
+                    <button class="category-action-btn edit-btn"
+                      onclick="window.ingredientsHandlers.openRenameCategoryModal('${safeCategory}')"
+                      title="Renommer la catégorie">✏️</button>
+                    <button class="category-action-btn delete-btn"
+                      onclick="window.ingredientsHandlers.openDeleteCategoryModal('${safeCategory}')"
+                      title="Supprimer la catégorie">🗑️</button>
+                    <span class="category-toggle ${collapsedClass}">▼</span>
+                  </div>
                 </div>
                 <div class="category-content">
                     <div class="repas-toggles">
@@ -121,8 +135,8 @@ export class IngredientsManager {
                         </button>
                     </div>
                 </div>
-            </div>
-        `;
+            </div >
+      `;
   }
 
   /**
@@ -133,17 +147,131 @@ export class IngredientsManager {
   static renderItem(category, item) {
     const safeItem = item.replace(/'/g, "\\'");
     return `
-            <span class="item-tag" data-item="${safeItem}" data-item-category="${category}">
-                ${item}
-                <button 
-                    class="item-remove" 
-                    onclick="window.ingredientsHandlers.removeItem('${category}', '${safeItem}')"
-                    aria-label="Supprimer ${item}"
-                >
-                    ×
-                </button>
-            </span>
-        `;
+      <span class="item-tag" data-item="${safeItem}" data-item-category="${category}" >
+        ${item}
+    <button
+      class="item-remove"
+      onclick="window.ingredientsHandlers.removeItem('${category}', '${safeItem}')"
+      aria-label="Supprimer ${item}"
+    >
+      ×
+    </button>
+            </span >
+      `;
+  }
+
+  /**
+   * Affiche la modale d'information sur l'impact des modifications de catégorie
+   * @param {string} actionType - 'add' | 'rename' | 'delete'
+   * @param {Function} onConfirm - Callback exécuté après confirmation
+   */
+  static showCategoryImpactModal(actionType, onConfirm) {
+    const messages = {
+      add: {
+        title: '➕ Nouvelle catégorie',
+        body: 'Votre nouvelle catégorie sera disponible immédiatement pour y ajouter des ingrédients.',
+        note: null
+      },
+      rename: {
+        title: '✏️ Renommer la catégorie',
+        body: 'La catégorie sera renommée, ses ingrédients seront conservés.',
+        note: '⚠️ Les repas déjà planifiés à partir de cette catégorie <strong>ne seront pas supprimés</strong> du planning, mais il est recommandé de <strong>régénérer le planning</strong> pour que les changements soient pris en compte.'
+      },
+      delete: {
+        title: '🗑️ Supprimer la catégorie',
+        body: 'Cette catégorie et tous ses ingrédients seront définitivement supprimés.',
+        note: '⚠️ Les repas déjà planifiés à partir de cette catégorie <strong>ne seront pas supprimés</strong> du planning, mais il est recommandé de <strong>régénérer le planning</strong> pour que les changements soient pris en compte.'
+      }
+    };
+
+    const msg = messages[actionType];
+    const modal = document.getElementById('category-impact-modal');
+    if (!modal) return;
+
+    modal.querySelector('.cim-title').textContent = msg.title;
+    modal.querySelector('.cim-body').textContent = msg.body;
+
+    const noteEl = modal.querySelector('.cim-note');
+    if (msg.note) {
+      noteEl.innerHTML = msg.note;
+      noteEl.style.display = 'block';
+    } else {
+      noteEl.style.display = 'none';
+    }
+
+    // Stocker le callback de confirmation
+    modal._onConfirm = onConfirm;
+    modal.style.display = 'flex';
+  }
+
+  /**
+   * Ferme la modale d'impact des catégories
+   */
+  static closeCategoryImpactModal() {
+    const modal = document.getElementById('category-impact-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  /**
+   * Ouvre la modale pour créer une nouvelle catégorie
+   */
+  static openAddCategoryModal() {
+    const name = prompt('Nom de la nouvelle catégorie :');
+    if (!name || !name.trim()) return;
+
+    this.showCategoryImpactModal('add', async () => {
+      try {
+        const result = await APIManager.addCategory(name.trim());
+        if (result.success) {
+          this.state.ingredients = result.ingredients;
+          this.render();
+          UIManager.showStatus('✓ Catégorie créée', STATUS_TYPES.SUCCESS);
+        }
+      } catch (error) {
+        UIManager.showStatus(error.message || 'Erreur lors de la création', STATUS_TYPES.ERROR);
+      }
+    });
+  }
+
+  /**
+   * Ouvre la modale pour renommer une catégorie
+   * @param {string} category - Nom actuel de la catégorie
+   */
+  static openRenameCategoryModal(category) {
+    const newName = prompt(`Nouveau nom pour "${category}" :`, category);
+    if (!newName || !newName.trim() || newName.trim() === category) return;
+
+    this.showCategoryImpactModal('rename', async () => {
+      try {
+        const result = await APIManager.renameCategory(category, newName.trim());
+        if (result.success) {
+          this.state.ingredients = result.ingredients;
+          this.render();
+          UIManager.showStatus('✓ Catégorie renommée', STATUS_TYPES.SUCCESS);
+        }
+      } catch (error) {
+        UIManager.showStatus(error.message || 'Erreur lors du renommage', STATUS_TYPES.ERROR);
+      }
+    });
+  }
+
+  /**
+   * Ouvre la modale pour supprimer une catégorie
+   * @param {string} category - Nom de la catégorie à supprimer
+   */
+  static openDeleteCategoryModal(category) {
+    this.showCategoryImpactModal('delete', async () => {
+      try {
+        const result = await APIManager.deleteCategory(category);
+        if (result.success) {
+          this.state.ingredients = result.ingredients;
+          this.render();
+          UIManager.showStatus(`✓ Catégorie "${category}" supprimée`, STATUS_TYPES.SUCCESS);
+        }
+      } catch (error) {
+        UIManager.showStatus(error.message || 'Erreur lors de la suppression', STATUS_TYPES.ERROR);
+      }
+    });
   }
 
   /**
@@ -172,7 +300,7 @@ export class IngredientsManager {
     const input = document.querySelector(`.add-item-input[data-category="${category}"]`);
     const btn = document.querySelector(`.add-item-btn[data-category-btn="${category}"]`);
     const itemsList = document.querySelector(`.items-list[data-category-items="${category}"]`);
-    
+
     if (!input || !btn || !itemsList) return;
 
     const trimmedValue = searchValue.trim().toLowerCase();
@@ -195,7 +323,7 @@ export class IngredientsManager {
 
     items.forEach(item => {
       const itemText = item.getAttribute('data-item').toLowerCase();
-      
+
       if (itemText === trimmedValue) {
         // Correspondance exacte
         item.classList.add('exact-match');
@@ -329,7 +457,7 @@ export class IngredientsManager {
       UIManager.showStatus('Erreur lors de la mise à jour', STATUS_TYPES.ERROR);
 
       // Revenir à l'état précédent
-      const checkbox = document.getElementById(`${mealType}-${category}`);
+      const checkbox = document.getElementById(`${mealType} -${category} `);
       if (checkbox) {
         checkbox.checked = !checked;
       }
@@ -414,7 +542,11 @@ export class IngredientsManager {
       addItem: (category) => this.addItem(category),
       removeItem: (category, item) => this.removeItem(category, item),
       updateRepas: (category, mealType, checked) => this.updateRepas(category, mealType, checked),
-      handleKeyPress: (event, category) => this.handleKeyPress(event, category)
+      handleKeyPress: (event, category) => this.handleKeyPress(event, category),
+      openAddCategoryModal: () => this.openAddCategoryModal(),
+      openRenameCategoryModal: (cat) => this.openRenameCategoryModal(cat),
+      openDeleteCategoryModal: (cat) => this.openDeleteCategoryModal(cat),
+      closeCategoryImpactModal: () => this.closeCategoryImpactModal(),
     };
   }
 

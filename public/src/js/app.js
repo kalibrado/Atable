@@ -74,7 +74,6 @@ class AtableApp {
         window.closeSettings = () => SettingsManager.closeModal();
         window.toggleNotifications = () => SettingsManager.toggleNotifications();
         window.updateNotificationTime = () => SettingsManager.updateNotificationTime();
-
         // Handler pour la déconnexion
         window.handleLogout = () => AuthManager.handleLogout();
 

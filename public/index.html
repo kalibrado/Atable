@@ -290,7 +290,22 @@
             <!-- Les cartes des jours seront générées dynamiquement par JavaScript -->
         </main>
     </div>
-
+    <div id="category-impact-modal" class="cim-overlay" style="display:none">
+        <div class="cim-modal">
+            <h3 class="cim-title"></h3>
+            <p class="cim-body"></p>
+            <div class="cim-note" style="display:none"></div>
+            <div class="cim-actions">
+                <button class="cim-btn-cancel" onclick="window.ingredientsHandlers.closeCategoryImpactModal()">
+                    Annuler
+                </button>
+                <button class="cim-btn-confirm" onclick="
+                    const m = document.getElementById('category-impact-modal');
+                    if (m._onConfirm) m._onConfirm() && window.ingredientsHandlers.closeCategoryImpactModal(); ">
+                    Confirmer </button>
+            </div>
+        </div>
+    </div>
     <script src="src/js/notifications.js"></script>
     <script type="module" src="src/js/app.js"></script>
 </body>
