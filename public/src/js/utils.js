@@ -152,7 +152,7 @@ export class MonthDaysUtils {
     const shortMonth = new Date().toLocaleDateString('fr-FR', { month: 'short' });
 
     return isMobile
-      ? `S.${weekNumber} (${range.startDay}-${range.endDay} ${shortMonth})`
+      ? `${range.startDay}-${range.endDay} ${shortMonth}`
       : `Semaine ${weekNumber} (${range.startDay}-${range.endDay} ${monthName})`;
   }
 }

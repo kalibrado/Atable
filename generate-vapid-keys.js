@@ -43,7 +43,7 @@ VAPID_PRIVATE_KEY=${vapidKeys.privateKey}
 VAPID_SUBJECT=mailto:admin@atable.com
 
 # Configuration serveur
-PORT=3030
+PORT=3000
 `;
 
   fs.writeFileSync(envPath, envContent + newEnvContent);

@@ -12,7 +12,8 @@ const z = require('zod')
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6)
+  password: z.string().min(6),
+  machineId: z.string().optional()
 });
 
 /**
@@ -70,27 +71,27 @@ router.post('/register', asyncHandler(async (req, res) => {
  * POST /auth/login
  */
 router.post('/login', asyncHandler(async (req, res) => {
-  const validated = loginSchema.parse(req.body)
-  if (!validated) {
-    return res.json({ error: 'Email et mot de passe erronée ' });
-  }
-  const { email, password, machineId } = loginSchema.parse(req.body);
-
-  if (!email || !password) {
-    return res.json({ error: 'Email et mot de passe requis' });
-  }
-
   try {
-    const user = await usersManager.verifyUser(email, password);
+    const { email, password } = loginSchema.parse(req.body);
+    const { machineId } = req.body;
+    if (!email || !password) {
+      return res.json({ error: 'Email et mot de passe requis' });
+    }
 
+    const user = await usersManager.verifyUser(email, password);
     if (!user) {
       return res.json({ error: 'Email ou mot de passe incorrect' });
     }
 
     // Enregistrer/mettre à jour le device
     if (machineId) {
-      const isMobile = /mobile|android|iphone|ipad/i.test(req.headers['user-agent'] || '');
-      await usersManager.updateDevice(user.id, machineId, isMobile);
+      try {
+        const isMobile = /mobile|android|iphone|ipad/i.test(req.headers['user-agent'] || '');
+        await usersManager.updateDevice(user.id, machineId, isMobile);
+      } catch (deviceError) {
+        logger.error('Erreur updateDevice:', deviceError.message);
+        // Continuer sans bloquer le login
+      }
     }
 
     req.session.userId = user.id;
@@ -107,7 +108,7 @@ router.post('/login', asyncHandler(async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Erreur login:', error);
+    logger.error('Erreur login:', error.message, error.stack);
     res.status(500).json({ error: 'Erreur lors de la connexion' });
   }
 }));

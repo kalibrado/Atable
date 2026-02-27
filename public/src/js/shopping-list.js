@@ -1,34 +1,36 @@
 /**
- * @fileoverview Gestion de la liste de courses générée depuis les repas
+ * @fileoverview Gestion de la liste de courses — synchronisée avec le serveur
  * @module shopping-list
  */
 
 import { WeeksManager } from './weeks-manager.js';
 import { UIManager } from './ui-handlers.js';
 
+const API_URL = '/api/shopping-list';
+
 /**
  * Classe de gestion de la liste de courses
  */
 export class ShoppingList {
-  /** @type {Set<string>} Éléments marqués comme achetés */
+  /** @type {Set<string>} Items cochés — miroir en mémoire de l'état serveur */
   static purchasedItems = new Set();
 
-  /** @type {HTMLElement|null} Élément modal */
+  /** @type {HTMLElement|null} */
   static modal = null;
 
-  /**
-   * Initialise la liste de courses
-   */
+  /** @type {boolean} Évite les sauvegardes concurrentes */
+  static _saving = false;
+
+  // ─── Initialisation ────────────────────────────────────────────
+
   static init() {
     this.modal = document.getElementById('shopping-list-modal');
     if (!this.modal) return;
 
-    // Fermeture au clic sur le backdrop
     this.modal.addEventListener('click', (e) => {
       if (e.target === this.modal) this.close();
     });
 
-    // Fermeture clavier
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && this.modal.classList.contains('show')) {
         this.close();
@@ -36,55 +38,71 @@ export class ShoppingList {
     });
   }
 
+  // ─── API serveur ───────────────────────────────────────────────
+
   /**
-   * Parse un repas (string) pour extraire les ingrédients individuels
-   * Ex: "Carottes, Poulet et Riz" → ["Carottes", "Poulet", "Riz"]
-   * @param {string} meal
-   * @returns {string[]}
+   * Charge les items cochés depuis le serveur
+   * @returns {Promise<void>}
    */
+  static async loadFromServer() {
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) return;
+      const { purchasedItems } = await res.json();
+      this.purchasedItems = new Set(purchasedItems || []);
+    } catch (err) {
+      console.warn('Impossible de charger la liste de courses depuis le serveur:', err);
+    }
+  }
+
+  /**
+   * Sauvegarde l'état actuel sur le serveur (debounce intégré)
+   * @returns {Promise<void>}
+   */
+  static async saveToServer() {
+    if (this._saving) return;
+    this._saving = true;
+    try {
+      await fetch(API_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ purchasedItems: [...this.purchasedItems] }),
+      });
+    } catch (err) {
+      console.warn('Impossible de sauvegarder la liste de courses:', err);
+    } finally {
+      this._saving = false;
+    }
+  }
+
+  // ─── Parsing / agrégation ──────────────────────────────────────
+
   static parseMeal(meal) {
     if (!meal || typeof meal !== 'string' || meal.trim() === '') return [];
-
-    const normalized = meal
+    return meal
       .replace(/\s+et\s+/gi, ',')
-      .replace(/\s+avec\s+/gi, ',');
-
-    return normalized
+      .replace(/\s+avec\s+/gi, ',')
       .split(',')
       .map(item => item.trim())
       .filter(item => item.length > 0);
   }
 
-  /**
-   * Agrège tous les ingrédients depuis toutes les semaines
-   * @returns {Map<string, {label: string, count: number}>}
-   */
   static aggregateIngredients() {
     const counts = new Map();
 
-    // Récupère toutes les semaines depuis WeeksManager
     const allWeeksData = WeeksManager.getAllWeeksData();
-
-    // S'assurer que la semaine courante est incluse
     const currentWeekData = UIManager.getState().mealsData;
     const currentWeekKey = `week${WeeksManager.getCurrentWeek()}`;
-    if (currentWeekData) {
-      allWeeksData[currentWeekKey] = currentWeekData;
-    }
+    if (currentWeekData) allWeeksData[currentWeekKey] = currentWeekData;
 
     for (const weekData of Object.values(allWeeksData)) {
       if (!weekData) continue;
-
       for (const dayData of Object.values(weekData)) {
         if (!dayData) continue;
-
-        const meals = [dayData.midi, dayData.soir].filter(Boolean);
-        for (const meal of meals) {
+        for (const meal of [dayData.midi, dayData.soir].filter(Boolean)) {
           for (const ingredient of this.parseMeal(meal)) {
             const key = ingredient.toLowerCase();
-            if (!counts.has(key)) {
-              counts.set(key, { label: ingredient, count: 0 });
-            }
+            if (!counts.has(key)) counts.set(key, { label: ingredient, count: 0 });
             counts.get(key).count += 1;
           }
         }
@@ -94,33 +112,34 @@ export class ShoppingList {
     return counts;
   }
 
+  // ─── Ouverture / fermeture ─────────────────────────────────────
+
   /**
-   * Ouvre la modale
+   * Ouvre la modale et charge l'état depuis le serveur
    */
-  static open() {
+  static async open() {
     if (!this.modal) this.init();
     if (!this.modal) return;
 
-    this.purchasedItems.clear();
+    // Afficher immédiatement avec l'état mémoire déjà connu
     this.render();
     this.modal.classList.add('show');
     document.body.style.overflow = 'hidden';
     this.modal.querySelector('.sl-close-btn')?.focus();
+
+    // Puis synchroniser depuis le serveur et mettre à jour si nécessaire
+    await this.loadFromServer();
+    this.render();
   }
 
-  /**
-   * Ferme la modale
-   */
   static close() {
     if (!this.modal) return;
     this.modal.classList.remove('show');
     document.body.style.overflow = '';
   }
 
-  /**
-   * Bascule l'état acheté d'un item
-   * @param {string} key - clé en minuscules de l'ingrédient
-   */
+  // ─── Actions ──────────────────────────────────────────────────
+
   static toggleItem(key) {
     if (this.purchasedItems.has(key)) {
       this.purchasedItems.delete(key);
@@ -136,11 +155,27 @@ export class ShoppingList {
     }
 
     this.updateCounter();
+    this.saveToServer(); // non-bloquant
   }
 
-  /**
-   * Met à jour le compteur et la barre de progression
-   */
+  static async resetAll() {
+    this.purchasedItems.clear();
+    this.modal?.querySelectorAll('.sl-item').forEach(el => {
+      el.classList.remove('purchased');
+      el.setAttribute('aria-checked', 'false');
+    });
+    this.updateCounter();
+
+    // Appel DELETE pour réinitialiser côté serveur
+    try {
+      await fetch(API_URL, { method: 'DELETE' });
+    } catch (err) {
+      console.warn('Impossible de réinitialiser la liste sur le serveur:', err);
+    }
+  }
+
+  // ─── Rendu ────────────────────────────────────────────────────
+
   static updateCounter() {
     const total = this.modal?.querySelectorAll('.sl-item').length || 0;
     const bought = this.purchasedItems.size;
@@ -150,7 +185,7 @@ export class ShoppingList {
     if (counter) {
       if (bought === 0) {
         counter.textContent = `${total} article${total > 1 ? 's' : ''}`;
-      } else if (bought === total) {
+      } else if (bought === total && total > 0) {
         counter.textContent = `✓ Tous les articles achetés !`;
       } else {
         counter.textContent = `${bought} / ${total} acheté${bought > 1 ? 's' : ''}`;
@@ -163,21 +198,6 @@ export class ShoppingList {
     }
   }
 
-  /**
-   * Remet à zéro les achats
-   */
-  static resetAll() {
-    this.purchasedItems.clear();
-    this.modal?.querySelectorAll('.sl-item').forEach(el => {
-      el.classList.remove('purchased');
-      el.setAttribute('aria-checked', 'false');
-    });
-    this.updateCounter();
-  }
-
-  /**
-   * Génère et affiche la liste dans la modale
-   */
   static render() {
     const listContainer = this.modal?.querySelector('.sl-list');
     const emptyState = this.modal?.querySelector('.sl-empty');
@@ -194,10 +214,13 @@ export class ShoppingList {
 
     emptyState?.classList.add('hidden');
 
-    // Tri alphabétique (fr)
     const sorted = [...ingredients.values()].sort((a, b) =>
       a.label.localeCompare(b.label, 'fr', { sensitivity: 'base' })
     );
+
+    const checkSvg = `<svg viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1 5l3.5 3.5L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
 
     listContainer.innerHTML = sorted.map(({ label, count }) => {
       const key = label.toLowerCase();
@@ -205,9 +228,6 @@ export class ShoppingList {
       const badgeHtml = count > 1
         ? `<span class="sl-item-badge">${count}<span class="sl-times">×</span></span>`
         : '';
-      const checkSvg = `<svg viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M1 5l3.5 3.5L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>`;
 
       return `<li
           class="sl-item"
@@ -223,6 +243,18 @@ export class ShoppingList {
           ${badgeHtml}
         </li>`;
     }).join('');
+
+    // Restaurer l'état coché depuis purchasedItems en mémoire
+    this.purchasedItems.forEach(key => {
+      const item = listContainer.querySelector(`[data-key="${key}"]`);
+      if (item) {
+        item.classList.add('purchased');
+        item.setAttribute('aria-checked', 'true');
+      } else {
+        // L'ingrédient n'existe plus dans les repas → on le retire
+        this.purchasedItems.delete(key);
+      }
+    });
 
     this.updateCounter();
   }

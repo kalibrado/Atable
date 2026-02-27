@@ -8,8 +8,11 @@ const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const path = require('path');
-const fs = require('fs').promises;
+const fs = require('fs');
+const fsPromises = fs.promises;
+
 const logger = require('./logger');
+const process = require('process');
 
 const usersManager = require('./server/managers/users-manager');
 const pushManager = require('./server/managers/push-manager');
@@ -19,8 +22,9 @@ const setupRoutes = require('./server/routes');
 const rateLimit = require('express-rate-limit')
 const compression = require('compression');
 const app = express();
-const PORT = process.env.PORT || 3030;
+const PORT = process.env.PORT || 3000;
 const CONFIG = require('./config');
+const SQLiteStore = require('connect-sqlite3')(session);
 
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -36,7 +40,9 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(compression());
 
+
 app.use(session({
+    store: new SQLiteStore({ db:  `data/sessions.db` }),
     secret: CONFIG.sessionSecret,
     resave: false,
     saveUninitialized: false,
@@ -111,7 +117,7 @@ app.use((err, req, res, next) => {
  */
 async function startServer() {
     try {
-        await fs.mkdir(path.join(__dirname, 'data'), { recursive: true });
+        await fsPromises.mkdir(path.join(__dirname, 'data'), { recursive: true });
         await usersManager.initializeUsersDir();
 
         const pushConfigured = pushManager.setupWebPush();
@@ -129,6 +135,7 @@ async function startServer() {
             logger.info(`URL: http://localhost:${PORT}`);
             logger.info('========================================');
         });
+
     } catch (error) {
         logger.error('❌ Erreur au démarrage:', error);
         process.exit(1);
@@ -136,3 +143,25 @@ async function startServer() {
 }
 
 startServer();
+
+process.on('SIGTERM', () => {
+    logger.info('Arrêt gracieux du serveur...', 'SHUTDOWN');
+    process.exit(0);
+});
+
+process.on('SIGINT', () => {
+    logger.info('Interrupt reçu', 'SHUTDOWN');
+    process.emit('SIGTERM');
+});
+
+/**
+ * Gestion des erreurs non attrapées
+ */
+process.on('uncaughtException', (err) => {
+    logger.error(`Exception non attrapée: ${err.message}`, 'CRASH');
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+    logger.error(`Promise rejetée non gérée: ${reason}`, 'CRASH');
+});

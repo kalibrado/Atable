@@ -22,13 +22,13 @@ const CONFIG = {
   version: '1.0.0',
 
   /** @type {string} Répertoire des données */
-  dataDir: path.join(__dirname, 'data'),
+  dataDir: path.join(process.cwd(), 'data'),
 
   /** @type {string} Répertoire des utilisateurs */
-  usersDir: path.join(__dirname, 'data', 'users'),
+  usersDir: path.join(process.cwd(), 'data', 'users'),
 
   /** @type {string} Fichier des notifications */
-  subscribeFile: path.join(__dirname, 'data', 'notifications.json'),
+  subscribeFile: path.join(process.cwd(), 'data', 'notifications.json'),
 
   /** @type {string} Clé publique VAPID */
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY,

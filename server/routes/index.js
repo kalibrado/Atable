@@ -8,6 +8,8 @@ const mealsRoutes = require('./atable.routes');
 const notificationsRoutes = require('./notifications.routes');
 const preferencesRoutes = require('./preferences.routes')
 const generatorRoutes = require('./generator.routes');
+const shoppingListRoutes = require('./shopping-list.routes');
+
 /**
  * Configure tous les routeurs de l'application
  * @param {Express} app - Instance Express
@@ -15,16 +17,18 @@ const generatorRoutes = require('./generator.routes');
 function setupRoutes(app) {
     // Routes d'authentification
     app.use('/auth', authRoutes);
-    
+
     // Routes API des repas
     app.use('/api/atable', mealsRoutes);
-    
+
     // Routes API des notifications
     app.use('/api/notifications', notificationsRoutes);
-    
+
     app.use('/api/preferences', preferencesRoutes);
-    
+
     app.use('/api/generator', generatorRoutes);
+
+    app.use('/api/shopping-list', shoppingListRoutes);
 }
 
 module.exports = setupRoutes;
