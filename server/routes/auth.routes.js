@@ -7,7 +7,7 @@ const router = express.Router();
 const usersManager = require('../managers/users-manager');
 const { asyncHandler } = require('../middleware/handler-middleware')
 const logger = require('../../logger');
-
+const ServerResponse = require('../../response-handler');
 const z = require('zod')
 
 const loginSchema = z.object({
@@ -23,20 +23,20 @@ router.post('/register', asyncHandler(async (req, res) => {
   const { email, password, firstname, lastname, machineId } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email et mot de passe requis' });
+    return ServerResponse.error(res, 400, 'MISSING_FIELDS', 'Email et mot de passe requis');
   }
 
   if (!firstname || !lastname) {
-    return res.status(400).json({ error: 'Prénom et nom requis' });
+    return ServerResponse.error(res, 400, 'MISSING_FIELDS', 'Prénom et nom requis');
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return res.status(400).json({ error: 'Format d\'email invalide' });
+    return ServerResponse.error(res, 400, 'INVALID_EMAIL', 'Format d\'email invalide');
   }
 
   if (password.length < 6) {
-    return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères' });
+    return ServerResponse.error(res, 400, 'INVALID_PASSWORD', 'Le mot de passe doit contenir au moins 6 caractères');
   }
 
   try {
@@ -51,8 +51,7 @@ router.post('/register', asyncHandler(async (req, res) => {
     req.session.userId = user.id;
     req.session.machineId = machineId;
     req.session.userEmail = user.email;
-
-    res.json({
+    return ServerResponse.success(res, 201, {
       success: true,
       user: {
         id: user.id,
@@ -60,10 +59,11 @@ router.post('/register', asyncHandler(async (req, res) => {
         firstname: user.firstname,
         lastname: user.lastname
       }
-    });
+    }, 'Inscription réussie');
+
   } catch (error) {
     logger.error('Erreur inscription:', error);
-    res.status(400).json({ error: error.message || 'Erreur lors de l\'inscription' });
+    return ServerResponse.error(res, 500, 'INTERNAL_ERROR', error.message || 'Erreur lors de l\'inscription');
   }
 }));
 
@@ -75,12 +75,12 @@ router.post('/login', asyncHandler(async (req, res) => {
     const { email, password } = loginSchema.parse(req.body);
     const { machineId } = req.body;
     if (!email || !password) {
-      return res.json({ error: 'Email et mot de passe requis' });
+      return ServerResponse.error(res, 400, 'MISSING_FIELDS', 'Email et mot de passe requis');
     }
 
     const user = await usersManager.verifyUser(email, password);
     if (!user) {
-      return res.json({ error: 'Email ou mot de passe incorrect' });
+      return ServerResponse.error(res, 401, 'INVALID_CREDENTIALS', 'Email ou mot de passe incorrect');
     }
 
     // Enregistrer/mettre à jour le device
@@ -98,7 +98,7 @@ router.post('/login', asyncHandler(async (req, res) => {
     req.session.userEmail = user.email;
     req.session.machineId = machineId;
 
-    res.json({
+    return ServerResponse.success(res, 200, {
       success: true,
       user: {
         id: user.id,
@@ -109,7 +109,7 @@ router.post('/login', asyncHandler(async (req, res) => {
     });
   } catch (error) {
     logger.error('Erreur login:', error.message, error.stack);
-    res.status(500).json({ error: 'Erreur lors de la connexion' });
+    return ServerResponse.error(res, 500, 'INTERNAL_ERROR', error.message || 'Erreur lors de la connexion');
   }
 }));
 
@@ -119,10 +119,10 @@ router.post('/login', asyncHandler(async (req, res) => {
 router.post('/logout', asyncHandler((req, res) => {
   req.session.destroy((err) => {
     if (err) {
-      return res.status(500).json({ error: 'Erreur lors de la déconnexion' });
+      return ServerResponse.error(res, 500, 'INTERNAL_ERROR', 'Erreur lors de la déconnexion');
     }
     res.clearCookie('connect.sid');
-    res.json({ success: true });
+    return ServerResponse.success(res, 200, { success: true }, 'Déconnexion réussie');
   });
 }));
 
@@ -136,7 +136,7 @@ router.get('/me', asyncHandler(async (req, res) => {
     const user = await usersManager.findUserById(req.session.userId);
 
     if (!user) {
-      return res.status(401).json({ message: 'Utilisateur non authentifié' });
+      return ServerResponse.error(res, 401, 'UNAUTHORIZED', 'Utilisateur non authentifié');
     }
 
     const notifications = await pushManager.getUserNotification(
@@ -144,7 +144,7 @@ router.get('/me', asyncHandler(async (req, res) => {
       req.session.machineId
     );
 
-    res.json({
+    return ServerResponse.success(res, 200, {
       user: {
         id: user.id,
         email: user.email,
@@ -161,7 +161,7 @@ router.get('/me', asyncHandler(async (req, res) => {
     });
   } catch (error) {
     logger.error('Erreur récupération utilisateur:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    return ServerResponse.error(res, 500, 'INTERNAL_ERROR', 'Erreur serveur');
   }
 }));
 

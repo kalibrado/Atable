@@ -1,5 +1,5 @@
 const logger = require('../../logger');
-
+const ServerResponse  = require('../../response-handler');
 /**
  * @fileoverview Middleware d'authentification et sécurité
  * @module middleware/auth-middleware
@@ -15,10 +15,7 @@ const logger = require('../../logger');
  */
 function requireAuth(req, res, next) {
     if (!req.session || !req.session.userId) { 
-        return res.status(401).json({ 
-            error: 'Non authentifié',
-            message: 'Vous devez être connecté pour accéder à cette ressource'
-        });
+        return ServerResponse.unauthorized(res);
     }
     next();
 }

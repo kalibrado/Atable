@@ -7,6 +7,7 @@ import { APIManager } from './api.js';
 import { UIRenderer } from './ui-renderer.js';
 import { UIManager } from './ui-handlers.js';
 import { MonthDaysUtils } from './utils.js';
+import { ResponseHandler } from './response-handler.js';
 
 /**
  * Classe de gestion des semaines basées sur les jours du mois
@@ -43,7 +44,6 @@ export class WeeksManager {
   static initialize(numberOfWeeks, weeksData) {
     this.state.numberOfWeeks = numberOfWeeks;
     this.state.weeksData = weeksData || {};
-
     const totalDays = MonthDaysUtils.getDaysInCurrentMonth();
     this.state.weekRanges = MonthDaysUtils.calculateWeekRanges(totalDays, numberOfWeeks);
 
@@ -105,12 +105,17 @@ export class WeeksManager {
 
     const response = await fetch(`/api/atable/${weekNumber}`);
     let weekData = {};
-
-    if (response.ok) {
-      weekData = await response.json();
-    }
-
-    UIManager.getState().mealsData = weekData;
+    ResponseHandler.handle(response, {
+      showMessage: true,
+      onSuccess: (data) => {
+        console.log(`✅ Semaine ${weekNumber} chargée`);
+        weekData = data;
+        UIManager.getState().mealsData = weekData;
+      },
+      onError: (error) => {
+        console.error(`❌ Erreur chargement semaine ${weekNumber}:`, error.message);
+      }
+    });
 
     this.renderWeeksTabs();
 
@@ -123,9 +128,6 @@ export class WeeksManager {
    * @returns {Object} Les données de toutes les semaines
    */
   static getAllWeeksData() {
-    const currentWeekData = UIManager.getState().mealsData;
-    this.state.weeksData[`week${this.state.currentWeek}`] = currentWeekData;
-
     return this.state.weeksData;
   }
 
@@ -151,11 +153,18 @@ export class WeeksManager {
         body: JSON.stringify({ numberOfWeeks: newNumberOfWeeks })
       });
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de la mise à jour');
-      }
-
-      window.location.reload();
+      ResponseHandler.handle(response, {
+        showMessage: true,
+        onSuccess: () => {
+          console.log(`✅ Nombre de semaines mis à jour: ${newNumberOfWeeks}`);
+          this.state.numberOfWeeks = newNumberOfWeeks;
+          this.renderWeeksTabs();
+          window.location.reload();
+        },
+        onError: (error) => {
+          console.error('❌ Erreur mise à jour nombre de semaines:', error.message);
+        }
+      });
     } catch (error) {
       console.error('Erreur mise à jour nombre de semaines:', error);
       throw error;
@@ -168,6 +177,7 @@ export class WeeksManager {
    */
   static async saveAllWeeks() {
     const allWeeksData = this.getAllWeeksData();
+    console.log('Données à sauvegarder pour toutes les semaines:', allWeeksData);
     await APIManager.saveMeals(allWeeksData);
   }
 

@@ -9,6 +9,7 @@ const preferencesManager = require('../managers/preferences-manager');
 const { requireAuth } = require('../middleware/auth-middleware');
 const { asyncHandler } = require('../middleware/handler-middleware')
 const logger = require('../../logger');
+const ServerResponse = require('../../response-handler');
 
 /**
  * GET /api/atable
@@ -26,14 +27,13 @@ router.get('/', requireAuth, asyncHandler(async (req, res) => {
             const weekKey = `week${i}`;
             weeks[weekKey] = weeksPlans[weekKey]?.days || {};
         }
-
-        res.json({
+        return ServerResponse.success(res, 200, {
             weeks,
             numberOfWeeks
         });
     } catch (error) {
         logger.error('Erreur lecture repas:', error);
-        res.status(500).json({ error: 'Erreur lors de la lecture des données' });
+        return ServerResponse.error(res, 500, 'INTERNAL_ERROR', 'Erreur lors de la lecture des données');
     }
 }));
 
@@ -44,9 +44,10 @@ router.get('/:weeknumber', asyncHandler(async (req, res) => {
         const { weeknumber } = req.params;
         const weeksPlans = await atableManager.readUseratable(req.session.userId);
         // Retourner la semaine demandée ou un objet vide
-        res.json(weeksPlans[`week${weeknumber}`].days || {});
+        return ServerResponse.success(res, 200, weeksPlans[`week${weeknumber}`]?.days || {});
     } catch (error) {
-        res.status(500).json({ error: 'Erreur lecture données' });
+        logger.error('Erreur lecture semaine:', error);
+        return ServerResponse.error(res, 500, 'INTERNAL_ERROR', 'Erreur lecture données');
     }
 }));
 
@@ -65,9 +66,10 @@ router.put('/:weeknumber', asyncHandler(async (req, res) => {
         // Sauvegarder
         await atableManager.writeUseratable(req.session.userId, weeksPlans)
 
-        res.json({ success: true });
+        return ServerResponse.success(res, 200, { success: true }, 'Semaine sauvegardée avec succès');
     } catch (error) {
-        res.status(500).json({ error: 'Erreur sauvegarde' });
+        logger.error('Erreur sauvegarde semaine:', error);
+        return ServerResponse.error(res, 500, 'INTERNAL_ERROR', 'Erreur sauvegarde semaine');
     }
 }));
 
@@ -90,13 +92,10 @@ router.put('/', requireAuth, asyncHandler(async (req, res) => {
 
         await atableManager.writeUseratable(req.session.userId, currentPlans);
 
-        res.json({
-            success: true,
-            message: 'Données sauvegardées avec succès'
-        });
+        return ServerResponse.success(res, 200, { success: true }, 'Données sauvegardées avec succès');
     } catch (error) {
         logger.error('Erreur sauvegarde repas:', error);
-        res.status(400).json({ error: error.message || 'Erreur lors de la sauvegarde' });
+        return ServerResponse.error(res, 500, 'INTERNAL_ERROR', error.message || 'Erreur lors de la sauvegarde');
     }
 }));
 

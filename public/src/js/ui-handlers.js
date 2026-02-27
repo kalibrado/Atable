@@ -132,7 +132,7 @@ export class UIManager {
                 clearTimeout(UIManager.state.saveTimeout);
 
                 const allWeeksData = WeeksManager.getAllWeeksData();
-                StorageManager.saveToCache(allWeeksData);
+                console.debug('Données à sauvegarder avant déchargement:', allWeeksData);
 
                 const pendingData = localStorage.getItem('atable-planner-pending-save');
                 if (pendingData && navigator.sendBeacon) {
@@ -150,7 +150,6 @@ export class UIManager {
     static async loadAndRender() {
         try {
             const { weeks, numberOfWeeks } = await APIManager.loadMeals();
-
             WeeksManager.initialize(numberOfWeeks, weeks);
             UIManager.state.mealsData = weeks;
 

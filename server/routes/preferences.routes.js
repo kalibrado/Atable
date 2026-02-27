@@ -10,6 +10,7 @@ const logger = require('../../logger');
 const preferencesManager = require('../managers/preferences-manager');
 const { requireAuth } = require('../middleware/auth-middleware');
 const { asyncHandler } = require('../middleware/handler-middleware');
+const ServerResponse = require('../../response-handler');
 
 // ─────────────────────────────────────────────────────────────
 // PRÉFÉRENCES GÉNÉRALES
@@ -22,10 +23,10 @@ const { asyncHandler } = require('../middleware/handler-middleware');
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
   try {
     const preferences = await preferencesManager.readUserPreferences(req.session.userId);
-    res.json(preferences);
+    return ServerResponse.success(res, 200, preferences);
   } catch (error) {
     logger.error('Erreur lecture préférences:', error);
-    res.status(500).json({ error: 'Erreur lors de la lecture des préférences' });
+    return ServerResponse.error(res, 500, 'INTERNAL_ERROR', 'Erreur lors de la lecture des préférences');
   }
 }));
 
@@ -38,7 +39,7 @@ router.put('/', requireAuth, asyncHandler(async (req, res) => {
     const { numberOfWeeks } = req.body;
 
     if (!numberOfWeeks || isNaN(numberOfWeeks)) {
-      return res.status(400).json({ error: 'Nombre de semaines invalide' });
+      return ServerResponse.error(res, 400, 'INVALID_NUMBER_OF_WEEKS', 'Nombre de semaines invalide');
     }
 
     const preferences = await preferencesManager.updateNumberOfWeeks(
@@ -46,14 +47,14 @@ router.put('/', requireAuth, asyncHandler(async (req, res) => {
       parseInt(numberOfWeeks)
     );
 
-    res.json({
+    return ServerResponse.success(res, 200, {
       success: true,
       message: 'Préférences mises à jour avec succès',
       preferences
     });
   } catch (error) {
     logger.error('Erreur sauvegarde préférences:', error);
-    res.status(400).json({ error: error.message || 'Erreur lors de la sauvegarde' });
+    return ServerResponse.error(res, 400, 'PREFERENCES_SAVE_ERROR', error.message || 'Erreur lors de la sauvegarde');
   }
 }));
 
@@ -68,10 +69,10 @@ router.put('/', requireAuth, asyncHandler(async (req, res) => {
 router.get('/ingredients', requireAuth, asyncHandler(async (req, res) => {
   try {
     const ingredients = await preferencesManager.readUserIngredients(req.session.userId);
-    res.json({ ingredients });
+    return ServerResponse.success(res, 200, { ingredients });
   } catch (error) {
     logger.error('Erreur lecture ingrédients:', error);
-    res.status(500).json({ error: 'Erreur lors de la lecture des ingrédients' });
+    return ServerResponse.error(res, 500, 'INTERNAL_ERROR', 'Erreur lors de la lecture des ingrédients');
   }
 }));
 
@@ -86,7 +87,7 @@ router.post('/ingredients/:category/item', requireAuth, asyncHandler(async (req,
     const decodedCategory = decodeURIComponent(category);
 
     if (!item) {
-      return res.status(400).json({ error: 'Item manquant' });
+      return ServerResponse.error(res, 400, 'MISSING_ITEM', 'Item manquant');
     }
 
     const ingredients = await preferencesManager.addIngredientItem(
@@ -95,10 +96,10 @@ router.post('/ingredients/:category/item', requireAuth, asyncHandler(async (req,
       item
     );
 
-    res.json({ success: true, message: 'Item ajouté avec succès', ingredients });
+    return ServerResponse.success(res, 200, { success: true, message: 'Item ajouté avec succès', ingredients });
   } catch (error) {
     logger.error('Erreur ajout item:', error);
-    res.status(400).json({ error: error.message || 'Erreur lors de l\'ajout de l\'item' });
+    return ServerResponse.error(res, 400, 'ITEM_ADD_ERROR', error.message || 'Erreur lors de l\'ajout de l\'item');
   }
 }));
 
@@ -122,10 +123,10 @@ router.delete('/ingredients/:category/item', requireAuth, asyncHandler(async (re
       item
     );
 
-    res.json({ success: true, message: 'Item supprimé avec succès', ingredients });
+    return ServerResponse.success(res, 200, { success: true, message: 'Item supprimé avec succès', ingredients });
   } catch (error) {
     logger.error('Erreur suppression item:', error);
-    res.status(400).json({ error: error.message || 'Erreur lors de la suppression' });
+    return ServerResponse.error(res, 400, 'ITEM_DELETE_ERROR', error.message || 'Erreur lors de la suppression');
   }
 }));
 
@@ -140,7 +141,7 @@ router.put('/ingredients/:category/repas', requireAuth, asyncHandler(async (req,
     const decodedCategory = decodeURIComponent(category);
 
     if (!repas || typeof repas.midi !== 'boolean' || typeof repas.soir !== 'boolean') {
-      return res.status(400).json({ error: 'Format de repas invalide' });
+      return ServerResponse.error(res, 400, 'INVALID_REPAS_FORMAT', 'Format de repas invalide');
     }
 
     const ingredients = await preferencesManager.updateCategoryRepas(
@@ -149,10 +150,10 @@ router.put('/ingredients/:category/repas', requireAuth, asyncHandler(async (req,
       repas
     );
 
-    res.json({ success: true, message: 'Préférences mises à jour', ingredients });
+    return ServerResponse.success(res, 200, { success: true, message: 'Préférences mises à jour', ingredients });
   } catch (error) {
     logger.error('Erreur mise à jour repas:', error);
-    res.status(400).json({ error: error.message || 'Erreur lors de la mise à jour' });
+    return ServerResponse.error(res, 400, 'PREFERENCES_UPDATE_ERROR', error.message || 'Erreur lors de la mise à jour');
   }
 }));
 
@@ -169,7 +170,7 @@ router.post('/ingredients/category', requireAuth, asyncHandler(async (req, res) 
     const { categoryName } = req.body;
 
     if (!categoryName) {
-      return res.status(400).json({ error: 'Nom de catégorie manquant' });
+      return ServerResponse.error(res, 400, 'MISSING_CATEGORY_NAME', 'Nom de catégorie manquant');
     }
 
     const ingredients = await preferencesManager.addCategory(
@@ -177,10 +178,10 @@ router.post('/ingredients/category', requireAuth, asyncHandler(async (req, res) 
       categoryName
     );
 
-    res.json({ success: true, message: 'Catégorie créée avec succès', ingredients });
+    return ServerResponse.success(res, 200, { success: true, message: 'Catégorie créée avec succès', ingredients });
   } catch (error) {
     logger.error('Erreur création catégorie:', error);
-    res.status(400).json({ error: error.message || 'Erreur lors de la création' });
+    return ServerResponse.error(res, 400, 'CATEGORY_CREATE_ERROR', error.message || 'Erreur lors de la création');
   }
 }));
 
@@ -195,7 +196,7 @@ router.put('/ingredients/:category/rename', requireAuth, asyncHandler(async (req
     const decodedCategory = decodeURIComponent(category);
 
     if (!newName) {
-      return res.status(400).json({ error: 'Nouveau nom manquant' });
+      return ServerResponse.error(res, 400, 'MISSING_NEW_NAME', 'Nouveau nom manquant');
     }
 
     const ingredients = await preferencesManager.renameCategory(
@@ -204,10 +205,10 @@ router.put('/ingredients/:category/rename', requireAuth, asyncHandler(async (req
       newName
     );
 
-    res.json({ success: true, message: 'Catégorie renommée avec succès', ingredients });
+    return ServerResponse.success(res, 200, { success: true, message: 'Catégorie renommée avec succès', ingredients });
   } catch (error) {
     logger.error('Erreur renommage catégorie:', error);
-    res.status(400).json({ error: error.message || 'Erreur lors du renommage' });
+    return ServerResponse.error(res, 400, 'CATEGORY_RENAME_ERROR', error.message || 'Erreur lors du renommage');
   }
 }));
 
@@ -226,10 +227,10 @@ router.delete('/ingredients/:category', requireAuth, asyncHandler(async (req, re
       decodedCategory
     );
 
-    res.json({ success: true, message: 'Catégorie supprimée avec succès', ingredients });
+    return ServerResponse.success(res, 200, { success: true, message: 'Catégorie supprimée avec succès', ingredients });
   } catch (error) {
     logger.error('Erreur suppression catégorie:', error);
-    res.status(400).json({ error: error.message || 'Erreur lors de la suppression' });
+    return ServerResponse.error(res, 400, 'CATEGORY_DELETE_ERROR', error.message || 'Erreur lors de la suppression');
   }
 }));
 

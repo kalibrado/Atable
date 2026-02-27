@@ -352,6 +352,11 @@ export class GeneratorManager {
                 setTimeout(() => {
                     window.location.reload();
                 }, 1000);
+            } else {
+                UIManager.showStatus(
+                    result.message || 'Erreur lors de la génération',
+                    STATUS_TYPES.ERROR
+                );
             }
         } catch (error) {
             console.error('Erreur génération:', error);

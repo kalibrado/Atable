@@ -25,6 +25,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const CONFIG = require('./config');
 const SQLiteStore = require('connect-sqlite3')(session);
+const ServerResponse  = require('./response-handler');
+
+
 
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -68,7 +71,7 @@ if (process.env.NODE_ENV !== 'production') {
 /**
  * Configuration des routes
  */
-setupRoutes(app);
+setupRoutes(app, ServerResponse);
 
 /**
  * Page de login
@@ -93,10 +96,7 @@ app.get('/', requireAuth, (req, res) => {
  * Gestion des erreurs 404
  */
 app.use((req, res) => {
-    res.status(404).json({
-        error: 'Route non trouvée',
-        path: req.path
-    });
+    return ServerResponse.notFound(res);
 });
 
 /**
@@ -104,10 +104,7 @@ app.use((req, res) => {
  */
 app.use((err, req, res, next) => {
     logger.error('Erreur serveur:', err);
-    res.status(500).json({
-        error: 'Erreur interne du serveur',
-        message: process.env.NODE_ENV === 'production' ? 'Une erreur est survenue' : err.message
-    });
+    return ServerResponse.error(res, 500, 'INTERNAL_ERROR', process.env.NODE_ENV === 'production' ? 'Une erreur est survenue' : err.message, { stack: err.stack });
 });
 
 /**

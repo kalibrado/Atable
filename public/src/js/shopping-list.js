@@ -1,27 +1,13 @@
-/**
- * @fileoverview Gestion de la liste de courses — synchronisée avec le serveur
- * @module shopping-list
- */
-
 import { WeeksManager } from './weeks-manager.js';
 import { UIManager } from './ui-handlers.js';
+import { ResponseHandler } from './response-handler.js';
 
 const API_URL = '/api/shopping-list';
 
-/**
- * Classe de gestion de la liste de courses
- */
 export class ShoppingList {
-  /** @type {Set<string>} Items cochés — miroir en mémoire de l'état serveur */
   static purchasedItems = new Set();
-
-  /** @type {HTMLElement|null} */
   static modal = null;
-
-  /** @type {boolean} Évite les sauvegardes concurrentes */
   static _saving = false;
-
-  // ─── Initialisation ────────────────────────────────────────────
 
   static init() {
     this.modal = document.getElementById('shopping-list-modal');
@@ -38,44 +24,78 @@ export class ShoppingList {
     });
   }
 
-  // ─── API serveur ───────────────────────────────────────────────
+  static getCurrentDateTimestamp() {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return today.getTime();
+  }
 
-  /**
-   * Charge les items cochés depuis le serveur
-   * @returns {Promise<void>}
-   */
+  static getDayTimestamp(dayKey) {
+    const match = dayKey.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return null;
+
+    const [, year, month, day] = match;
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return date.getTime();
+  }
+
   static async loadFromServer() {
     try {
-      const res = await fetch(API_URL);
-      if (!res.ok) return;
-      const { purchasedItems } = await res.json();
-      this.purchasedItems = new Set(purchasedItems || []);
+      const response = await fetch(API_URL);
+
+      const result = await ResponseHandler.handle(response, {
+        showMessage: false,
+
+        onSuccess: (data) => {
+          this.purchasedItems = new Set(data.purchasedItems || []);
+          console.log('✅ Liste de courses chargée');
+        },
+
+        onError: (error) => {
+          console.warn('❌ Impossible de charger la liste:', error.message);
+        }
+      });
+
+      if (!result.success) {
+        this.purchasedItems = new Set();
+      }
+
     } catch (err) {
-      console.warn('Impossible de charger la liste de courses depuis le serveur:', err);
+      console.warn('Impossible de charger la liste de courses:', err);
+      ResponseHandler.handleNetworkError(err, 'loadShoppingList');
     }
   }
 
-  /**
-   * Sauvegarde l'état actuel sur le serveur (debounce intégré)
-   * @returns {Promise<void>}
-   */
   static async saveToServer() {
     if (this._saving) return;
     this._saving = true;
+
     try {
-      await fetch(API_URL, {
+      const response = await fetch(API_URL, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ purchasedItems: [...this.purchasedItems] }),
       });
+
+      await ResponseHandler.handle(response, {
+        showMessage: false,
+
+        onSuccess: () => {
+          console.log('✅ Liste de courses sauvegardée');
+        },
+
+        onError: (error) => {
+          console.warn('❌ Erreur sauvegarde:', error.message);
+        }
+      });
+
     } catch (err) {
       console.warn('Impossible de sauvegarder la liste de courses:', err);
+      ResponseHandler.handleNetworkError(err, 'saveShoppingList');
     } finally {
       this._saving = false;
     }
   }
-
-  // ─── Parsing / agrégation ──────────────────────────────────────
 
   static parseMeal(meal) {
     if (!meal || typeof meal !== 'string' || meal.trim() === '') return [];
@@ -89,45 +109,68 @@ export class ShoppingList {
 
   static aggregateIngredients() {
     const counts = new Map();
+    const currentTimestamp = this.getCurrentDateTimestamp();
+    try {
+      const allWeeksData = WeeksManager.getAllWeeksData();
+      const currentWeekKey = `week${WeeksManager.getCurrentWeek()}`;
 
-    const allWeeksData = WeeksManager.getAllWeeksData();
-    const currentWeekData = UIManager.getState().mealsData;
-    const currentWeekKey = `week${WeeksManager.getCurrentWeek()}`;
-    if (currentWeekData) allWeeksData[currentWeekKey] = currentWeekData;
+      for (const [weekKey, weekData] of Object.entries(allWeeksData)) {
+        let weekNumber = parseInt(weekKey.replace('week', ''));
+        if (isNaN(weekNumber) || weekNumber < 1 || weekNumber > WeeksManager.getNumberOfWeeks()) {
+          continue;
+        }
+        if (weekKey >= currentWeekKey) {
 
-    for (const weekData of Object.values(allWeeksData)) {
-      if (!weekData) continue;
-      for (const dayData of Object.values(weekData)) {
-        if (!dayData) continue;
-        for (const meal of [dayData.midi, dayData.soir].filter(Boolean)) {
-          for (const ingredient of this.parseMeal(meal)) {
-            const key = ingredient.toLowerCase();
-            if (!counts.has(key)) counts.set(key, { label: ingredient, count: 0 });
-            counts.get(key).count += 1;
+          for (const [dayKey, dayData] of Object.entries(weekData)) {
+            if (!dayData || typeof dayData !== 'object') {
+              continue;
+            }
+
+            if (!dayData.midi && !dayData.soir) {
+              continue;
+            }
+
+            const date = new Date();
+            const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${dayKey}`;
+            const dayTimestamp = this.getDayTimestamp(dateString);
+            if (dayTimestamp === null || dayTimestamp < currentTimestamp) {
+              continue;
+            }
+
+            for (const meal of [dayData.midi, dayData.soir]) {
+              const ingredients = this.parseMeal(meal);
+              for (const ingredient of ingredients) {
+                if (ingredient.length === 0) continue;
+
+                const key = ingredient.toLowerCase();
+                if (!counts.has(key)) {
+                  counts.set(key, { label: ingredient, count: 0 });
+                }
+                counts.get(key).count += 1;
+              }
+            }
           }
         }
       }
-    }
 
-    return counts;
+      console.log(`✅ ${counts.size} ingrédients trouvés`);
+      return counts;
+
+    } catch (error) {
+      console.error('❌ Erreur agrégation ingrédients:', error);
+      return counts;
+    }
   }
 
-  // ─── Ouverture / fermeture ─────────────────────────────────────
-
-  /**
-   * Ouvre la modale et charge l'état depuis le serveur
-   */
   static async open() {
     if (!this.modal) this.init();
     if (!this.modal) return;
 
-    // Afficher immédiatement avec l'état mémoire déjà connu
     this.render();
     this.modal.classList.add('show');
     document.body.style.overflow = 'hidden';
     this.modal.querySelector('.sl-close-btn')?.focus();
 
-    // Puis synchroniser depuis le serveur et mettre à jour si nécessaire
     await this.loadFromServer();
     this.render();
   }
@@ -137,8 +180,6 @@ export class ShoppingList {
     this.modal.classList.remove('show');
     document.body.style.overflow = '';
   }
-
-  // ─── Actions ──────────────────────────────────────────────────
 
   static toggleItem(key) {
     if (this.purchasedItems.has(key)) {
@@ -155,7 +196,7 @@ export class ShoppingList {
     }
 
     this.updateCounter();
-    this.saveToServer(); // non-bloquant
+    this.saveToServer();
   }
 
   static async resetAll() {
@@ -166,15 +207,26 @@ export class ShoppingList {
     });
     this.updateCounter();
 
-    // Appel DELETE pour réinitialiser côté serveur
     try {
-      await fetch(API_URL, { method: 'DELETE' });
+      const response = await fetch(API_URL, { method: 'DELETE' });
+
+      await ResponseHandler.handle(response, {
+        showMessage: true,
+
+        onSuccess: () => {
+          console.log('✅ Liste réinitialisée');
+        },
+
+        onError: (error) => {
+          console.warn('❌ Erreur réinitialisation:', error.message);
+        }
+      });
+
     } catch (err) {
       console.warn('Impossible de réinitialiser la liste sur le serveur:', err);
+      ResponseHandler.handleNetworkError(err, 'resetShoppingList');
     }
   }
-
-  // ─── Rendu ────────────────────────────────────────────────────
 
   static updateCounter() {
     const total = this.modal?.querySelectorAll('.sl-item').length || 0;
@@ -244,14 +296,12 @@ export class ShoppingList {
         </li>`;
     }).join('');
 
-    // Restaurer l'état coché depuis purchasedItems en mémoire
     this.purchasedItems.forEach(key => {
       const item = listContainer.querySelector(`[data-key="${key}"]`);
       if (item) {
         item.classList.add('purchased');
         item.setAttribute('aria-checked', 'true');
       } else {
-        // L'ingrédient n'existe plus dans les repas → on le retire
         this.purchasedItems.delete(key);
       }
     });

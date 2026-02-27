@@ -1,9 +1,5 @@
-// ========================================
-// Gestion de la page de login/inscription
-// ========================================
-
+import { ResponseHandler } from './response-handler.js';
 const login = () => {
-
   const loginForm = document.getElementById('loginForm');
   const registerForm = document.getElementById('registerForm');
   const toggleBtn = document.getElementById('toggleBtn');
@@ -19,25 +15,16 @@ const login = () => {
 
   let isLoginMode = true;
 
-  /**
-   * Affiche un message d'erreur
-   */
   function showError(message) {
     errorMessage.textContent = message;
     errorMessage.classList.add('show');
   }
 
-  /**
-   * Masque le message d'erreur
-   */
   function hideError() {
     errorMessage.classList.remove('show');
     errorMessage.textContent = '';
   }
 
-  /**
-   * Génère ou récupère un identifiant unique pour la machine
-   */
   function getMachineId() {
     let machineId = localStorage.getItem('atable_machine_id');
     if (!machineId) {
@@ -47,9 +34,6 @@ const login = () => {
     return machineId;
   }
 
-  /**
-   * Génère un UUID v4
-   */
   function _generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -57,9 +41,6 @@ const login = () => {
     });
   }
 
-  /**
-   * Configure les boutons de toggle password
-   */
   function setupPasswordToggles() {
     const toggleButtons = document.querySelectorAll('.toggle-password');
 
@@ -81,9 +62,6 @@ const login = () => {
     });
   }
 
-  /**
-   * Vérifie si les mots de passe correspondent
-   */
   function checkPasswordMatch() {
     const password = registerPassword.value;
     const confirm = registerPasswordConfirm.value;
@@ -105,9 +83,6 @@ const login = () => {
     }
   }
 
-  /**
-   * Valide le mot de passe
-   */
   function validatePassword(password) {
     if (password.length < 6) {
       return 'Le mot de passe doit contenir au moins 6 caractères';
@@ -115,9 +90,6 @@ const login = () => {
     return null;
   }
 
-  /**
-   * Valide l'email
-   */
   function validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -126,9 +98,6 @@ const login = () => {
     return null;
   }
 
-  /**
-   * Bascule entre formulaire de login et d'inscription
-   */
   toggleBtn.addEventListener('click', (e) => {
     e.preventDefault();
     isLoginMode = !isLoginMode;
@@ -147,15 +116,9 @@ const login = () => {
     }
   });
 
-  /**
-   * Validation en temps réel des mots de passe
-   */
   registerPassword.addEventListener('input', checkPasswordMatch);
   registerPasswordConfirm.addEventListener('input', checkPasswordMatch);
 
-  /**
-   * Gère la soumission du formulaire de connexion
-   */
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     hideError();
@@ -163,7 +126,6 @@ const login = () => {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
 
-    // Validation
     const emailError = validateEmail(email);
     if (emailError) {
       showError(emailError);
@@ -182,23 +144,34 @@ const login = () => {
         body: JSON.stringify({ email, password, machineId: getMachineId() })
       });
 
-      const data = await response.json();
-      if (!response.ok || data?.error) {
-        throw new Error(data.error || 'Erreur de connexion');
-      } else {
-        // Redirection vers la page principale
-        window.location.reload()
-      }
+      await ResponseHandler.handle(response, {
+        showMessage: true,
+
+        onSuccess: (data) => {
+          console.log('✅ Connexion réussie');
+          window.location.href = '/';
+        },
+
+        onError: (error) => {
+          if (error.status === 401) {
+            showError('❌ Email ou mot de passe incorrect');
+          } else if (error.error === 'VALIDATION_ERROR') {
+            showError(`❌ ${error.message}`);
+          } else {
+            showError(error.message || '❌ Erreur de connexion');
+          }
+          loginBtn.disabled = false;
+          loginBtn.textContent = 'Se connecter';
+        }
+      });
+
     } catch (error) {
-      showError(error.message);
+      ResponseHandler.handleNetworkError(error, 'login');
       loginBtn.disabled = false;
       loginBtn.textContent = 'Se connecter';
     }
   });
 
-  /**
-   * Gère la soumission du formulaire d'inscription
-   */
   registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     hideError();
@@ -209,33 +182,28 @@ const login = () => {
     const password = document.getElementById('registerPassword').value;
     const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
 
-    // Validation firstname
     if (!firstname) {
       showError('Le prénom est requis');
       return;
     }
 
-    // Validation lastname
     if (!lastname) {
       showError('Le nom est requis');
       return;
     }
 
-    // Validation email
     const emailError = validateEmail(email);
     if (emailError) {
       showError(emailError);
       return;
     }
 
-    // Validation mot de passe
     const passwordError = validatePassword(password);
     if (passwordError) {
       showError(passwordError);
       return;
     }
 
-    // Vérification correspondance mots de passe
     if (password !== passwordConfirm) {
       showError('Les mots de passe ne correspondent pas');
       return;
@@ -259,46 +227,64 @@ const login = () => {
         })
       });
 
-      const data = await response.json();
+      await ResponseHandler.handle(response, {
+        showMessage: true,
 
-      if (!response.ok || data?.error) {
-        throw new Error(data.error || 'Erreur d\'inscription');
-      } else {
-        // Redirection vers la page principale
-        window.location.reload()
-      }
+        onSuccess: (data) => {
+          console.log('✅ Inscription réussie');
+          window.location.href = '/';
+        },
+
+        onError: (error) => {
+          if (error.error === 'CONFLICT') {
+            showError(`❌ Cet email est déjà utilisé`);
+          } else if (error.error === 'VALIDATION_ERROR') {
+            showError(`❌ ${error.message}`);
+          } else {
+            showError(error.message || '❌ Erreur d\'inscription');
+          }
+          registerBtn.disabled = false;
+          registerBtn.textContent = 'S\'inscrire';
+        }
+      });
+
     } catch (error) {
-      showError(error.message);
+      ResponseHandler.handleNetworkError(error, 'register');
       registerBtn.disabled = false;
       registerBtn.textContent = 'S\'inscrire';
     }
   });
 
-  /**
-   * Vérifie si l'utilisateur est déjà connecté
-   */
   async function checkAuth() {
     try {
       const response = await fetch('/auth/me');
-      if (response.ok) {
-        // L'utilisateur est connecté, redirection
-        window.location.href = '/';
-      }
+
+      await ResponseHandler.handle(response, {
+        showMessage: false,
+
+        onSuccess: () => {
+          window.location.href = '/';
+        },
+
+        onError: (error) => {
+          if (error.status === 401) {
+            console.log('Redirection vers login');
+          }
+        }
+      });
     } catch (error) {
-      // L'utilisateur n'est pas connecté, on reste sur la page de login
+      console.log('Utilisateur non connecté');
     }
   }
 
-  // Initialisation
   setupPasswordToggles();
   checkAuth();
-}
+};
 
-// Point d'entrée : lance l'app quand le DOM est chargé
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    login()
+    login();
   });
 } else {
-  login()
+  login();
 }

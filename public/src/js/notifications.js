@@ -1,7 +1,3 @@
-// ========================================
-// Système de Notifications Push avec VAPID
-// ========================================
-
 let vapidPublicKey = null;
 let notificationSettings = {
     enabled: false,
@@ -9,9 +5,6 @@ let notificationSettings = {
     minute: 0
 };
 
-/**
- * Récupère la clé publique VAPID du serveur
- */
 async function getVapidPublicKey() {
     if (vapidPublicKey) {
         return vapidPublicKey;
@@ -19,18 +12,28 @@ async function getVapidPublicKey() {
 
     try {
         const response = await fetch('/api/notifications/vapid-public-key');
-        const data = await response.json();
-        vapidPublicKey = data.publicKey;
-        return vapidPublicKey;
+
+        const result = await ResponseHandler.handle(response, {
+            showMessage: false,
+            
+            onSuccess: (data) => {
+                vapidPublicKey = data.publicKey;
+                console.log('✅ Clé VAPID récupérée');
+            },
+            
+            onError: (error) => {
+                console.error('❌ Erreur récupération clé VAPID:', error.message);
+            }
+        });
+
+        return result.success ? result.data.publicKey : null;
+
     } catch (error) {
         console.error('Erreur récupération clé VAPID:', error);
         return null;
     }
 }
 
-/**
- * Convertit une clé VAPID en Uint8Array
- */
 function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding)
@@ -47,9 +50,6 @@ function urlBase64ToUint8Array(base64String) {
     return outputArray;
 }
 
-/**
- * Enregistre le Service Worker
- */
 async function registerServiceWorker() {
     if (!('serviceWorker' in navigator)) {
         console.warn('Service Workers non supportés');
@@ -59,16 +59,14 @@ async function registerServiceWorker() {
     try {
         const registration = await navigator.serviceWorker.register('/service-worker.js');
         await navigator.serviceWorker.ready;
+        console.log('✅ Service Worker enregistré');
         return registration;
     } catch (error) {
-        console.error('Erreur Service Worker:', error);
+        console.error('❌ Erreur Service Worker:', error);
         return null;
     }
 }
 
-/**
- * Demande la permission pour les notifications
- */
 async function requestPermission() {
     if (!('Notification' in window)) {
         console.warn('Notifications non supportées');
@@ -87,34 +85,28 @@ async function requestPermission() {
     return false;
 }
 
-/**
- * S'abonne aux notifications push
- */
 async function subscribe(settings = {}) {
     try {
-        // Vérifier la permission
         const hasPermission = await requestPermission();
         if (!hasPermission) {
             throw new Error('Permission refusée');
         }
 
-        // Enregistrer le Service Worker
         const registration = await registerServiceWorker();
         if (!registration) {
             throw new Error('Service Worker non disponible');
         }
 
-        // Récupérer la clé publique VAPID
         const publicKey = await getVapidPublicKey();
         if (!publicKey) {
             throw new Error('Clé VAPID non disponible');
         }
-        // S'abonner aux notifications push
+
         const permissionNotification = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(publicKey)
         });
-        // Envoyer la notification au serveur
+
         const response = await fetch('/api/notifications/subscribe', {
             method: 'POST',
             headers: {
@@ -129,21 +121,33 @@ async function subscribe(settings = {}) {
                 }
             })
         });
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error('Erreur serveur lors de l\'inscription');
-        }
-        return data;
+
+        const result = await ResponseHandler.handle(response, {
+            showMessage: true,
+            
+            onSuccess: (data) => {
+                console.log('✅ Notifications activées');
+                notificationSettings = {
+                    enabled: true,
+                    hour: settings.hour || 8,
+                    minute: settings.minute || 0
+                };
+            },
+            
+            onError: (error) => {
+                console.error('❌ Erreur abonnement:', error.message);
+            }
+        });
+
+        return result.success ? result.data : false;
 
     } catch (error) {
-        console.error('Erreur abonnement push:', error);
+        console.error('❌ Erreur abonnement push:', error);
+        ResponseHandler.handleNetworkError(error, 'subscribe');
         return false;
     }
 }
 
-/**
- * Se désabonne des notifications push
- */
 async function unsubscribe() {
     try {
         const registration = await navigator.serviceWorker.ready;
@@ -153,30 +157,42 @@ async function unsubscribe() {
             await notification.unsubscribe();
         }
 
-        // Notifier le serveur
         const response = await fetch('/api/notifications/unsubscribe', {
             method: 'DELETE'
         });
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.error || 'Erreur serveur lors de la désinscription');
-        }
-        return data;
+
+        const result = await ResponseHandler.handle(response, {
+            showMessage: true,
+            
+            onSuccess: () => {
+                console.log('✅ Notifications désactivées');
+                notificationSettings = {
+                    enabled: false,
+                    hour: 8,
+                    minute: 0
+                };
+            },
+            
+            onError: (error) => {
+                console.error('❌ Erreur désabonnement:', error.message);
+            }
+        });
+
+        return result.success;
 
     } catch (error) {
-        console.error('Erreur désabonnement:', error);
+        console.error('❌ Erreur désabonnement:', error);
+        ResponseHandler.handleNetworkError(error, 'unsubscribe');
         return false;
     }
 }
 
-// Export des fonctions
 window.notificationSystem = {
     subscribe,
     unsubscribe,
     start: async () => await registerServiceWorker()
 };
 
-// Initialisation au chargement
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', registerServiceWorker);
 } else {

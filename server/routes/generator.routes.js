@@ -10,6 +10,7 @@ const atableManager = require('../managers/atable-manager');
 const { requireAuth } = require('../middleware/auth-middleware');
 const { asyncHandler } = require('../middleware/handler-middleware')
 const logger = require('../../logger');
+const ServerResponse = require('../../response-handler');
 
 /**
  * POST /api/generator/generate
@@ -25,10 +26,7 @@ router.post('/generate', requireAuth, asyncHandler(async (req, res) => {
 
     // Valider les ingrédients
     if (!MealGenerator.validateIngredients(ingredients)) {
-      return res.status(400).json({
-        error: 'Aucun ingrédient configuré',
-        message: 'Veuillez d\'abord ajouter des ingrédients dans vos préférences alimentaires'
-      });
+      return ServerResponse.error(res, 400, 'NO_INGREDIENTS_CONFIGURED', 'Veuillez d\'abord ajouter des ingrédients dans vos préférences alimentaires');
     }
 
     // Générer les repas
@@ -70,7 +68,7 @@ router.post('/generate', requireAuth, asyncHandler(async (req, res) => {
     // Sauvegarder
     await atableManager.writeUseratable(req.session.userId, currentPlans);
 
-    res.json({
+    return ServerResponse.success(res, 200, {
       success: true,
       message: replaceAll
         ? 'Repas générés et remplacés avec succès'
@@ -80,10 +78,7 @@ router.post('/generate', requireAuth, asyncHandler(async (req, res) => {
 
   } catch (error) {
     logger.error('Erreur génération repas:', error);
-    res.status(500).json({
-      error: 'Erreur lors de la génération',
-      message: error.message
-    });
+    return ServerResponse.error(res, 500, 'INTERNAL_ERROR', error.message || 'Erreur lors de la génération');
   }
 }));
 
@@ -96,10 +91,7 @@ router.post('/generate-single', requireAuth, asyncHandler(async (req, res) => {
     const { mealType = 'midi', usedMeals = [] } = req.body;
 
     if (!['midi', 'soir'].includes(mealType)) {
-      return res.status(400).json({
-        error: 'Type de repas invalide',
-        message: 'Le type doit être "midi" ou "soir"'
-      });
+      return ServerResponse.error(res, 400, 'INVALID_MEAL_TYPE', 'Type de repas invalide. Le type doit être "midi" ou "soir"');
     }
 
     // Récupérer les préférences
@@ -107,9 +99,7 @@ router.post('/generate-single', requireAuth, asyncHandler(async (req, res) => {
     const ingredients = preferences.ingredients;
 
     if (!MealGenerator.validateIngredients(ingredients)) {
-      return res.status(400).json({
-        error: 'Aucun ingrédient configuré'
-      });
+      return ServerResponse.error(res, 400, 'NO_INGREDIENTS_CONFIGURED', 'Aucun ingrédient configuré');
     }
 
     // Convertir le tableau de repas utilisés en Set
@@ -134,23 +124,17 @@ router.post('/generate-single', requireAuth, asyncHandler(async (req, res) => {
     }
 
     if (!suggestion || usedMealsSet.has(suggestion.toLowerCase().trim())) {
-      return res.json({
-        success: false,
-        error: 'Tous les repas disponibles sont déjà utilisés',
-        suggestion: null
-      });
+      return ServerResponse.error(res, 400, 'ALL_MEALS_USED', 'Tous les repas disponibles sont déjà utilisés');
     }
 
-    res.json({
+    return ServerResponse.success(res, 200, {
       success: true,
       suggestion
     });
 
   } catch (error) {
     logger.error('Erreur génération repas unique:', error);
-    res.status(500).json({
-      error: 'Erreur lors de la génération'
-    });
+    return ServerResponse.error(res, 500, 'INTERNAL_ERROR', error.message || 'Erreur lors de la génération');
   }
 }));
 
@@ -165,24 +149,20 @@ router.get('/preview', requireAuth, asyncHandler(async (req, res) => {
     const ingredients = preferences.ingredients;
 
     if (!MealGenerator.validateIngredients(ingredients)) {
-      return res.status(400).json({
-        error: 'Aucun ingrédient configuré'
-      });
+      return ServerResponse.error(res, 400, 'NO_INGREDIENTS_CONFIGURED', 'Aucun ingrédient configuré');
     }
 
     // Générer un aperçu
     const preview = MealGenerator.generateAllWeeks(ingredients, 4);
 
-    res.json({
+    return ServerResponse.success(res, 200, {
       success: true,
       preview
     });
 
   } catch (error) {
     logger.error('Erreur prévisualisation:', error);
-    res.status(500).json({
-      error: 'Erreur lors de la prévisualisation'
-    });
+    return ServerResponse.error(res, 500, 'INTERNAL_ERROR', error.message || 'Erreur lors de la prévisualisation');
   }
 }));
 

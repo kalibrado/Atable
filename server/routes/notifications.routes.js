@@ -8,7 +8,7 @@ const pushManager = require('../managers/push-manager');
 const { requireAuth } = require('../middleware/auth-middleware');
 const { asyncHandler } = require('../middleware/handler-middleware')
 const logger = require('../../logger');
-
+const ServerResponse = require('../../response-handler');
 
 /**
  * GET /api/notifications/vapid-public-key
@@ -23,7 +23,7 @@ router.get('/vapid-public-key', (req, res) => {
     });
   }
 
-  res.json({ publicKey });
+  return ServerResponse.success(res, 200, { publicKey });
 });
 
 /**
@@ -35,9 +35,7 @@ router.post('/subscribe', requireAuth, asyncHandler(async (req, res) => {
     const { permissionNotification, settings } = req.body;
 
     if (!permissionNotification || !permissionNotification.endpoint) {
-      return res.status(400).json({
-        error: 'Systeme de notification invalide'
-      });
+      return ServerResponse.error(res, 400, 'INVALID_NOTIFICATION', 'Systeme de notification invalide');
     }
 
     await pushManager.saveNotification(
@@ -47,15 +45,13 @@ router.post('/subscribe', requireAuth, asyncHandler(async (req, res) => {
       settings
     );
 
-    res.json({
+    return ServerResponse.success(res, 200, {
       success: true,
       message: 'Demande de notification enregistrée'
     });
   } catch (error) {
     logger.error('Erreur enregistrement notification:', error);
-    res.status(500).json({
-      error: 'Erreur lors de l\'enregistrement'
-    });
+    return ServerResponse.error(res, 500, 'INTERNAL_ERROR', 'Erreur lors de l\'enregistrement');
   }
 }));
 
@@ -80,16 +76,14 @@ router.put('/settings', requireAuth, asyncHandler(async (req, res) => {
       req.session.machineId
     );
 
-    return res.json({
+    return ServerResponse.success(res, 200, {
       success: true,
       message: 'Paramètres mis à jour',
       ...newSettings.settings
     });
   } catch (error) {
     logger.error('Erreur mise à jour paramètres:', error);
-    return res.status(500).json({
-      error: 'Erreur lors de la mise à jour'
-    });
+    return ServerResponse.error(res, 500, 'INTERNAL_ERROR', 'Erreur lors de la mise à jour');
   }
 }));
 
@@ -105,7 +99,7 @@ router.get('/settings', requireAuth, asyncHandler(async (req, res) => {
     );
 
     if (!notification) {
-      return res.json({
+      return ServerResponse.success(res, 200, {
         subscribed: false,
         settings: {
           enabled: false,
@@ -115,15 +109,13 @@ router.get('/settings', requireAuth, asyncHandler(async (req, res) => {
       });
     }
 
-    res.json({
+    return ServerResponse.success(res, 200, {
       subscribed: true,
       settings: notification.settings
     });
   } catch (error) {
     logger.error('Erreur récupération paramètres:', error);
-    res.status(500).json({
-      error: 'Erreur serveur'
-    });
+    return ServerResponse.error(res, 500, 'INTERNAL_ERROR', 'Erreur serveur');
   }
 }));
 
@@ -138,15 +130,13 @@ router.delete('/unsubscribe', requireAuth, asyncHandler(async (req, res) => {
       req.session.machineId
     );
 
-    return res.json({
+    return ServerResponse.success(res, 200, {
       success: true,
       message: 'Désinscription réussie'
     });
   } catch (error) {
     logger.error('Erreur désinscription:', error);
-    return res.status(500).json({
-      error: 'Erreur lors de la désinscription'
-    });
+    return ServerResponse.error(res, 500, 'INTERNAL_ERROR', 'Erreur lors de la désinscription');
   }
 }));
 

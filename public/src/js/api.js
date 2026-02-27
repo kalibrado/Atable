@@ -1,15 +1,17 @@
 /**
  * @fileoverview Gestion des appels API vers le serveur
  * @module api
+ * 
  */
 
 import { API_CONFIG, STATUS_MESSAGES, STATUS_TYPES } from './config.js';
 import { StorageManager } from './storage.js';
 import { UIManager } from './ui-handlers.js';
-
+import { ResponseHandler } from './response-handler.js';
 /**
  * Classe de gestion des appels API
  * Gère la communication avec le serveur et la gestion offline
+ * 
  */
 export class APIManager {
     /**
@@ -22,17 +24,30 @@ export class APIManager {
         try {
             const response = await fetch(API_CONFIG.MEALS_URL);
 
-            if (!response.ok) {
-                throw new Error(`Erreur HTTP: ${response.status}`);
-            }
+            let result = null;
+            await ResponseHandler.handle(response, {
+                showMessage: false,  // Pas de message pour les chargements normaux
+                onSuccess: (data) => {
+                    console.debug('Données reçues du serveur:', data);
+                    StorageManager.saveToCache(data);
+                    result = data
+                    console.log('✅ Repas chargés avec succès');
+                },
+                onError: (error) => {
+                    console.error('❌ Erreur chargement repas:', error.message);
+                    // Fallback sur cache
+                    const cachedData = StorageManager.getFromCache();
+                    if (cachedData) {
+                        UIManager.showStatus(STATUS_MESSAGES.CACHE_LOADED, STATUS_TYPES.WARNING);
+                        result = cachedData;
+                    }
+                }
+            });
+            console.debug('Résultat après traitement de la réponse:', result);
+            return result;
 
-            const data = await response.json();
-            StorageManager.saveToCache(data);
-
-            return data;
         } catch (error) {
             console.error('Erreur chargement repas:', error);
-
             const cachedData = StorageManager.getFromCache();
 
             if (cachedData) {
@@ -52,10 +67,7 @@ export class APIManager {
      */
     static async saveMeals(data) {
         try {
-            if (!navigator.onLine) {
-                return this._handleOfflineSave(data);
-            }
-
+            console.debug('Envoi des données au serveur:', data);
             const response = await fetch(API_CONFIG.MEALS_URL, {
                 method: 'PUT',
                 headers: {
@@ -64,24 +76,31 @@ export class APIManager {
                 body: JSON.stringify(data)
             });
 
-            const dataResponse = await response.json();
+            let result = { success: false, message: 'Erreur inconnue' };
+            await ResponseHandler.handle(response, {
+                showMessage: true,
+                onSuccess: (data) => {
+                    StorageManager.clearPendingData();
+                    StorageManager.saveToCache(data);
+                    result = data;
+                    console.log('✅ Repas sauvegardés avec succès');
+                },
+                onError: (error) => {
+                    console.error('❌ Erreur sauvegarde:', error.message);
+                    result = { success: false, message: error.message };
+                }
+            });
 
-            if (!response.ok || dataResponse?.error) {
-                throw new Error(`Erreur HTTP: ${response.status} ${dataResponse?.error}`);
-            }
+            return result.success;
 
-            StorageManager.clearPendingData();
-            StorageManager.saveToCache(data);
-
-            UIManager.showStatus(
-                dataResponse?.message || STATUS_MESSAGES.SAVED,
-                STATUS_TYPES.SUCCESS
-            );
-
-            return true;
         } catch (error) {
             console.error('Erreur sauvegarde:', error);
-            UIManager.showStatus(error, STATUS_TYPES.ERROR);
+
+            if (!navigator.onLine) {
+                return this._handleOfflineSave(data);
+            }
+
+            ResponseHandler.handleNetworkError(error, 'saveMeals');
             return this._handleOfflineSave(data);
         }
     }
@@ -93,6 +112,7 @@ export class APIManager {
      * @returns {boolean} False (échec de sauvegarde serveur)
      */
     static _handleOfflineSave(data) {
+        console.warn('📡 Enregistrement en mode hors ligne');
         StorageManager.savePendingData(data);
         StorageManager.saveToCache(data);
 
@@ -124,15 +144,23 @@ export class APIManager {
                 body: JSON.stringify(pendingData)
             });
 
-            if (response.ok) {
-                StorageManager.clearPendingData();
-                UIManager.showStatus(STATUS_MESSAGES.SYNC_SUCCESS, STATUS_TYPES.SUCCESS);
-                return true;
-            }
+            const result = await ResponseHandler.handle(response, {
+                showMessage: true,
 
-            return false;
+                onSuccess: () => {
+                    StorageManager.clearPendingData();
+                    console.log('✅ Synchronisation réussie');
+                },
+                onError: (error) => {
+                    console.error('❌ Erreur sync:', error.message);
+                }
+            });
+
+            return result.success;
+
         } catch (error) {
             console.error('Erreur de synchronisation:', error);
+            ResponseHandler.handleNetworkError(error, 'syncPendingData');
             return false;
         }
     }
@@ -145,18 +173,32 @@ export class APIManager {
         try {
             const response = await fetch('/auth/me');
 
-            if (response.ok) {
-                return await response.json();
-            }
+            const result = await ResponseHandler.handle(response, {
+                showMessage: false,
+                onSuccess: (data) => {
+                    console.log('✅ Infos utilisateur chargées');
+                },
+                onError: (error) => {
+                    if (error.status === 401) {
+                        console.warn('⚠️ Session expirée');
+                    }
+                }
+            });
 
-            if (response.status === 401) {
-                window.location.replace('/login');
+            if (!result.success) {
+                if (result.status === 401) {
+                    ResponseHandler.handleUnauthorized({
+                        redirect: true
+                    });
+                }
                 return null;
             }
 
-            throw new Error('Erreur récupération utilisateur');
+            return result.data;
+
         } catch (error) {
             console.error('Erreur récupération utilisateur:', error);
+            ResponseHandler.handleNetworkError(error, 'fetchUserInfo');
             return null;
         }
     }
@@ -171,14 +213,22 @@ export class APIManager {
                 method: 'POST'
             });
 
-            if (response.ok) {
-                StorageManager.clearAll();
-                return true;
-            }
+            const result = await ResponseHandler.handle(response, {
+                showMessage: true,
+                onSuccess: () => {
+                    StorageManager.clearAll();
+                    console.log('✅ Déconnecté avec succès');
+                },
+                onError: (error) => {
+                    console.error('❌ Erreur déconnexion:', error.message);
+                }
+            });
 
-            return false;
+            return result.success;
+
         } catch (error) {
             console.error('Erreur déconnexion:', error);
+            ResponseHandler.handleNetworkError(error, 'logout');
             return false;
         }
     }
@@ -197,14 +247,21 @@ export class APIManager {
                 },
                 body: JSON.stringify(settings)
             });
+            const result = await ResponseHandler.handle(response, {
+                showMessage: true,
+                onSuccess: () => {
+                    console.log('✅ Paramètres mis à jour');
+                },
+                onError: (error) => {
+                    console.error('❌ Erreur mise à jour:', error.message);
+                }
+            });
 
-            if (!response.ok) {
-                throw new Error('Erreur serveur');
-            }
+            return result.success;
 
-            return true;
         } catch (error) {
             console.error('Erreur mise à jour paramètres:', error);
+            ResponseHandler.handleNetworkError(error, 'updateSettings');
             return false;
         }
     }
@@ -216,14 +273,25 @@ export class APIManager {
     static async fetchIngredients() {
         try {
             const response = await fetch('/api/preferences/ingredients');
+            const result = await ResponseHandler.handle(response, {
+                showMessage: false,
+                onSuccess: (data) => {
+                    console.log('✅ Ingrédients chargés');
+                },
+                onError: (error) => {
+                    console.warn('⚠️ Erreur ingrédients:', error.message);
+                }
+            });
 
-            if (!response.ok) {
-                throw new Error(`Erreur HTTP: ${response.status}`);
+            if (!result.success) {
+                return { ingredients: {} };
             }
 
-            return await response.json();
+            return result.data || { ingredients: {} };
+
         } catch (error) {
             console.error('Erreur chargement ingrédients:', error);
+            ResponseHandler.handleNetworkError(error, 'fetchIngredients');
             return { ingredients: {} };
         }
     }
@@ -245,13 +313,23 @@ export class APIManager {
                 },
                 body: JSON.stringify({ item })
             });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Erreur serveur');
+            const result = await ResponseHandler.handle(response, {
+                showMessage: true,
+                onSuccess: (data) => {
+                    console.log(`✅ Item "${item}" ajouté`);
+                },
+                onError: (error) => {
+                    if (error.error === 'CONFLICT') {
+                        console.warn(`⚠️ L'item "${item}" existe déjà`);
+                    } else {
+                        console.error('❌ Erreur ajout item:', error.message);
+                    }
+                }
+            });
+            if (!result.success) {
+                throw new Error(result.message);
             }
-
-            return await response.json();
+            return result.data;
         } catch (error) {
             console.error('Erreur ajout item:', error);
             throw error;
@@ -275,13 +353,19 @@ export class APIManager {
                 },
                 body: JSON.stringify({ item })
             });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Erreur serveur');
+            const result = await ResponseHandler.handle(response, {
+                showMessage: true,
+                onSuccess: (data) => {
+                    console.log(`✅ Item "${item}" supprimé`);
+                },
+                onError: (error) => {
+                    console.error('❌ Erreur suppression:', error.message);
+                }
+            });
+            if (!result.success) {
+                throw new Error(result.message);
             }
-
-            return await response.json();
+            return result.data;
         } catch (error) {
             console.error('Erreur suppression item:', error);
             throw error;
@@ -305,13 +389,22 @@ export class APIManager {
                 },
                 body: JSON.stringify(repas)
             });
+            const result = await ResponseHandler.handle(response, {
+                showMessage: true,
+                onSuccess: () => {
+                    console.log(`✅ Préférences mises à jour pour "${category}"`);
+                },
+                onError: (error) => {
+                    console.error('❌ Erreur mise à jour repas:', error.message);
+                }
+            });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Erreur serveur');
+            if (!result.success) {
+                throw new Error(result.message);
             }
 
-            return await response.json();
+            return result.data;
+
         } catch (error) {
             console.error('Erreur mise à jour repas:', error);
             throw error;
@@ -334,12 +427,21 @@ export class APIManager {
                 body: JSON.stringify({ replaceAll })
             });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Erreur serveur');
-            }
-
-            return await response.json();
+            let result = { success: false, message: 'Erreur inconnue' };
+            await ResponseHandler.handle(response, {
+                showMessage: false,
+                onSuccess: (data) => {
+                    const action = replaceAll ? 'remplacés' : 'générés';
+                    console.log(`✅ Repas ${action} avec succès`);
+                    console.log('Données reçues:', data);
+                    result = data;
+                },
+                onError: (error) => {
+                    console.error('❌ Erreur génération:', error.message);
+                    result = { success: false, message: error.message };
+                }
+            });
+            return result;
         } catch (error) {
             console.error('Erreur génération repas:', error);
             throw error;
@@ -365,22 +467,37 @@ export class APIManager {
                     usedMeals: Array.from(usedMeals)
                 })
             });
+            const result = await ResponseHandler.handle(response, {
+                showMessage: true,
+                onSuccess: (data) => {
+                    console.log(`✅ Repas généré pour ${mealType}`);
+                },
+                onError: (error) => {
+                    if (error.error === 'ALL_USED') {
+                        console.warn('⚠️ Tous les repas disponibles sont utilisés');
+                    } else {
+                        console.error('❌ Erreur génération:', error.message);
+                    }
+                }
+            });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Erreur serveur');
+            if (!result.success) {
+                throw new Error(result.message);
             }
 
-            return await response.json();
+            return result.data;
+
         } catch (error) {
             console.error('Erreur génération repas unique:', error);
             throw error;
         }
     }
+
     /**
      * Crée une nouvelle catégorie d'ingrédients
      * @param {string} categoryName - Nom de la nouvelle catégorie
      * @returns {Promise<Object>} Résultat de l'opération
+     * @throws {Error} Si la création échoue
      */
     static async addCategory(categoryName) {
         try {
@@ -389,13 +506,26 @@ export class APIManager {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ categoryName })
             });
+            const result = await ResponseHandler.handle(response, {
+                showMessage: true,
+                onSuccess: () => {
+                    console.log(`✅ Catégorie "${categoryName}" créée`);
+                },
+                onError: (error) => {
+                    if (error.error === 'CONFLICT') {
+                        console.warn(`⚠️ La catégorie "${categoryName}" existe déjà`);
+                    } else {
+                        console.error('❌ Erreur création:', error.message);
+                    }
+                }
+            });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Erreur serveur');
+            if (!result.success) {
+                throw new Error(result.message);
             }
 
-            return await response.json();
+            return result.data;
+
         } catch (error) {
             console.error('Erreur création catégorie:', error);
             throw error;
@@ -407,6 +537,7 @@ export class APIManager {
      * @param {string} oldName - Nom actuel
      * @param {string} newName - Nouveau nom
      * @returns {Promise<Object>} Résultat de l'opération
+     * @throws {Error} Si le renommage échoue
      */
     static async renameCategory(oldName, newName) {
         try {
@@ -416,13 +547,28 @@ export class APIManager {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ newName })
             });
+            const result = await ResponseHandler.handle(response, {
+                showMessage: true,
+                onSuccess: () => {
+                    console.log(`✅ Catégorie renommée: "${oldName}" → "${newName}"`);
+                },
+                onError: (error) => {
+                    if (error.error === 'NOT_FOUND') {
+                        console.warn(`⚠️ Catégorie "${oldName}" introuvable`);
+                    } else if (error.error === 'CONFLICT') {
+                        console.warn(`⚠️ Une catégorie "${newName}" existe déjà`);
+                    } else {
+                        console.error('❌ Erreur renommage:', error.message);
+                    }
+                }
+            });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Erreur serveur');
+            if (!result.success) {
+                throw new Error(result.message);
             }
 
-            return await response.json();
+            return result.data;
+
         } catch (error) {
             console.error('Erreur renommage catégorie:', error);
             throw error;
@@ -433,6 +579,7 @@ export class APIManager {
      * Supprime une catégorie et tous ses items
      * @param {string} categoryName - Nom de la catégorie à supprimer
      * @returns {Promise<Object>} Résultat de l'opération
+     * @throws {Error} Si la suppression échoue
      */
     static async deleteCategory(categoryName) {
         try {
@@ -442,12 +589,26 @@ export class APIManager {
                 headers: { 'Content-Type': 'application/json' }
             });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Erreur serveur');
+            const result = await ResponseHandler.handle(response, {
+                showMessage: true,
+                onSuccess: () => {
+                    console.log(`✅ Catégorie "${categoryName}" supprimée`);
+                },
+                onError: (error) => {
+                    if (error.error === 'NOT_FOUND') {
+                        console.warn(`⚠️ Catégorie "${categoryName}" introuvable`);
+                    } else {
+                        console.error('❌ Erreur suppression:', error.message);
+                    }
+                }
+            });
+
+            if (!result.success) {
+                throw new Error(result.message);
             }
 
-            return await response.json();
+            return result.data;
+
         } catch (error) {
             console.error('Erreur suppression catégorie:', error);
             throw error;

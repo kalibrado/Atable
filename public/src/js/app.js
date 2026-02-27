@@ -13,7 +13,7 @@ import { UserManager } from './user-manager.js';
 import { Menu } from './menu.js';
 import { ShoppingList } from './shopping-list.js';
 import { SettingsAccordion } from './settings-accordion.js';
-
+import { ResponseHandler } from './response-handler.js';
 /**
  * Classe principale de l'application
  * Orchestre l'initialisation et la coordination des modules
@@ -70,6 +70,7 @@ class AtableApp {
      */
     static exposeGlobalHandlers() {
         // Handlers pour les paramètres
+        window.responseHandler = (response) => ResponseHandler.handle(response);
         window.openSettings = () => SettingsManager.openModal();
         window.closeSettings = () => SettingsManager.closeModal();
         window.toggleNotifications = () => SettingsManager.toggleNotifications();
