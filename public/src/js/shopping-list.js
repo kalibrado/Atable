@@ -48,11 +48,11 @@ export class ShoppingList {
 
         onSuccess: (data) => {
           this.purchasedItems = new Set(data.purchasedItems || []);
-          console.log('✅ Liste de courses chargée');
+          // console.log('✅ Liste de courses chargée');
         },
 
         onError: (error) => {
-          console.warn('❌ Impossible de charger la liste:', error.message);
+          // console.warn('❌ Impossible de charger la liste:', error.message);
         }
       });
 
@@ -61,7 +61,7 @@ export class ShoppingList {
       }
 
     } catch (err) {
-      console.warn('Impossible de charger la liste de courses:', err);
+      // console.warn('Impossible de charger la liste de courses:', err);
       ResponseHandler.handleNetworkError(err, 'loadShoppingList');
     }
   }
@@ -81,16 +81,16 @@ export class ShoppingList {
         showMessage: false,
 
         onSuccess: () => {
-          console.log('✅ Liste de courses sauvegardée');
+          // console.log('✅ Liste de courses sauvegardée');
         },
 
         onError: (error) => {
-          console.warn('❌ Erreur sauvegarde:', error.message);
+          // console.warn('❌ Erreur sauvegarde:', error.message);
         }
       });
 
     } catch (err) {
-      console.warn('Impossible de sauvegarder la liste de courses:', err);
+      // console.warn('Impossible de sauvegarder la liste de courses:', err);
       ResponseHandler.handleNetworkError(err, 'saveShoppingList');
     } finally {
       this._saving = false;
@@ -153,11 +153,11 @@ export class ShoppingList {
         }
       }
 
-      console.log(`✅ ${counts.size} ingrédients trouvés`);
+      // console.log(`✅ ${counts.size} ingrédients trouvés`);
       return counts;
 
     } catch (error) {
-      console.error('❌ Erreur agrégation ingrédients:', error);
+      // console.error('❌ Erreur agrégation ingrédients:', error);
       return counts;
     }
   }
@@ -214,16 +214,16 @@ export class ShoppingList {
         showMessage: true,
 
         onSuccess: () => {
-          console.log('✅ Liste réinitialisée');
+          // console.log('✅ Liste réinitialisée');
         },
 
         onError: (error) => {
-          console.warn('❌ Erreur réinitialisation:', error.message);
+          // console.warn('❌ Erreur réinitialisation:', error.message);
         }
       });
 
     } catch (err) {
-      console.warn('Impossible de réinitialiser la liste sur le serveur:', err);
+      // console.warn('Impossible de réinitialiser la liste sur le serveur:', err);
       ResponseHandler.handleNetworkError(err, 'resetShoppingList');
     }
   }

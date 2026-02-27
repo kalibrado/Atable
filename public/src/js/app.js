@@ -23,16 +23,16 @@ class AtableApp {
         try {
             const response = await fetch('/auth/me');
             if (response.status === 401) {
-                console.warn('⚠️ Non authentifié, redirection vers login');
+                // console.warn('⚠️ Non authentifié, redirection vers login');
 
                 ResponseHandler.handleUnauthorized({
                     redirect: true
                 });
             } else {
-                console.log('✅ Utilisateur authentifié');
+                // console.log('✅ Utilisateur authentifié');
             }
         } catch (error) {
-            console.log('Utilisateur non connecté');
+            // console.log('Utilisateur non connecté');
         }
     }
 
@@ -78,7 +78,7 @@ class AtableApp {
             ThemeManager.setupToggleListener();
 
         } catch (error) {
-            console.error('Erreur lors de l\'initialisation:', error);
+            // console.error('Erreur lors de l\'initialisation:', error);
             UIManager.showStatus(
                 'Erreur d\'initialisation de l\'application',
                 'error'
@@ -149,7 +149,7 @@ class AtableApp {
         // Pour compatibilité avec le HTML existant (onclick="toggleMobileMenu()")
         window.toggleMobileMenu = () => Menu.toggle();
 
-        console.log('✅ Handlers globaux exposés');
+        // console.log('✅ Handlers globaux exposés');
     }
 }
 

@@ -14,12 +14,12 @@ export class SettingsAccordion {
    * Initialise l'accordéon
    */
   static initialize() {
-    console.log('🎯 Initialisation de l\'accordéon des paramètres');
+    // console.log('🎯 Initialisation de l\'accordéon des paramètres');
     
     // Récupérer la modal pour cibler uniquement ses sections
     const modal = document.getElementById('settings-modal');
     if (!modal) {
-      console.warn('⚠️ Modal de paramètres non trouvée');
+      // console.warn('⚠️ Modal de paramètres non trouvée');
       return;
     }
 
@@ -29,7 +29,7 @@ export class SettingsAccordion {
     // Attacher les événements
     this.attachEventListeners(modal);
 
-    console.log('✅ Accordéon initialisé');
+    // console.log('✅ Accordéon initialisé');
   }
 
   /**
@@ -40,7 +40,7 @@ export class SettingsAccordion {
     // Chercher UNIQUEMENT dans la modal
     const headers = container.querySelectorAll('.settings-section-header');
     
-    console.log(`📍 Trouvé ${headers.length} headers d'accordéon`);
+    // console.log(`📍 Trouvé ${headers.length} headers d'accordéon`);
 
     headers.forEach((header, index) => {
       // Supprimer les anciens event listeners (cloner et replacer)
@@ -53,7 +53,7 @@ export class SettingsAccordion {
         e.stopPropagation();
         
         const section = newHeader.closest('.settings-section');
-        console.log(`🔘 Clic header #${index}:`, section?.dataset.section);
+        // console.log(`🔘 Clic header #${index}:`, section?.dataset.section);
         
         if (section) {
           this.toggleSection(section);
@@ -71,25 +71,25 @@ export class SettingsAccordion {
    */
   static toggleSection(section) {
     if (!section) {
-      console.warn('⚠️ Section non trouvée');
+      // console.warn('⚠️ Section non trouvée');
       return;
     }
 
     const sectionId = section.dataset.section;
     const isCollapsed = section.classList.contains('collapsed');
 
-    console.log(`🔄 Toggle section "${sectionId}" (actuellement: ${isCollapsed ? 'fermée' : 'ouverte'})`);
+    // console.log(`🔄 Toggle section "${sectionId}" (actuellement: ${isCollapsed ? 'fermée' : 'ouverte'})`);
 
     if (isCollapsed) {
       // Ouvrir la section
       section.classList.remove('collapsed');
       this.state.collapsedSections.delete(sectionId);
-      console.log(`✅ Ouverture: ${sectionId}`);
+      // console.log(`✅ Ouverture: ${sectionId}`);
     } else {
       // Fermer la section
       section.classList.add('collapsed');
       this.state.collapsedSections.add(sectionId);
-      console.log(`✅ Fermeture: ${sectionId}`);
+      // console.log(`✅ Fermeture: ${sectionId}`);
     }
 
     // Sauvegarder l'état dans localStorage
@@ -100,7 +100,7 @@ export class SettingsAccordion {
    * Ouvre toutes les sections
    */
   static expandAll() {
-    console.log('📂 Ouverture de TOUTES les sections');
+    // console.log('📂 Ouverture de TOUTES les sections');
     
     const modal = document.getElementById('settings-modal');
     if (!modal) return;
@@ -118,7 +118,7 @@ export class SettingsAccordion {
    * Ferme toutes les sections
    */
   static collapseAll() {
-    console.log('📁 Fermeture de TOUTES les sections');
+    // console.log('📁 Fermeture de TOUTES les sections');
     
     const modal = document.getElementById('settings-modal');
     if (!modal) return;
@@ -142,9 +142,9 @@ export class SettingsAccordion {
         'atable-settings-accordion-state',
         JSON.stringify(state)
       );
-      console.log('💾 État accordéon sauvegardé:', state);
+      // console.log('💾 État accordéon sauvegardé:', state);
     } catch (error) {
-      console.error('❌ Erreur sauvegarde état accordéon:', error);
+      // console.error('❌ Erreur sauvegarde état accordéon:', error);
     }
   }
 
@@ -155,7 +155,7 @@ export class SettingsAccordion {
     try {
       const modal = document.getElementById('settings-modal');
       if (!modal) {
-        console.warn('⚠️ Modal non trouvée pour restaurer l\'état');
+        // console.warn('⚠️ Modal non trouvée pour restaurer l\'état');
         return;
       }
 
@@ -164,7 +164,7 @@ export class SettingsAccordion {
         const collapsedIds = JSON.parse(saved);
         this.state.collapsedSections = new Set(collapsedIds);
 
-        console.log('📂 État restauré:', collapsedIds);
+        // console.log('📂 État restauré:', collapsedIds);
 
         // Appliquer l'état
         const sections = modal.querySelectorAll('.settings-section');
@@ -187,7 +187,7 @@ export class SettingsAccordion {
         this.saveState();
       }
     } catch (error) {
-      console.error('❌ Erreur restauration état accordéon:', error);
+      // console.error('❌ Erreur restauration état accordéon:', error);
     }
   }
 
@@ -209,6 +209,6 @@ export class SettingsAccordion {
       }
     };
     
-    console.log('✅ Handlers accordéon exposés globalement');
+    // console.log('✅ Handlers accordéon exposés globalement');
   }
 }

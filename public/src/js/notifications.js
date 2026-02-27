@@ -18,18 +18,18 @@ async function getVapidPublicKey() {
             
             onSuccess: (data) => {
                 vapidPublicKey = data.publicKey;
-                console.log('✅ Clé VAPID récupérée');
+                // console.log('✅ Clé VAPID récupérée');
             },
             
             onError: (error) => {
-                console.error('❌ Erreur récupération clé VAPID:', error.message);
+                // console.error('❌ Erreur récupération clé VAPID:', error.message);
             }
         });
 
         return result.success ? result.data.publicKey : null;
 
     } catch (error) {
-        console.error('Erreur récupération clé VAPID:', error);
+        // console.error('Erreur récupération clé VAPID:', error);
         return null;
     }
 }
@@ -52,24 +52,24 @@ function urlBase64ToUint8Array(base64String) {
 
 async function registerServiceWorker() {
     if (!('serviceWorker' in navigator)) {
-        console.warn('Service Workers non supportés');
+        // console.warn('Service Workers non supportés');
         return null;
     }
 
     try {
         const registration = await navigator.serviceWorker.register('/service-worker.js');
         await navigator.serviceWorker.ready;
-        console.log('✅ Service Worker enregistré');
+        // console.log('✅ Service Worker enregistré');
         return registration;
     } catch (error) {
-        console.error('❌ Erreur Service Worker:', error);
+        // console.error('❌ Erreur Service Worker:', error);
         return null;
     }
 }
 
 async function requestPermission() {
     if (!('Notification' in window)) {
-        console.warn('Notifications non supportées');
+        // console.warn('Notifications non supportées');
         return false;
     }
 
@@ -126,7 +126,7 @@ async function subscribe(settings = {}) {
             showMessage: true,
             
             onSuccess: (data) => {
-                console.log('✅ Notifications activées');
+                // console.log('✅ Notifications activées');
                 notificationSettings = {
                     enabled: true,
                     hour: settings.hour || 8,
@@ -135,14 +135,14 @@ async function subscribe(settings = {}) {
             },
             
             onError: (error) => {
-                console.error('❌ Erreur abonnement:', error.message);
+                // console.error('❌ Erreur abonnement:', error.message);
             }
         });
 
         return result.success ? result.data : false;
 
     } catch (error) {
-        console.error('❌ Erreur abonnement push:', error);
+        // console.error('❌ Erreur abonnement push:', error);
         ResponseHandler.handleNetworkError(error, 'subscribe');
         return false;
     }
@@ -165,7 +165,7 @@ async function unsubscribe() {
             showMessage: true,
             
             onSuccess: () => {
-                console.log('✅ Notifications désactivées');
+                // console.log('✅ Notifications désactivées');
                 notificationSettings = {
                     enabled: false,
                     hour: 8,
@@ -174,14 +174,14 @@ async function unsubscribe() {
             },
             
             onError: (error) => {
-                console.error('❌ Erreur désabonnement:', error.message);
+                // console.error('❌ Erreur désabonnement:', error.message);
             }
         });
 
         return result.success;
 
     } catch (error) {
-        console.error('❌ Erreur désabonnement:', error);
+        // console.error('❌ Erreur désabonnement:', error);
         ResponseHandler.handleNetworkError(error, 'unsubscribe');
         return false;
     }

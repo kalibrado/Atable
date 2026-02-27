@@ -28,13 +28,13 @@ export class APIManager {
             await ResponseHandler.handle(response, {
                 showMessage: false,  // Pas de message pour les chargements normaux
                 onSuccess: (data) => {
-                    console.debug('Données reçues du serveur:', data);
+                    // console.debug('Données reçues du serveur:', data);
                     StorageManager.saveToCache(data);
                     result = data
-                    console.log('✅ Repas chargés avec succès');
+                    // console.log('✅ Repas chargés avec succès');
                 },
                 onError: (error) => {
-                    console.error('❌ Erreur chargement repas:', error.message);
+                    // console.error('❌ Erreur chargement repas:', error.message);
                     // Fallback sur cache
                     const cachedData = StorageManager.getFromCache();
                     if (cachedData) {
@@ -47,7 +47,7 @@ export class APIManager {
             return result;
 
         } catch (error) {
-            console.error('Erreur chargement repas:', error);
+            // console.error('Erreur chargement repas:', error);
             const cachedData = StorageManager.getFromCache();
 
             if (cachedData) {
@@ -67,7 +67,7 @@ export class APIManager {
      */
     static async saveMeals(data) {
         try {
-            console.debug('Envoi des données au serveur:', data);
+            // console.debug('Envoi des données au serveur:', data);
             const response = await fetch(API_CONFIG.MEALS_URL, {
                 method: 'PUT',
                 headers: {
@@ -83,10 +83,10 @@ export class APIManager {
                     StorageManager.clearPendingData();
                     StorageManager.saveToCache(data);
                     result = data;
-                    console.log('✅ Repas sauvegardés avec succès');
+                    // console.log('✅ Repas sauvegardés avec succès');
                 },
                 onError: (error) => {
-                    console.error('❌ Erreur sauvegarde:', error.message);
+                    // console.error('❌ Erreur sauvegarde:', error.message);
                     result = { success: false, message: error.message };
                 }
             });
@@ -94,7 +94,7 @@ export class APIManager {
             return result.success;
 
         } catch (error) {
-            console.error('Erreur sauvegarde:', error);
+            // console.error('Erreur sauvegarde:', error);
 
             if (!navigator.onLine) {
                 return this._handleOfflineSave(data);
@@ -112,7 +112,7 @@ export class APIManager {
      * @returns {boolean} False (échec de sauvegarde serveur)
      */
     static _handleOfflineSave(data) {
-        console.warn('📡 Enregistrement en mode hors ligne');
+        // console.warn('📡 Enregistrement en mode hors ligne');
         StorageManager.savePendingData(data);
         StorageManager.saveToCache(data);
 
@@ -149,17 +149,17 @@ export class APIManager {
 
                 onSuccess: () => {
                     StorageManager.clearPendingData();
-                    console.log('✅ Synchronisation réussie');
+                    // console.log('✅ Synchronisation réussie');
                 },
                 onError: (error) => {
-                    console.error('❌ Erreur sync:', error.message);
+                    // console.error('❌ Erreur sync:', error.message);
                 }
             });
 
             return result.success;
 
         } catch (error) {
-            console.error('Erreur de synchronisation:', error);
+            // console.error('Erreur de synchronisation:', error);
             ResponseHandler.handleNetworkError(error, 'syncPendingData');
             return false;
         }
@@ -176,13 +176,13 @@ export class APIManager {
             const result = await ResponseHandler.handle(response, {
                 showMessage: false,
                 onSuccess: (data) => {
-                    console.log('✅ Infos utilisateur chargées');
+                    // console.log('✅ Infos utilisateur chargées');
                     return data;
                 },
                 onError: (error) => {
-                    console.error('❌ Erreur récupération utilisateur:', error.message);
+                    // console.error('❌ Erreur récupération utilisateur:', error.message);
                     if (error.status === 401) {
-                        console.warn('⚠️ Session expirée');
+                        // console.warn('⚠️ Session expirée');
                         ResponseHandler.handleUnauthorized({
                             redirect: true
                         });
@@ -201,7 +201,7 @@ export class APIManager {
             return result;
 
         } catch (error) {
-            console.error('Erreur récupération utilisateur:', error);
+            // console.error('Erreur récupération utilisateur:', error);
             ResponseHandler.handleNetworkError(error, 'fetchUserInfo');
             return null;
         }
@@ -221,17 +221,17 @@ export class APIManager {
                 showMessage: true,
                 onSuccess: () => {
                     StorageManager.clearAll();
-                    console.log('✅ Déconnecté avec succès');
+                    // console.log('✅ Déconnecté avec succès');
                 },
                 onError: (error) => {
-                    console.error('❌ Erreur déconnexion:', error.message);
+                    // console.error('❌ Erreur déconnexion:', error.message);
                 }
             });
 
             return result.success;
 
         } catch (error) {
-            console.error('Erreur déconnexion:', error);
+            // console.error('Erreur déconnexion:', error);
             ResponseHandler.handleNetworkError(error, 'logout');
             return false;
         }
@@ -254,17 +254,17 @@ export class APIManager {
             const result = await ResponseHandler.handle(response, {
                 showMessage: true,
                 onSuccess: () => {
-                    console.log('✅ Paramètres mis à jour');
+                    // console.log('✅ Paramètres mis à jour');
                 },
                 onError: (error) => {
-                    console.error('❌ Erreur mise à jour:', error.message);
+                    // console.error('❌ Erreur mise à jour:', error.message);
                 }
             });
 
             return result.success;
 
         } catch (error) {
-            console.error('Erreur mise à jour paramètres:', error);
+            // console.error('Erreur mise à jour paramètres:', error);
             ResponseHandler.handleNetworkError(error, 'updateSettings');
             return false;
         }
@@ -280,10 +280,10 @@ export class APIManager {
             const result = await ResponseHandler.handle(response, {
                 showMessage: false,
                 onSuccess: (data) => {
-                    console.log('✅ Ingrédients chargés');
+                    // console.log('✅ Ingrédients chargés');
                 },
                 onError: (error) => {
-                    console.warn('⚠️ Erreur ingrédients:', error.message);
+                    // console.warn('⚠️ Erreur ingrédients:', error.message);
                 }
             });
 
@@ -294,7 +294,7 @@ export class APIManager {
             return result.data || { ingredients: {} };
 
         } catch (error) {
-            console.error('Erreur chargement ingrédients:', error);
+            // console.error('Erreur chargement ingrédients:', error);
             ResponseHandler.handleNetworkError(error, 'fetchIngredients');
             return { ingredients: {} };
         }
@@ -320,13 +320,13 @@ export class APIManager {
             const result = await ResponseHandler.handle(response, {
                 showMessage: true,
                 onSuccess: (data) => {
-                    console.log(`✅ Item "${item}" ajouté`);
+                    // console.log(`✅ Item "${item}" ajouté`);
                 },
                 onError: (error) => {
                     if (error.error === 'CONFLICT') {
-                        console.warn(`⚠️ L'item "${item}" existe déjà`);
+                        // console.warn(`⚠️ L'item "${item}" existe déjà`);
                     } else {
-                        console.error('❌ Erreur ajout item:', error.message);
+                        // console.error('❌ Erreur ajout item:', error.message);
                     }
                 }
             });
@@ -335,7 +335,7 @@ export class APIManager {
             }
             return result.data;
         } catch (error) {
-            console.error('Erreur ajout item:', error);
+            // console.error('Erreur ajout item:', error);
             throw error;
         }
     }
@@ -360,10 +360,10 @@ export class APIManager {
             const result = await ResponseHandler.handle(response, {
                 showMessage: true,
                 onSuccess: (data) => {
-                    console.log(`✅ Item "${item}" supprimé`);
+                    // console.log(`✅ Item "${item}" supprimé`);
                 },
                 onError: (error) => {
-                    console.error('❌ Erreur suppression:', error.message);
+                    // console.error('❌ Erreur suppression:', error.message);
                 }
             });
             if (!result.success) {
@@ -371,7 +371,7 @@ export class APIManager {
             }
             return result.data;
         } catch (error) {
-            console.error('Erreur suppression item:', error);
+            // console.error('Erreur suppression item:', error);
             throw error;
         }
     }
@@ -396,10 +396,10 @@ export class APIManager {
             const result = await ResponseHandler.handle(response, {
                 showMessage: true,
                 onSuccess: () => {
-                    console.log(`✅ Préférences mises à jour pour "${category}"`);
+                    // console.log(`✅ Préférences mises à jour pour "${category}"`);
                 },
                 onError: (error) => {
-                    console.error('❌ Erreur mise à jour repas:', error.message);
+                    // console.error('❌ Erreur mise à jour repas:', error.message);
                 }
             });
 
@@ -410,7 +410,7 @@ export class APIManager {
             return result.data;
 
         } catch (error) {
-            console.error('Erreur mise à jour repas:', error);
+            // console.error('Erreur mise à jour repas:', error);
             throw error;
         }
     }
@@ -436,10 +436,10 @@ export class APIManager {
             const result = await ResponseHandler.handle(response, {
                 showMessage: true,
                 onSuccess: () => {
-                    console.log(`✅ Jours de la semaine mis à jour pour "${category}"`);
+                    // console.log(`✅ Jours de la semaine mis à jour pour "${category}"`);
                 },
                 onError: (error) => {
-                    console.error('❌ Erreur mise à jour jours:', error.message);
+                    // console.error('❌ Erreur mise à jour jours:', error.message);
                 }
             });
 
@@ -450,7 +450,7 @@ export class APIManager {
             return result.data;
 
         } catch (error) {
-            console.error('Erreur mise à jour jours:', error);
+            // console.error('Erreur mise à jour jours:', error);
             throw error;
         }
     }
@@ -476,18 +476,18 @@ export class APIManager {
                 showMessage: false,
                 onSuccess: (data) => {
                     const action = replaceAll ? 'remplacés' : 'générés';
-                    console.log(`✅ Repas ${action} avec succès`);
-                    console.log('Données reçues:', data);
+                    // console.log(`✅ Repas ${action} avec succès`);
+                    // console.log('Données reçues:', data);
                     result = data;
                 },
                 onError: (error) => {
-                    console.error('❌ Erreur génération:', error.message);
+                    // console.error('❌ Erreur génération:', error.message);
                     result = { success: false, message: error.message };
                 }
             });
             return result;
         } catch (error) {
-            console.error('Erreur génération repas:', error);
+            // console.error('Erreur génération repas:', error);
             throw error;
         }
     }
@@ -516,13 +516,13 @@ export class APIManager {
             const result = await ResponseHandler.handle(response, {
                 showMessage: true,
                 onSuccess: (data) => {
-                    console.log(`✅ Repas généré pour ${mealType}`);
+                    // console.log(`✅ Repas généré pour ${mealType}`);
                 },
                 onError: (error) => {
                     if (error.error === 'ALL_USED') {
-                        console.warn('⚠️ Tous les repas disponibles sont utilisés');
+                        // console.warn('⚠️ Tous les repas disponibles sont utilisés');
                     } else {
-                        console.error('❌ Erreur génération:', error.message);
+                        // console.error('❌ Erreur génération:', error.message);
                     }
                 }
             });
@@ -534,7 +534,7 @@ export class APIManager {
             return result.data;
 
         } catch (error) {
-            console.error('Erreur génération repas unique:', error);
+            // console.error('Erreur génération repas unique:', error);
             throw error;
         }
     }
@@ -555,13 +555,13 @@ export class APIManager {
             const result = await ResponseHandler.handle(response, {
                 showMessage: true,
                 onSuccess: () => {
-                    console.log(`✅ Catégorie "${categoryName}" créée`);
+                    // console.log(`✅ Catégorie "${categoryName}" créée`);
                 },
                 onError: (error) => {
                     if (error.error === 'CONFLICT') {
-                        console.warn(`⚠️ La catégorie "${categoryName}" existe déjà`);
+                        // console.warn(`⚠️ La catégorie "${categoryName}" existe déjà`);
                     } else {
-                        console.error('❌ Erreur création:', error.message);
+                        // console.error('❌ Erreur création:', error.message);
                     }
                 }
             });
@@ -573,7 +573,7 @@ export class APIManager {
             return result.data;
 
         } catch (error) {
-            console.error('Erreur création catégorie:', error);
+            // console.error('Erreur création catégorie:', error);
             throw error;
         }
     }
@@ -596,15 +596,15 @@ export class APIManager {
             const result = await ResponseHandler.handle(response, {
                 showMessage: true,
                 onSuccess: () => {
-                    console.log(`✅ Catégorie renommée: "${oldName}" → "${newName}"`);
+                    // console.log(`✅ Catégorie renommée: "${oldName}" → "${newName}"`);
                 },
                 onError: (error) => {
                     if (error.error === 'NOT_FOUND') {
-                        console.warn(`⚠️ Catégorie "${oldName}" introuvable`);
+                        // console.warn(`⚠️ Catégorie "${oldName}" introuvable`);
                     } else if (error.error === 'CONFLICT') {
-                        console.warn(`⚠️ Une catégorie "${newName}" existe déjà`);
+                        // console.warn(`⚠️ Une catégorie "${newName}" existe déjà`);
                     } else {
-                        console.error('❌ Erreur renommage:', error.message);
+                        // console.error('❌ Erreur renommage:', error.message);
                     }
                 }
             });
@@ -616,7 +616,7 @@ export class APIManager {
             return result.data;
 
         } catch (error) {
-            console.error('Erreur renommage catégorie:', error);
+            // console.error('Erreur renommage catégorie:', error);
             throw error;
         }
     }
@@ -638,13 +638,13 @@ export class APIManager {
             const result = await ResponseHandler.handle(response, {
                 showMessage: true,
                 onSuccess: () => {
-                    console.log(`✅ Catégorie "${categoryName}" supprimée`);
+                    // console.log(`✅ Catégorie "${categoryName}" supprimée`);
                 },
                 onError: (error) => {
                     if (error.error === 'NOT_FOUND') {
-                        console.warn(`⚠️ Catégorie "${categoryName}" introuvable`);
+                        // console.warn(`⚠️ Catégorie "${categoryName}" introuvable`);
                     } else {
-                        console.error('❌ Erreur suppression:', error.message);
+                        // console.error('❌ Erreur suppression:', error.message);
                     }
                 }
             });
@@ -656,7 +656,7 @@ export class APIManager {
             return result.data;
 
         } catch (error) {
-            console.error('Erreur suppression catégorie:', error);
+            // console.error('Erreur suppression catégorie:', error);
             throw error;
         }
     }

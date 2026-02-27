@@ -29,34 +29,34 @@ export class Menu {
    * @returns {void}
    */
   static init() {
-    console.log('🍔 Initialisation du menu hamburger...');
+    // console.log('🍔 Initialisation du menu hamburger...');
     
     this.modal = document.getElementById('mobile-menu-modal');
     const hamburgerBtn = document.getElementById('hamburger-btn');
     const closeBtn = this.modal?.querySelector('.close-menu-btn');
 
     if (!this.modal) {
-      console.warn('⚠️ Modal du menu introuvable (#mobile-menu-modal)');
+      // console.warn('⚠️ Modal du menu introuvable (#mobile-menu-modal)');
       return;
     }
 
     if (!hamburgerBtn) {
-      console.warn('⚠️ Bouton hamburger introuvable (#hamburger-btn)');
+      // console.warn('⚠️ Bouton hamburger introuvable (#hamburger-btn)');
       return;
     }
 
-    console.log('✅ Éléments du menu trouvés');
+    // console.log('✅ Éléments du menu trouvés');
 
     // Événements des boutons
     hamburgerBtn.addEventListener('click', (e) => {
-      console.log('🍔 Clic sur hamburger');
+      // console.log('🍔 Clic sur hamburger');
       e.stopPropagation();
       this.toggle();
     });
 
     if (closeBtn) {
       closeBtn.addEventListener('click', (e) => {
-        console.log('❌ Clic sur fermeture menu');
+        // console.log('❌ Clic sur fermeture menu');
         e.stopPropagation();
         this.close();
       });
@@ -72,7 +72,7 @@ export class Menu {
 
     // Fermeture au clic sur le backdrop
     this.modal.addEventListener('click', (e) => {
-      console.log('🎯 Clic sur backdrop');
+      // console.log('🎯 Clic sur backdrop');
       if (e.target === this.modal) {
         this.close();
       }
@@ -84,7 +84,7 @@ export class Menu {
     // Récupérer les éléments focusables
     this.updateFocusableElements();
 
-    console.log('✅ Menu hamburger initialisé avec succès');
+    // console.log('✅ Menu hamburger initialisé avec succès');
   }
 
   /**
@@ -98,7 +98,7 @@ export class Menu {
 
       switch (e.key) {
         case 'Escape':
-          console.log('⌨️ Escape pressé');
+          // console.log('⌨️ Escape pressé');
           this.close();
           break;
         case 'Tab':
@@ -152,7 +152,7 @@ export class Menu {
    * @returns {void}
    */
   static toggle() {
-    console.log(`🔄 Toggle menu (actuellement: ${this.isOpen ? 'ouvert' : 'fermé'})`);
+    // console.log(`🔄 Toggle menu (actuellement: ${this.isOpen ? 'ouvert' : 'fermé'})`);
     this.isOpen ? this.close() : this.open();
   }
 
@@ -162,11 +162,11 @@ export class Menu {
    */
   static open() {
     if (!this.modal || this.isOpen) {
-      console.warn('⚠️ Impossible d\'ouvrir: modal introuvable ou déjà ouvert');
+      // console.warn('⚠️ Impossible d\'ouvrir: modal introuvable ou déjà ouvert');
       return;
     }
 
-    console.log('📂 Ouverture du menu');
+    // console.log('📂 Ouverture du menu');
 
     // Annuler un éventuel timeout de fermeture en cours
     if (this.closeTimeout) {
@@ -207,11 +207,11 @@ export class Menu {
    */
   static close() {
     if (!this.modal || !this.isOpen) {
-      console.warn('⚠️ Impossible de fermer: modal introuvable ou déjà fermé');
+      // console.warn('⚠️ Impossible de fermer: modal introuvable ou déjà fermé');
       return;
     }
 
-    console.log('📁 Fermeture du menu');
+    // console.log('📁 Fermeture du menu');
 
     // Ajouter la classe pour l'animation de sortie
     this.modal.classList.add('closing');
@@ -277,7 +277,7 @@ export class Menu {
   static forceClose() {
     if (!this.modal) return;
 
-    console.log('🛑 Fermeture forcée du menu');
+    // console.log('🛑 Fermeture forcée du menu');
 
     this.modal.classList.remove('active', 'closing');
     this.isOpen = false;

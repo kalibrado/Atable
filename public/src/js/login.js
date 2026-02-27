@@ -148,7 +148,7 @@ const login = () => {
         showMessage: true,
 
         onSuccess: (data) => {
-          console.log('✅ Connexion réussie');
+          // console.log('✅ Connexion réussie');
           window.location.href = '/';
         },
 
@@ -231,7 +231,7 @@ const login = () => {
         showMessage: true,
 
         onSuccess: (data) => {
-          console.log('✅ Inscription réussie');
+          // console.log('✅ Inscription réussie');
           window.location.href = '/';
         },
 

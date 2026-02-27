@@ -26,8 +26,8 @@ export class ResponseHandler {
    * const response = await fetch('/api/users');
    * const result = await ResponseHandler.handle(response, {
    *   showMessage: true,
-   *   onSuccess: (data) => console.log('Succès:', data),
-   *   onError: (error) => console.error('Erreur:', error)
+   *   onSuccess: (data) => // console.log('Succès:', data),
+   *   onError: (error) => // console.error('Erreur:', error)
    * });
    */
   static async handle(response, options = {}) {
@@ -137,7 +137,7 @@ export class ResponseHandler {
     }
 
     // Fallback : Log dans la console
-    console.log(`[${type.toUpperCase()}] ${message}`);
+    // console.log(`[${type.toUpperCase()}] ${message}`);
   }
 
   /**
@@ -188,7 +188,7 @@ export class ResponseHandler {
 
     this.showMessage(message, 'error', 4000);
     
-    console.error(`[${context}] Network error:`, error);
+    // console.error(`[${context}] Network error:`, error);
 
     return {
       success: false,

@@ -17,10 +17,10 @@ export class StorageManager {
    */
   static saveToCache(data) {
     try {
-      console.debug('Sauvegarde dans le cache local:', data);
+      // console.debug('Sauvegarde dans le cache local:', data);
       localStorage.setItem(STORAGE_KEYS.CACHE, JSON.stringify(data));
     } catch (error) {
-      console.error('Erreur sauvegarde cache:', error);
+      // console.error('Erreur sauvegarde cache:', error);
     }
   }
 
@@ -33,7 +33,7 @@ export class StorageManager {
       const cached = localStorage.getItem(STORAGE_KEYS.CACHE);
       return cached ? JSON.parse(cached) : null;
     } catch (error) {
-      console.error('Erreur lecture cache:', error);
+      // console.error('Erreur lecture cache:', error);
       return null;
     }
   }
@@ -48,7 +48,7 @@ export class StorageManager {
     try {
       localStorage.setItem(STORAGE_KEYS.PENDING_SAVE, JSON.stringify(data));
     } catch (error) {
-      console.error('Erreur sauvegarde données en attente:', error);
+      // console.error('Erreur sauvegarde données en attente:', error);
     }
   }
 
@@ -61,7 +61,7 @@ export class StorageManager {
       const pending = localStorage.getItem(STORAGE_KEYS.PENDING_SAVE);
       return pending ? JSON.parse(pending) : null;
     } catch (error) {
-      console.error('Erreur lecture données en attente:', error);
+      // console.error('Erreur lecture données en attente:', error);
       return null;
     }
   }
@@ -74,7 +74,7 @@ export class StorageManager {
     try {
       localStorage.removeItem(STORAGE_KEYS.PENDING_SAVE);
     } catch (error) {
-      console.error('Erreur suppression données en attente:', error);
+      // console.error('Erreur suppression données en attente:', error);
     }
   }
 
@@ -88,7 +88,7 @@ export class StorageManager {
       localStorage.removeItem(STORAGE_KEYS.CACHE);
       localStorage.removeItem(STORAGE_KEYS.PENDING_SAVE);
     } catch (error) {
-      console.error('Erreur effacement cache:', error);
+      // console.error('Erreur effacement cache:', error);
     }
   }
 }

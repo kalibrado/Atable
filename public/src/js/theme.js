@@ -47,7 +47,7 @@ export class ThemeManager {
     try {
       return localStorage.getItem(this.STORAGE_KEY);
     } catch (error) {
-      console.error('Erreur lecture thème sauvegardé:', error);
+      // console.error('Erreur lecture thème sauvegardé:', error);
       return null;
     }
   }
@@ -112,7 +112,7 @@ export class ThemeManager {
     try {
       localStorage.setItem(this.STORAGE_KEY, theme);
     } catch (error) {
-      console.error('Erreur sauvegarde thème:', error);
+      // console.error('Erreur sauvegarde thème:', error);
     }
   }
 
@@ -222,7 +222,7 @@ export class ThemeManager {
       this.applyTheme(systemTheme);
       this.updateToggle();
     } catch (error) {
-      console.error('Erreur réinitialisation thème:', error);
+      // console.error('Erreur réinitialisation thème:', error);
     }
   }
 

@@ -37,7 +37,7 @@ export class IngredientsManager {
    */
   static async initialize() {
     try {
-      console.log('🥗 Initialisation des ingrédients...');
+      // console.log('🥗 Initialisation des ingrédients...');
       
       // Charger les ingrédients depuis l'API
       const data = await APIManager.fetchIngredients();
@@ -46,10 +46,10 @@ export class IngredientsManager {
       // Récupérer les catégories depuis la config serveur
       this.state.categories = Object.keys(this.state.ingredients);
       
-      console.log(`✅ ${this.state.categories.length} catégories chargées:`, this.state.categories);
+      // console.log(`✅ ${this.state.categories.length} catégories chargées:`, this.state.categories);
 
     } catch (error) {
-      console.error('Erreur initialisation ingrédients:', error);
+      // console.error('Erreur initialisation ingrédients:', error);
       UIManager.showStatus('Erreur lors du chargement des ingrédients', STATUS_TYPES.ERROR);
     }
   }
@@ -58,11 +58,11 @@ export class IngredientsManager {
    * Rend l'interface des ingrédients dans la modal
    */
   static render() {
-    console.log('🎨 Rendu des ingrédients...');
+    // console.log('🎨 Rendu des ingrédients...');
     
     const container = document.getElementById('ingredients-container');
     if (!container) {
-      console.warn('⚠️ Conteneur "ingredients-container" introuvable');
+      // console.warn('⚠️ Conteneur "ingredients-container" introuvable');
       return;
     }
 
@@ -88,7 +88,7 @@ export class IngredientsManager {
     ${categoriesHTML}
     `;
     
-    console.log('🎯 Attache des event listeners aux catégories...');
+    // console.log('🎯 Attache des event listeners aux catégories...');
     
     // Attacher les événements APRÈS le rendu
     this.attachEventListeners();
@@ -96,7 +96,7 @@ export class IngredientsManager {
     // Exposer les handlers
     this.exposeHandlers();
     
-    console.log('✅ Ingrédients rendus avec succès');
+    // console.log('✅ Ingrédients rendus avec succès');
   }
 
   /**
@@ -343,11 +343,11 @@ export class IngredientsManager {
    * @param {string} category - La catégorie à toggle
    */
   static toggleCategory(category) {
-    console.log(`🔄 Toggle catégorie: "${category}"`);
+    // console.log(`🔄 Toggle catégorie: "${category}"`);
     
     const categoryElement = document.querySelector(`.ingredient-category[data-category="${category}"]`);
     if (!categoryElement) {
-      console.warn(`⚠️ Élément catégorie non trouvé pour: "${category}"`);
+      // console.warn(`⚠️ Élément catégorie non trouvé pour: "${category}"`);
       return;
     }
 
@@ -357,12 +357,12 @@ export class IngredientsManager {
       // Ouvrir
       categoryElement.classList.remove('collapsed');
       this.state.collapsedCategories.delete(category);
-      console.log(`✅ Ouverture: ${category}`);
+      // console.log(`✅ Ouverture: ${category}`);
     } else {
       // Fermer
       categoryElement.classList.add('collapsed');
       this.state.collapsedCategories.add(category);
-      console.log(`✅ Fermeture: ${category}`);
+      // console.log(`✅ Fermeture: ${category}`);
     }
   }
 
@@ -469,7 +469,7 @@ export class IngredientsManager {
         UIManager.showStatus(`✓ ${item} ajouté`, STATUS_TYPES.SUCCESS);
       }
     } catch (error) {
-      console.error('Erreur ajout item:', error);
+      // console.error('Erreur ajout item:', error);
       UIManager.showStatus('Erreur lors de l\'ajout', STATUS_TYPES.ERROR);
     }
   }
@@ -499,7 +499,7 @@ export class IngredientsManager {
         UIManager.showStatus(`✓ ${item} supprimé`, STATUS_TYPES.SUCCESS);
       }
     } catch (error) {
-      console.error('Erreur suppression item:', error);
+      // console.error('Erreur suppression item:', error);
       UIManager.showStatus('Erreur lors de la suppression', STATUS_TYPES.ERROR);
     }
   }
@@ -528,7 +528,7 @@ export class IngredientsManager {
         UIManager.showStatus('✓ Préférences mises à jour', STATUS_TYPES.SUCCESS);
       }
     } catch (error) {
-      console.error('Erreur mise à jour repas:', error);
+      // console.error('Erreur mise à jour repas:', error);
       UIManager.showStatus('Erreur lors de la mise à jour', STATUS_TYPES.ERROR);
 
       // Revenir à l'état précédent
@@ -563,7 +563,7 @@ export class IngredientsManager {
         UIManager.showStatus('✓ Jours mis à jour', STATUS_TYPES.SUCCESS);
       }
     } catch (error) {
-      console.error('Erreur mise à jour jours:', error);
+      // console.error('Erreur mise à jour jours:', error);
       UIManager.showStatus('Erreur lors de la mise à jour', STATUS_TYPES.ERROR);
 
       // Revenir à l'état précédent
@@ -638,14 +638,14 @@ export class IngredientsManager {
    * Attache les événements nécessaires à TOUS les éléments
    */
   static attachEventListeners() {
-    console.log('🔗 Attache des event listeners aux catégories...');
+    // console.log('🔗 Attache des event listeners aux catégories...');
     
     // Attacher les listeners pour chaque catégorie
     Object.keys(this.state.ingredients).forEach(category => {
       this.attachCategoryEventListeners(category);
     });
 
-    console.log('✅ Event listeners attachés');
+    // console.log('✅ Event listeners attachés');
   }
 
   /**
@@ -654,7 +654,7 @@ export class IngredientsManager {
   static exposeHandlers() {
     window.ingredientsHandlers = {
       toggleCategory: (category) => {
-        console.log(`🎯 Handler: toggleCategory("${category}")`);
+        // console.log(`🎯 Handler: toggleCategory("${category}")`);
         this.toggleCategory(category);
       },
       addItem: (category) => this.addItem(category),
@@ -668,7 +668,7 @@ export class IngredientsManager {
       closeCategoryImpactModal: () => this.closeCategoryImpactModal(),
     };
     
-    console.log('✅ Handlers ingrédients exposés globalement');
+    // console.log('✅ Handlers ingrédients exposés globalement');
   }
 
   /**

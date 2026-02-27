@@ -132,7 +132,7 @@ export class UIManager {
                 clearTimeout(UIManager.state.saveTimeout);
 
                 const allWeeksData = WeeksManager.getAllWeeksData();
-                console.debug('Données à sauvegarder avant déchargement:', allWeeksData);
+                // console.debug('Données à sauvegarder avant déchargement:', allWeeksData);
 
                 const pendingData = localStorage.getItem('atable-planner-pending-save');
                 if (pendingData && navigator.sendBeacon) {
@@ -164,7 +164,7 @@ export class UIManager {
 
             await APIManager.syncPendingData();
         } catch (error) {
-            console.error('Erreur chargement et rendu:', error);
+            // console.error('Erreur chargement et rendu:', error);
             UIManager.showStatus(
                 'Erreur de chargement des données',
                 STATUS_TYPES.ERROR

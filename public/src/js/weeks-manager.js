@@ -108,12 +108,12 @@ export class WeeksManager {
     ResponseHandler.handle(response, {
       showMessage: true,
       onSuccess: (data) => {
-        console.log(`✅ Semaine ${weekNumber} chargée`);
+        // console.log(`✅ Semaine ${weekNumber} chargée`);
         weekData = data;
         UIManager.getState().mealsData = weekData;
       },
       onError: (error) => {
-        console.error(`❌ Erreur chargement semaine ${weekNumber}:`, error.message);
+        // console.error(`❌ Erreur chargement semaine ${weekNumber}:`, error.message);
       }
     });
 
@@ -156,17 +156,17 @@ export class WeeksManager {
       ResponseHandler.handle(response, {
         showMessage: true,
         onSuccess: () => {
-          console.log(`✅ Nombre de semaines mis à jour: ${newNumberOfWeeks}`);
+          // console.log(`✅ Nombre de semaines mis à jour: ${newNumberOfWeeks}`);
           this.state.numberOfWeeks = newNumberOfWeeks;
           this.renderWeeksTabs();
           window.location.reload();
         },
         onError: (error) => {
-          console.error('❌ Erreur mise à jour nombre de semaines:', error.message);
+          // console.error('❌ Erreur mise à jour nombre de semaines:', error.message);
         }
       });
     } catch (error) {
-      console.error('Erreur mise à jour nombre de semaines:', error);
+      // console.error('Erreur mise à jour nombre de semaines:', error);
       throw error;
     }
   }
@@ -177,7 +177,7 @@ export class WeeksManager {
    */
   static async saveAllWeeks() {
     const allWeeksData = this.getAllWeeksData();
-    console.log('Données à sauvegarder pour toutes les semaines:', allWeeksData);
+    // console.log('Données à sauvegarder pour toutes les semaines:', allWeeksData);
     await APIManager.saveMeals(allWeeksData);
   }
 

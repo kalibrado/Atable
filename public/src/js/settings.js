@@ -22,11 +22,11 @@ export class SettingsManager {
         const modal = document.getElementById('settings-modal');
 
         if (!modal) {
-            console.warn('Modal de paramètres non trouvée');
+            // console.warn('Modal de paramètres non trouvée');
             return;
         }
 
-        console.log('🔧 Ouverture des paramètres');
+        // console.log('🔧 Ouverture des paramètres');
 
         modal.classList.add('show');
 
@@ -74,7 +74,7 @@ export class SettingsManager {
                 STATUS_TYPES.SUCCESS
             );
         } catch (error) {
-            console.error('Erreur:', error);
+            // console.error('Erreur:', error);
             UIManager.showStatus('Erreur lors de la mise à jour', STATUS_TYPES.ERROR);
         }
     }
@@ -96,13 +96,13 @@ export class SettingsManager {
      */
     static async updateUI() {
         if (!window.notificationSystem) {
-            console.warn('Système de notifications non chargé');
+            // console.warn('Système de notifications non chargé');
             return;
         }
 
         try {
             const userInfo = await APIManager.fetchUserInfo();
-            console.log('📋 Infos utilisateur reçues:', userInfo);
+            // console.log('📋 Infos utilisateur reçues:', userInfo);
 
             const enableCheckbox = document.getElementById('enable-notifications');
             const timeInput = document.getElementById('notification-time');
@@ -136,7 +136,7 @@ export class SettingsManager {
                 }
             }
 
-            console.log(`📅 Paramètres de notification trouvés:`, { hour, minute, notificationsEnabled });
+            // console.log(`📅 Paramètres de notification trouvés:`, { hour, minute, notificationsEnabled });
 
             if (enableCheckbox) {
                 enableCheckbox.checked = notificationsEnabled;
@@ -158,7 +158,7 @@ export class SettingsManager {
 
             SettingsManager.updatePermissionStatus();
         } catch (error) {
-            console.error('❌ Erreur mise à jour UI:', error);
+            // console.error('❌ Erreur mise à jour UI:', error);
             UIManager.showStatus(`Erreur mise à jour UI: ${error.message}`, STATUS_TYPES.ERROR);
         }
     }
@@ -346,7 +346,7 @@ export class AuthManager {
     static async loadUserInfo() {
         try {
             const userInfo = await APIManager.fetchUserInfo();
-            console.log('👤 Infos utilisateur chargées:', userInfo);
+            // console.log('👤 Infos utilisateur chargées:', userInfo);
 
             if (userInfo) {
                 let userName = null;
@@ -368,7 +368,7 @@ export class AuthManager {
                 }
             }
         } catch (error) {
-            console.warn(`⚠️ Erreur chargement infos utilisateur: ${error.message}`);
+            // console.warn(`⚠️ Erreur chargement infos utilisateur: ${error.message}`);
         }
     }
 }
@@ -413,7 +413,7 @@ export class GeneratorManager {
                 );
             }
         } catch (error) {
-            console.error('Erreur génération:', error);
+            // console.error('Erreur génération:', error);
             UIManager.showStatus(
                 error.message || 'Erreur lors de la génération',
                 STATUS_TYPES.ERROR
@@ -434,7 +434,7 @@ export class GeneratorManager {
         );
 
         if (!textarea) {
-            console.error(`Textarea non trouvée pour ${day} ${mealType}`);
+            // console.error(`Textarea non trouvée pour ${day} ${mealType}`);
             return;
         }
 
@@ -485,7 +485,7 @@ export class GeneratorManager {
                 );
             }
         } catch (error) {
-            console.error('Erreur génération:', error);
+            // console.error('Erreur génération:', error);
             UIManager.showStatus(
                 error.message || 'Erreur lors de la génération',
                 STATUS_TYPES.ERROR
