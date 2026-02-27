@@ -19,10 +19,28 @@ import { ResponseHandler } from './response-handler.js';
  * Orchestre l'initialisation et la coordination des modules
  */
 class AtableApp {
+    static async checkAuth() {
+        try {
+            const response = await fetch('/auth/me');
+            if (response.status === 401) {
+                console.warn('⚠️ Non authentifié, redirection vers login');
+
+                ResponseHandler.handleUnauthorized({
+                    redirect: true
+                });
+            } else {
+                console.log('✅ Utilisateur authentifié');
+            }
+        } catch (error) {
+            console.log('Utilisateur non connecté');
+        }
+    }
+
     /**
      * Initialise l'application au chargement de la page
      */
     static async initialize() {
+        this.checkAuth(); // Vérifie l'authentification avant de continuer
         try {
             // Initialiser le thème (doit être fait en premier pour éviter le flash)
             ThemeManager.initialize();

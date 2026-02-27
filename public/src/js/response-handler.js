@@ -259,7 +259,7 @@ export class ResponseHandler {
     if (redirect) {
       setTimeout(() => {
         window.location.href = '/login';
-      }, 1500);
+      }, 100);
     }
   }
 

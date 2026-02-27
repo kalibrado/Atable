@@ -255,30 +255,8 @@ const login = () => {
     }
   });
 
-  async function checkAuth() {
-    try {
-      const response = await fetch('/auth/me');
-
-      await ResponseHandler.handle(response, {
-        showMessage: false,
-
-        onSuccess: () => {
-          window.location.href = '/';
-        },
-
-        onError: (error) => {
-          if (error.status === 401) {
-            console.log('Redirection vers login');
-          }
-        }
-      });
-    } catch (error) {
-      console.log('Utilisateur non connecté');
-    }
-  }
-
+ 
   setupPasswordToggles();
-  checkAuth();
 };
 
 if (document.readyState === 'loading') {

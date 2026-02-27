@@ -15,6 +15,7 @@ COPY generate-vapid-keys.js ./
 COPY logger.js ./
 COPY config.js ./
 COPY server.js ./
+COPY response-handler.js ./
 
 RUN mkdir -p /app/data/users && \
     mkdir -p /app/data && \

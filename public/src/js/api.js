@@ -43,7 +43,7 @@ export class APIManager {
                     }
                 }
             });
-            console.debug('Résultat après traitement de la réponse:', result);
+
             return result;
 
         } catch (error) {
@@ -177,10 +177,15 @@ export class APIManager {
                 showMessage: false,
                 onSuccess: (data) => {
                     console.log('✅ Infos utilisateur chargées');
+                    return data;
                 },
                 onError: (error) => {
+                    console.error('❌ Erreur récupération utilisateur:', error.message);
                     if (error.status === 401) {
                         console.warn('⚠️ Session expirée');
+                        ResponseHandler.handleUnauthorized({
+                            redirect: true
+                        });
                     }
                 }
             });
@@ -193,8 +198,7 @@ export class APIManager {
                 }
                 return null;
             }
-
-            return result.data;
+            return result;
 
         } catch (error) {
             console.error('Erreur récupération utilisateur:', error);
