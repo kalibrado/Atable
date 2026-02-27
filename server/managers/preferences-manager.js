@@ -1,54 +1,167 @@
 /**
- * @fileoverview Gestionnaire des préférences utilisateur
+ * @fileoverview Fonction corrigée updateUserPreferences
  * @module managers/preferences-manager
+ * 
+ * À REMPLACER dans votre preferences-manager.js
  */
 
 const usersManager = require('./users-manager');
-const CONFIG = require('../../config');
 const logger = require('../../logger');
 
 /**
- * Lit les préférences d'un utilisateur
+ * Met à jour les préférences d'un utilisateur
+ * Accepte n'importe quels updates et les fusionne avec les préférences existantes
+ * 
+ * @param {string} userId - ID de l'utilisateur
+ * @param {Object} updates - Objet contenant les propriétés à mettre à jour
+ *   Exemple: { darkMode: true, numberOfWeeks: 2, ingredients: {...} }
+ * @returns {Promise<Object>} Les préférences mises à jour complètes
+ * @throws {Error} Si l'utilisateur n'existe pas ou si la sauvegarde échoue
+ * 
+ * @example
+ * // Mettre à jour le nombre de semaines
+ * await updateUserPreferences(userId, { numberOfWeeks: 2 });
+ * 
+ * // Mettre à jour le mode sombre
+ * await updateUserPreferences(userId, { darkMode: true });
+ * 
+ * // Mettre à jour les ingrédients
+ * await updateUserPreferences(userId, { ingredients: {...} });
+ * 
+ * // Mettre à jour l'heure de notification
+ * await updateUserPreferences(userId, { 
+ *   notifications: { 
+ *     settings: { hour: 8, minute: 30, enabled: true } 
+ *   } 
+ * });
  */
-async function readUserPreferences(userId) {
-    const userData = await usersManager.readUserData(userId);
-    if (!userData) throw new Error('Utilisateur non trouvé');
-    return userData.preference || {};
+async function updateUserPreferences(userId, updates) {
+    try {
+        // Valider les entrées
+        if (!userId || typeof userId !== 'string') {
+            throw new Error('ID utilisateur invalide');
+        }
+
+        if (!updates || typeof updates !== 'object') {
+            throw new Error('Les updates doivent être un objet');
+        }
+
+        // Lire les données utilisateur actuelles
+        const userData = await usersManager.readUserData(userId);
+        if (!userData) {
+            throw new Error('Utilisateur non trouvé');
+        }
+
+        // Initialiser les préférences s'il n'y en a pas
+        if (!userData.preference) {
+            userData.preference = {};
+        }
+
+        // Fusionner les updates avec les préférences existantes
+        // On utilise une fusion profonde pour les objets imbriqués
+        Object.assign(userData.preference, updates);
+
+        // Sauvegarder les données utilisateur mises à jour
+        await usersManager.writeUserData(userId, userData);
+
+        logger.info(`Préférences mises à jour pour l'utilisateur ${userId}:`, {
+            updatedFields: Object.keys(updates)
+        });
+
+        // Retourner les préférences complètes mises à jour
+        return userData.preference;
+
+    } catch (error) {
+        logger.error(`Erreur lors de la mise à jour des préférences de ${userId}:`, error);
+        throw error;
+    }
 }
 
 /**
- * Écrit les préférences d'un utilisateur
+ * Lisez les préférences d'un utilisateur
+ * @param {string} userId - ID de l'utilisateur
+ * @returns {Promise<Object>} Objet contenant toutes les préférences
+ * @throws {Error} Si l'utilisateur n'existe pas
  */
-async function writeUserPreferences(userId, updates) {
-    const userData = await usersManager.readUserData(userId);
-    if (!userData) throw new Error('Utilisateur non trouvé');
+async function readUserPreferences(userId) {
+    try {
+        const userData = await usersManager.readUserData(userId);
+        if (!userData) {
+            throw new Error('Utilisateur non trouvé');
+        }
+        
+        return userData.preference || {};
 
-    if (!userData.preference) userData.preference = {};
-    Object.assign(userData.preference, updates);
+    } catch (error) {
+        logger.error(`Erreur lors de la lecture des préférences de ${userId}:`, error);
+        throw error;
+    }
+}
 
-    await usersManager.writeUserData(userId, userData);
-    return userData.preference;
+/**
+ * Écrit directement les préférences (remplace complètement)
+ * À utiliser avec prudence - préférez updateUserPreferences pour les mises à jour partielles
+ * @param {string} userId - ID de l'utilisateur
+ * @param {Object} preferences - Objet complet des préférences
+ * @returns {Promise<Object>} Les préférences sauvegardées
+ * @throws {Error} Si l'utilisateur n'existe pas
+ */
+async function writeUserPreferences(userId, preferences) {
+    try {
+        const userData = await usersManager.readUserData(userId);
+        if (!userData) {
+            throw new Error('Utilisateur non trouvé');
+        }
+
+        userData.preference = preferences || {};
+
+        await usersManager.writeUserData(userId, userData);
+
+        logger.info(`Préférences écrites pour l'utilisateur ${userId}`);
+
+        return userData.preference;
+
+    } catch (error) {
+        logger.error(`Erreur lors de l'écriture des préférences de ${userId}:`, error);
+        throw error;
+    }
 }
 
 /**
  * Met à jour le nombre de semaines
+ * @param {string} userId - ID de l'utilisateur
+ * @param {number} numberOfWeeks - Nombre de semaines (1-4)
+ * @returns {Promise<Object>} Les préférences mises à jour
+ * @throws {Error} Si le nombre est invalide
  */
 async function updateNumberOfWeeks(userId, numberOfWeeks) {
-    if (numberOfWeeks < CONFIG.minWeeks || numberOfWeeks > CONFIG.maxWeeks) {
+    const CONFIG = require('../../config');
+    
+    if (!Number.isInteger(numberOfWeeks) || numberOfWeeks < CONFIG.minWeeks || numberOfWeeks > CONFIG.maxWeeks) {
         throw new Error(`Nombre de semaines invalide (${CONFIG.minWeeks}-${CONFIG.maxWeeks})`);
     }
-    return await writeUserPreferences(userId, { showWeeks: numberOfWeeks });
+
+    return await updateUserPreferences(userId, { numberOfWeeks });
 }
 
 /**
  * Met à jour le mode sombre
+ * @param {string} userId - ID de l'utilisateur
+ * @param {boolean} darkMode - True pour activer le mode sombre
+ * @returns {Promise<Object>} Les préférences mises à jour
  */
 async function updateDarkMode(userId, darkMode) {
-    return await writeUserPreferences(userId, { darkMode });
+    if (typeof darkMode !== 'boolean') {
+        throw new Error('darkMode doit être un booléen');
+    }
+
+    return await updateUserPreferences(userId, { darkMode });
 }
 
 /**
  * Lit les ingrédients d'un utilisateur
+ * @param {string} userId - ID de l'utilisateur
+ * @returns {Promise<Object>} Objet avec les catégories d'ingrédients
  */
 async function readUserIngredients(userId) {
     const preferences = await readUserPreferences(userId);
@@ -58,6 +171,8 @@ async function readUserIngredients(userId) {
 /**
  * Valide la structure d'une catégorie d'ingrédients
  * @private
+ * @param {string} name - Nom à valider
+ * @throws {Error} Si le nom est invalide
  */
 function validateCategoryName(name) {
     if (!name || typeof name !== 'string' || name.trim() === '') {
@@ -70,24 +185,28 @@ function validateCategoryName(name) {
 
 /**
  * Met à jour les ingrédients d'un utilisateur
- * NOTE : la validation des catégories est assouplie pour autoriser les catégories
- * personnalisées créées par l'utilisateur (pas seulement CONFIG.foodCategories).
+ * @param {string} userId - ID de l'utilisateur
+ * @param {Object} ingredients - Objet avec les catégories d'ingrédients
+ * @returns {Promise<Object>} Les préférences mises à jour
+ * @throws {Error} Si le format est invalide
  */
 async function updateUserIngredients(userId, ingredients) {
-    const userData = await usersManager.readUserData(userId);
-    if (!userData) throw new Error('Utilisateur non trouvé');
-
     if (!ingredients || typeof ingredients !== 'object') {
         throw new Error('Format d\'ingrédients invalide');
     }
 
+    // Valider chaque catégorie
     for (const [category, categoryData] of Object.entries(ingredients)) {
         validateCategoryName(category);
+
+        if (!categoryData || typeof categoryData !== 'object') {
+            throw new Error(`Données invalides pour la catégorie: ${category}`);
+        }
 
         if (!categoryData.repas ||
             typeof categoryData.repas.midi !== 'boolean' ||
             typeof categoryData.repas.soir !== 'boolean') {
-            throw new Error(`Structure invalide pour la catégorie: ${category}`);
+            throw new Error(`Structure repas invalide pour la catégorie: ${category}`);
         }
 
         if (!Array.isArray(categoryData.items)) {
@@ -95,15 +214,16 @@ async function updateUserIngredients(userId, ingredients) {
         }
     }
 
-    if (!userData.preference) userData.preference = {};
-    userData.preference.ingredients = ingredients;
-
-    await usersManager.writeUserData(userId, userData);
-    return ingredients;
+    return await updateUserPreferences(userId, { ingredients });
 }
 
 /**
  * Ajoute un item à une catégorie d'ingrédients
+ * @param {string} userId - ID de l'utilisateur
+ * @param {string} category - Nom de la catégorie
+ * @param {string} item - L'item à ajouter
+ * @returns {Promise<Object>} Les ingrédients mis à jour
+ * @throws {Error} Si l'item existe déjà ou si le format est invalide
  */
 async function addIngredientItem(userId, category, item) {
     validateCategoryName(category);
@@ -114,17 +234,35 @@ async function addIngredientItem(userId, category, item) {
 
     const ingredients = await readUserIngredients(userId);
 
+    // Créer la catégorie si elle n'existe pas
     if (!ingredients[category]) {
         ingredients[category] = {
             repas: { midi: true, soir: true },
-            items: []
+            items: [],
+            days: {
+                lundi: true,
+                mardi: true,
+                mercredi: true,
+                jeudi: true,
+                vendredi: true,
+                samedi: true,
+                dimanche: true
+            }
         };
     }
 
     const trimmedItem = item.trim();
-    if (!ingredients[category].items.includes(trimmedItem)) {
-        ingredients[category].items.push(trimmedItem);
+
+    // Vérifier que l'item n'existe pas déjà (case-insensitive)
+    const itemExists = ingredients[category].items.some(i => i.toLowerCase() === trimmedItem.toLowerCase());
+    if (itemExists) {
+        const error = new Error(`L'item "${trimmedItem}" existe déjà dans cette catégorie`);
+        error.error = 'CONFLICT';
+        throw error;
     }
+
+    // Ajouter l'item
+    ingredients[category].items.push(trimmedItem);
 
     await updateUserIngredients(userId, ingredients);
     return ingredients;
@@ -132,13 +270,22 @@ async function addIngredientItem(userId, category, item) {
 
 /**
  * Supprime un item d'une catégorie d'ingrédients
+ * @param {string} userId - ID de l'utilisateur
+ * @param {string} category - Nom de la catégorie
+ * @param {string} item - L'item à supprimer
+ * @returns {Promise<Object>} Les ingrédients mis à jour
+ * @throws {Error} Si la catégorie n'existe pas
  */
 async function removeIngredientItem(userId, category, item) {
     validateCategoryName(category);
 
     const ingredients = await readUserIngredients(userId);
 
-    if (ingredients[category] && ingredients[category].items) {
+    if (!ingredients[category]) {
+        throw new Error(`Catégorie "${category}" non trouvée`);
+    }
+
+    if (ingredients[category].items) {
         ingredients[category].items = ingredients[category].items.filter(i => i !== item);
     }
 
@@ -147,22 +294,24 @@ async function removeIngredientItem(userId, category, item) {
 }
 
 /**
- * Met à jour les préférences de repas pour une catégorie
+ * Met à jour les préférences de repas (midi/soir) pour une catégorie
+ * @param {string} userId - ID de l'utilisateur
+ * @param {string} category - Nom de la catégorie
+ * @param {Object} repas - { midi: boolean, soir: boolean }
+ * @returns {Promise<Object>} Les ingrédients mis à jour
+ * @throws {Error} Si le format est invalide
  */
 async function updateCategoryRepas(userId, category, repas) {
     validateCategoryName(category);
 
     if (!repas || typeof repas.midi !== 'boolean' || typeof repas.soir !== 'boolean') {
-        throw new Error('Format de repas invalide');
+        throw new Error('Format de repas invalide (doit contenir midi et soir)');
     }
 
     const ingredients = await readUserIngredients(userId);
 
     if (!ingredients[category]) {
-        ingredients[category] = {
-            repas: { midi: true, soir: true },
-            items: []
-        };
+        throw new Error(`Catégorie "${category}" non trouvée`);
     }
 
     ingredients[category].repas = repas;
@@ -171,15 +320,52 @@ async function updateCategoryRepas(userId, category, repas) {
     return ingredients;
 }
 
-// ============================================================
-// GESTION DES CATÉGORIES (NOUVEAU)
-// ============================================================
+/**
+ * Met à jour les jours de la semaine pour une catégorie d'ingrédients
+ * @param {string} userId - ID de l'utilisateur
+ * @param {string} category - Nom de la catégorie
+ * @param {Object} days - { lundi: boolean, mardi: boolean, ... }
+ * @returns {Promise<Object>} Les ingrédients mis à jour
+ * @throws {Error} Si la catégorie n'existe pas ou si le format est invalide
+ */
+async function updateCategoryDays(userId, category, days) {
+    validateCategoryName(category);
+
+    if (!days || typeof days !== 'object') {
+        throw new Error('Format de jours invalide');
+    }
+
+    // Valider que tous les jours requis sont présents
+    const DAYS_OF_WEEK = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+    for (const day of DAYS_OF_WEEK) {
+        if (!(day in days)) {
+            throw new Error(`Le jour "${day}" est manquant`);
+        }
+        if (typeof days[day] !== 'boolean') {
+            throw new Error(`Le jour "${day}" doit être un booléen`);
+        }
+    }
+
+    const ingredients = await readUserIngredients(userId);
+
+    if (!ingredients[category]) {
+        throw new Error(`Catégorie "${category}" non trouvée`);
+    }
+
+    ingredients[category].days = days;
+
+    await updateUserIngredients(userId, ingredients);
+    logger.info(`Jours mis à jour pour la catégorie "${category}" de l'utilisateur ${userId}`);
+
+    return ingredients;
+}
 
 /**
- * Crée une nouvelle catégorie personnalisée
- * @param {string} userId
+ * Ajoute une nouvelle catégorie d'ingrédients
+ * @param {string} userId - ID de l'utilisateur
  * @param {string} categoryName - Nom de la nouvelle catégorie
- * @returns {Promise<Object>} Ingrédients mis à jour
+ * @returns {Promise<Object>} Les ingrédients mis à jour
+ * @throws {Error} Si la catégorie existe déjà
  */
 async function addCategory(userId, categoryName) {
     validateCategoryName(categoryName);
@@ -188,25 +374,36 @@ async function addCategory(userId, categoryName) {
     const ingredients = await readUserIngredients(userId);
 
     if (ingredients[trimmed]) {
-        throw new Error('Une catégorie avec ce nom existe déjà');
+        const error = new Error(`Une catégorie avec le nom "${trimmed}" existe déjà`);
+        error.error = 'CONFLICT';
+        throw error;
     }
+
+    // Initialiser les jours par défaut (tous activés)
+    const defaultDays = {};
+    ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'].forEach(day => {
+        defaultDays[day] = true;
+    });
 
     ingredients[trimmed] = {
         repas: { midi: false, soir: false },
-        items: []
+        items: [],
+        days: defaultDays
     };
 
     await updateUserIngredients(userId, ingredients);
     logger.info(`Catégorie créée : "${trimmed}" pour user ${userId}`);
+
     return ingredients;
 }
 
 /**
- * Renomme une catégorie existante (conserve les items et repas)
- * @param {string} userId
+ * Renomme une catégorie existante
+ * @param {string} userId - ID de l'utilisateur
  * @param {string} oldName - Nom actuel
  * @param {string} newName - Nouveau nom
- * @returns {Promise<Object>} Ingrédients mis à jour
+ * @returns {Promise<Object>} Les ingrédients mis à jour
+ * @throws {Error} Si l'ancienne catégorie n'existe pas ou si le nouveau nom existe déjà
  */
 async function renameCategory(userId, oldName, newName) {
     validateCategoryName(oldName);
@@ -216,14 +413,18 @@ async function renameCategory(userId, oldName, newName) {
     const ingredients = await readUserIngredients(userId);
 
     if (!ingredients[oldName]) {
-        throw new Error('Catégorie introuvable');
+        const error = new Error(`La catégorie "${oldName}" n'existe pas`);
+        error.error = 'NOT_FOUND';
+        throw error;
     }
 
     if (oldName !== trimmedNew && ingredients[trimmedNew]) {
-        throw new Error('Une catégorie avec ce nom existe déjà');
+        const error = new Error(`Une catégorie "${trimmedNew}" existe déjà`);
+        error.error = 'CONFLICT';
+        throw error;
     }
 
-    // Reconstruire l'objet en préservant l'ordre mais en remplaçant la clé
+    // Reconstruire l'objet en remplaçant la clé
     const updated = {};
     for (const [key, value] of Object.entries(ingredients)) {
         if (key === oldName) {
@@ -235,187 +436,12 @@ async function renameCategory(userId, oldName, newName) {
 
     await updateUserIngredients(userId, updated);
     logger.info(`Catégorie renommée : "${oldName}" → "${trimmedNew}" pour user ${userId}`);
+
     return updated;
 }
 
 /**
  * Supprime une catégorie (et tous ses items)
- * Les repas du planning existants NE sont PAS supprimés — ils restent dans le planning.
- * @param {string} userId
- * @param {string} categoryName - Nom de la catégorie à supprimer
- * @returns {Promise<Object>} Ingrédients mis à jour
- */
-async function deleteCategory(userId, categoryName) {
-    validateCategoryName(categoryName);
-
-    const ingredients = await readUserIngredients(userId);
-
-    if (!ingredients[categoryName]) {
-        throw new Error('Catégorie introuvable');
-    }
-
-    delete ingredients[categoryName];
-
-    await updateUserIngredients(userId, ingredients);
-    logger.info(`Catégorie supprimée : "${categoryName}" pour user ${userId}`);
-    return ingredients;
-}
-
-/**
- * @fileoverview Gestion des méthodes du preferences-manager pour les jours
- * @module managers/preferences-manager-days
- * 
- * À ajouter dans votre classe PreferencesManager existante
- */
-
-/**
- * Met à jour les jours de la semaine pour une catégorie d'ingrédients
- * @param {string} userId - ID de l'utilisateur
- * @param {string} category - Nom de la catégorie
- * @param {Object} days - Objet avec les jours {lundi: true, mardi: true, ...}
- * @returns {Promise<Object>} Les ingrédients mis à jour
- * @throws {Error} Si la catégorie n'existe pas ou si la mise à jour échoue
- */
-async function updateCategoryDays(userId, category, days) {
-    try {
-        // Récupérer les préférences actuelles
-        const preferencesFile = this._getUserPreferencesPath(userId);
-        let preferences = await this._readFile(preferencesFile) || { ingredients: {} };
-
-        // Vérifier que la catégorie existe
-        if (!preferences.ingredients[category]) {
-            throw new Error(`La catégorie "${category}" n'existe pas`);
-        }
-
-        // Valider que tous les jours requis sont présents
-        const DAYS_OF_WEEK = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
-        for (const day of DAYS_OF_WEEK) {
-            if (!(day in days)) {
-                throw new Error(`Le jour "${day}" est manquant`);
-            }
-            if (typeof days[day] !== 'boolean') {
-                throw new Error(`Le jour "${day}" doit être un booléen`);
-            }
-        }
-
-        // Initialiser les jours s'ils n'existent pas
-        if (!preferences.ingredients[category].days) {
-            preferences.ingredients[category].days = {};
-        }
-
-        // Mettre à jour les jours
-        preferences.ingredients[category].days = days;
-
-        // Sauvegarder les modifications
-        await this._writeFile(preferencesFile, preferences);
-
-        logger.info(`Jours mis à jour pour la catégorie "${category}" de l'utilisateur ${userId}`);
-
-        return preferences.ingredients;
-
-    } catch (error) {
-        logger.error(`Erreur lors de la mise à jour des jours pour "${category}":`, error);
-        throw error;
-    }
-}
-
-/**
- * Ajoute une catégorie avec initialisation des jours par défaut
- * @param {string} userId - ID de l'utilisateur
- * @param {string} categoryName - Nom de la nouvelle catégorie
- * @returns {Promise<Object>} Les ingrédients mis à jour
- * @throws {Error} Si la catégorie existe déjà ou si l'ajout échoue
- */
-async function addCategory(userId, categoryName) {
-    try {
-        // Récupérer les préférences actuelles
-        const preferencesFile = this._getUserPreferencesPath(userId);
-        let preferences = await this._readFile(preferencesFile) || { ingredients: {} };
-
-        // Vérifier que la catégorie n'existe pas déjà
-        if (preferences.ingredients[categoryName]) {
-            const error = new Error(`La catégorie "${categoryName}" existe déjà`);
-            error.error = 'CONFLICT';
-            throw error;
-        }
-
-        // Initialiser les jours par défaut (tous activés)
-        const DAYS_OF_WEEK = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
-        const defaultDays = {};
-        DAYS_OF_WEEK.forEach(day => {
-            defaultDays[day] = true;
-        });
-
-        // Créer la nouvelle catégorie
-        preferences.ingredients[categoryName] = {
-            items: [],
-            repas: {
-                midi: true,
-                soir: true
-            },
-            days: defaultDays
-        };
-
-        // Sauvegarder les modifications
-        await this._writeFile(preferencesFile, preferences);
-
-        logger.info(`Catégorie "${categoryName}" créée pour l'utilisateur ${userId}`);
-
-        return preferences.ingredients;
-
-    } catch (error) {
-        logger.error(`Erreur lors de la création de la catégorie "${categoryName}":`, error);
-        throw error;
-    }
-}
-
-/**
- * Renomme une catégorie (conserve items, préférences repas et jours)
- * @param {string} userId - ID de l'utilisateur
- * @param {string} oldName - Nom actuel de la catégorie
- * @param {string} newName - Nouveau nom de la catégorie
- * @returns {Promise<Object>} Les ingrédients mis à jour
- * @throws {Error} Si l'ancienne catégorie n'existe pas ou si le nouveau nom existe déjà
- */
-async function renameCategory(userId, oldName, newName) {
-    try {
-        // Récupérer les préférences actuelles
-        const preferencesFile = this._getUserPreferencesPath(userId);
-        let preferences = await this._readFile(preferencesFile) || { ingredients: {} };
-
-        // Vérifier que l'ancienne catégorie existe
-        if (!preferences.ingredients[oldName]) {
-            const error = new Error(`La catégorie "${oldName}" n'existe pas`);
-            error.error = 'NOT_FOUND';
-            throw error;
-        }
-
-        // Vérifier que la nouvelle catégorie n'existe pas
-        if (preferences.ingredients[newName]) {
-            const error = new Error(`Une catégorie "${newName}" existe déjà`);
-            error.error = 'CONFLICT';
-            throw error;
-        }
-
-        // Renommer la catégorie (conserve tous les attributs)
-        preferences.ingredients[newName] = preferences.ingredients[oldName];
-        delete preferences.ingredients[oldName];
-
-        // Sauvegarder les modifications
-        await this._writeFile(preferencesFile, preferences);
-
-        logger.info(`Catégorie renommée de "${oldName}" à "${newName}" pour l'utilisateur ${userId}`);
-
-        return preferences.ingredients;
-
-    } catch (error) {
-        logger.error(`Erreur lors du renommage de la catégorie:`, error);
-        throw error;
-    }
-}
-
-/**
- * Supprime une catégorie et tous ses items
  * Note: Les repas du planning existant ne sont PAS supprimés
  * @param {string} userId - ID de l'utilisateur
  * @param {string} categoryName - Nom de la catégorie à supprimer
@@ -423,166 +449,26 @@ async function renameCategory(userId, oldName, newName) {
  * @throws {Error} Si la catégorie n'existe pas
  */
 async function deleteCategory(userId, categoryName) {
-    try {
-        // Récupérer les préférences actuelles
-        const preferencesFile = this._getUserPreferencesPath(userId);
-        let preferences = await this._readFile(preferencesFile) || { ingredients: {} };
+    validateCategoryName(categoryName);
 
-        // Vérifier que la catégorie existe
-        if (!preferences.ingredients[categoryName]) {
-            const error = new Error(`La catégorie "${categoryName}" n'existe pas`);
-            error.error = 'NOT_FOUND';
-            throw error;
-        }
+    const ingredients = await readUserIngredients(userId);
 
-        // Supprimer la catégorie
-        delete preferences.ingredients[categoryName];
-
-        // Sauvegarder les modifications
-        await this._writeFile(preferencesFile, preferences);
-
-        logger.info(`Catégorie "${categoryName}" supprimée pour l'utilisateur ${userId}`);
-
-        return preferences.ingredients;
-
-    } catch (error) {
-        logger.error(`Erreur lors de la suppression de la catégorie "${categoryName}":`, error);
+    if (!ingredients[categoryName]) {
+        const error = new Error(`La catégorie "${categoryName}" n'existe pas`);
+        error.error = 'NOT_FOUND';
         throw error;
     }
-}
 
-/**
- * Récupère une catégorie spécifique avec tous ses attributs
- * @param {string} userId - ID de l'utilisateur
- * @param {string} categoryName - Nom de la catégorie
- * @returns {Promise<Object|null>} La catégorie avec ses attributs ou null
- */
-async function getCategory(userId, categoryName) {
-    try {
-        const preferencesFile = this._getUserPreferencesPath(userId);
-        const preferences = await this._readFile(preferencesFile) || { ingredients: {} };
+    delete ingredients[categoryName];
 
-        return preferences.ingredients[categoryName] || null;
+    await updateUserIngredients(userId, ingredients);
+    logger.info(`Catégorie supprimée : "${categoryName}" pour user ${userId}`);
 
-    } catch (error) {
-        logger.error(`Erreur lors de la récupération de la catégorie "${categoryName}":`, error);
-        throw error;
-    }
-}
-
-/**
- * Obtient tous les jours activés pour une catégorie
- * @param {string} userId - ID de l'utilisateur
- * @param {string} categoryName - Nom de la catégorie
- * @returns {Promise<Object>} Objet avec les jours {lundi: true, ...}
- */
-async function getCategoryDays(userId, categoryName) {
-    try {
-        const category = await this.getCategory(userId, categoryName);
-
-        if (!category) {
-            throw new Error(`La catégorie "${categoryName}" n'existe pas`);
-        }
-
-        // Retourner les jours ou les jours par défaut (tous activés)
-        if (!category.days) {
-            const DAYS_OF_WEEK = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
-            const defaultDays = {};
-            DAYS_OF_WEEK.forEach(day => {
-                defaultDays[day] = true;
-            });
-            return defaultDays;
-        }
-
-        return category.days;
-
-    } catch (error) {
-        logger.error(`Erreur lors de la récupération des jours de "${categoryName}":`, error);
-        throw error;
-    }
-}
-
-/**
- * Vérifie si une catégorie est active pour un jour et un type de repas donnés
- * @param {string} userId - ID de l'utilisateur
- * @param {string} categoryName - Nom de la catégorie
- * @param {string} dayOfWeek - Jour de la semaine ('lundi', 'mardi', etc.)
- * @param {string} mealType - Type de repas ('midi' ou 'soir')
- * @returns {Promise<boolean>} True si la catégorie est active
- */
-async function isCategoryActive(userId, categoryName, dayOfWeek, mealType) {
-    try {
-        const category = await this.getCategory(userId, categoryName);
-
-        if (!category) {
-            return false;
-        }
-
-        // Vérifier le type de repas
-        if (!category.repas || !category.repas[mealType]) {
-            return false;
-        }
-
-        // Vérifier le jour de la semaine
-        if (category.days && category.days[dayOfWeek] === false) {
-            return false;
-        }
-
-        // Vérifier qu'il y a des items
-        if (!category.items || category.items.length === 0) {
-            return false;
-        }
-
-        return true;
-
-    } catch (error) {
-        logger.error(`Erreur lors de la vérification de l'activité de la catégorie:`, error);
-        return false;
-    }
-}
-
-/**
- * Récupère toutes les catégories actives pour un jour et type de repas donnés
- * @param {string} userId - ID de l'utilisateur
- * @param {string} dayOfWeek - Jour de la semaine ('lundi', 'mardi', etc.)
- * @param {string} mealType - Type de repas ('midi' ou 'soir')
- * @returns {Promise<Array<string>>} Liste des noms de catégories actives
- */
-async function getActiveCategoriesForDay(userId, dayOfWeek, mealType) {
-    try {
-        const preferencesFile = this._getUserPreferencesPath(userId);
-        const preferences = await this._readFile(preferencesFile) || { ingredients: {} };
-
-        const activeCategories = [];
-
-        for (const [categoryName, data] of Object.entries(preferences.ingredients)) {
-            // Vérifier le type de repas
-            if (!data.repas || !data.repas[mealType]) {
-                continue;
-            }
-
-            // Vérifier le jour de la semaine
-            if (data.days && data.days[dayOfWeek] === false) {
-                continue;
-            }
-
-            // Vérifier qu'il y a des items
-            if (!data.items || data.items.length === 0) {
-                continue;
-            }
-
-            activeCategories.push(categoryName);
-        }
-
-        return activeCategories;
-
-    } catch (error) {
-        logger.error(`Erreur lors de la récupération des catégories actives:`, error);
-        throw error;
-    }
+    return ingredients;
 }
 
 module.exports = {
+    updateUserPreferences, 
     readUserPreferences,
     writeUserPreferences,
     updateNumberOfWeeks,
@@ -592,13 +478,8 @@ module.exports = {
     addIngredientItem,
     removeIngredientItem,
     updateCategoryRepas,
-    // Nouvelles fonctions
+    updateCategoryDays,
     addCategory,
     renameCategory,
-    deleteCategory,
-    getCategory,
-    getCategoryDays,
-    isCategoryActive,
-    getActiveCategoriesForDay
-
+    deleteCategory
 };

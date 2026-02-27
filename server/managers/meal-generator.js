@@ -22,13 +22,13 @@ class MealGenerator {
         const today = new Date();
         const currentMonth = today.getMonth();
         const currentYear = today.getFullYear();
-        
+
         const date = new Date(currentYear, currentMonth, dayOfMonth);
         const dayIndex = date.getDay(); // 0 = dimanche, 1 = lundi, etc.
         
         // Conversion: dimanche (0) -> dimanche (6 en fin de semaine)
         const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
-        
+
         return this.DAYS_OF_WEEK[adjustedIndex];
     }
 
@@ -135,13 +135,13 @@ class MealGenerator {
             .filter(([category, data]) => {
                 // Vérifier le type de repas
                 const repasActive = data.repas && data.repas[mealType];
-                
+
                 // Vérifier le jour de la semaine
                 const dayActive = data.days && data.days[dayOfWeek];
-                
+
                 // Vérifier que la catégorie a des items
                 const hasItems = data.items && Array.isArray(data.items) && data.items.length > 0;
-                
+
                 return repasActive && dayActive && hasItems;
             })
             .map(([category]) => category);
@@ -316,7 +316,7 @@ class MealGenerator {
      * @param {Set<string>} [usedMeals=new Set()] - Repas déjà utilisés
      * @returns {string} Suggestion de repas
      */
-    static generateSingleMeal(ingredients, mealType, dayOfWeek = null, usedMeals = new Set()) {
+    static generateSingleMeal(ingredients, mealType, usedMeals = new Set(), dayOfWeek = null ) {
         const state = this.initializeState(ingredients);
         
         // Si pas de jour spécifié, considérer tous les jours actifs
@@ -350,13 +350,13 @@ class MealGenerator {
             .filter(([category, data]) => {
                 // Vérifier le type de repas
                 const repasActive = data.repas && data.repas[mealType];
-                
+
                 // Vérifier que la catégorie a des items
                 const hasItems = data.items && Array.isArray(data.items) && data.items.length > 0;
-                
+
                 // Vérifier qu'au moins un jour est actif
                 const hasDayActive = data.days && Object.values(data.days).some(day => day === true);
-                
+
                 return repasActive && hasItems && hasDayActive;
             })
             .map(([category]) => category);

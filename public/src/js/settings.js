@@ -26,6 +26,8 @@ export class SettingsManager {
             return;
         }
 
+        console.log('🔧 Ouverture des paramètres');
+
         modal.classList.add('show');
 
         const numberOfWeeks = WeeksManager.getNumberOfWeeks();
@@ -52,7 +54,11 @@ export class SettingsManager {
                 await SettingsManager.toggleNotifications();
             });
         }
-        window.menuHandlers.close()
+
+        // ✅ INITIALIZE ACCORDION APRÈS L'OUVERTURE DE LA MODAL
+        SettingsAccordion.initialize();
+
+        window.menuHandlers.close();
     }
 
     /**
@@ -96,13 +102,44 @@ export class SettingsManager {
 
         try {
             const userInfo = await APIManager.fetchUserInfo();
+            console.log('📋 Infos utilisateur reçues:', userInfo);
+
             const enableCheckbox = document.getElementById('enable-notifications');
-            const { hour, minute } = userInfo?.notifications?.settings;
             const timeInput = document.getElementById('notification-time');
             const timeSetting = document.getElementById('time-setting');
 
+            // ✅ FIX: Gérer les cas où les données peuvent ne pas exister
+            let hour = 8;
+            let minute = 0;
+            let notificationsEnabled = false;
+
+            // Parcourir la structure pour trouver les settings
+            if (userInfo) {
+                if (userInfo.notifications?.settings) {
+                    // Structure: userInfo.notifications.settings
+                    const settings = userInfo.notifications.settings;
+                    hour = settings.hour ?? 8;
+                    minute = settings.minute ?? 0;
+                    notificationsEnabled = settings.enabled ?? false;
+                } else if (userInfo.data?.notifications?.settings) {
+                    // Structure: userInfo.data.notifications.settings
+                    const settings = userInfo.data.notifications.settings;
+                    hour = settings.hour ?? 8;
+                    minute = settings.minute ?? 0;
+                    notificationsEnabled = settings.enabled ?? false;
+                } else if (userInfo.user?.notifications?.settings) {
+                    // Structure: userInfo.user.notifications.settings
+                    const settings = userInfo.user.notifications.settings;
+                    hour = settings.hour ?? 8;
+                    minute = settings.minute ?? 0;
+                    notificationsEnabled = settings.enabled ?? false;
+                }
+            }
+
+            console.log(`📅 Paramètres de notification trouvés:`, { hour, minute, notificationsEnabled });
+
             if (enableCheckbox) {
-                enableCheckbox.checked = userInfo?.notifications?.settings?.enabled;
+                enableCheckbox.checked = notificationsEnabled;
             }
 
             if (timeInput) {
@@ -110,7 +147,7 @@ export class SettingsManager {
             }
 
             if (timeSetting) {
-                if (enableCheckbox.checked) {
+                if (enableCheckbox?.checked) {
                     timeSetting.style.opacity = '1';
                     timeInput.disabled = false;
                 } else {
@@ -121,7 +158,8 @@ export class SettingsManager {
 
             SettingsManager.updatePermissionStatus();
         } catch (error) {
-            UIManager.showStatus(`Erreur mise à jour UI: ${error}`, STATUS_TYPES.ERROR);
+            console.error('❌ Erreur mise à jour UI:', error);
+            UIManager.showStatus(`Erreur mise à jour UI: ${error.message}`, STATUS_TYPES.ERROR);
         }
     }
 
@@ -249,7 +287,6 @@ export class SettingsManager {
         await window.notificationSystem.start();
 
         IngredientsManager.exposeHandlers();
-        SettingsAccordion.initialize();
 
         const modal = document.getElementById('settings-modal');
         if (modal && modal.classList.contains('show')) {
@@ -308,13 +345,30 @@ export class AuthManager {
      */
     static async loadUserInfo() {
         try {
-            const { user } = await APIManager.fetchUserInfo();
-            if (user && user.name) {
-                const { UIRenderer } = await import('./ui-renderer.js');
-                UIRenderer.displayUserName(user.name);
+            const userInfo = await APIManager.fetchUserInfo();
+            console.log('👤 Infos utilisateur chargées:', userInfo);
+
+            if (userInfo) {
+                let userName = null;
+
+                // Essayer plusieurs chemins possibles pour le nom
+                if (userInfo.user?.name) {
+                    userName = userInfo.user.name;
+                } else if (userInfo.name) {
+                    userName = userInfo.name;
+                } else if (userInfo.data?.user?.name) {
+                    userName = userInfo.data.user.name;
+                } else if (userInfo.data?.name) {
+                    userName = userInfo.data.name;
+                }
+
+                if (userName) {
+                    const { UIRenderer } = await import('./ui-renderer.js');
+                    UIRenderer.displayUserName(userName);
+                }
             }
         } catch (error) {
-            UIManager.showStatus(`Erreur: ${error}`, STATUS_TYPES.ERROR);
+            console.warn(`⚠️ Erreur chargement infos utilisateur: ${error.message}`);
         }
     }
 }

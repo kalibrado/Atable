@@ -42,37 +42,41 @@ class AtableApp {
     static async initialize() {
         this.checkAuth(); // Vérifie l'authentification avant de continuer
         try {
-            // Initialiser le thème (doit être fait en premier pour éviter le flash)
+            // 1. EXPOSE LES HANDLERS EN PREMIER (avant tout événement DOM)
+            // Ceci doit être fait AVANT l'initialisation des modules pour que les onclick HTML fonctionnent
+            this.exposeGlobalHandlers();
+
+            // 2. Initialiser le thème (doit être fait en premier pour éviter le flash)
             ThemeManager.initialize();
 
-            // Charger les informations utilisateur
-            await AuthManager.loadUserInfo();
-
-            // Charger et afficher les données des repas
-            await UIManager.loadAndRender();
-
-            // Initialiser le système de notifications
-            await SettingsManager.initialize();
-
-            // Configurer les listeners de connectivité
-            UIManager.setupConnectivityListeners();
-
-            // Configurer la sauvegarde avant déchargement
-            UIManager.setupBeforeUnload();
-
-            // Configurer les événements de la modal
-            SettingsManager.setupModalEvents();
-
-            SettingsAccordion.exposeHandlers();
-
-            // Configurer le toggle du mode sombre
-            ThemeManager.setupToggleListener();
-
-            // Initialiser le menu hamburger
+            // 3. Initialiser les composants de l'interface
             Menu.init();
             ShoppingList.init();
-            // Exposer les handlers globalement
-            this.exposeGlobalHandlers();
+
+            // 4. Charger les informations utilisateur
+            await AuthManager.loadUserInfo();
+
+            // 5. Charger et afficher les données des repas
+            await UIManager.loadAndRender();
+
+            // 6. Initialiser le système de notifications
+            await SettingsManager.initialize();
+
+            // 7. Configurer les listeners de connectivité
+            UIManager.setupConnectivityListeners();
+
+            // 8. Configurer la sauvegarde avant déchargement
+            UIManager.setupBeforeUnload();
+
+            // 9. Configurer les événements de la modal
+            SettingsManager.setupModalEvents();
+
+            // 10. Configurer l'accordéon des paramètres
+            SettingsAccordion.initialize();
+
+            // 11. Configurer le toggle du mode sombre
+            ThemeManager.setupToggleListener();
+
         } catch (error) {
             console.error('Erreur lors de l\'initialisation:', error);
             UIManager.showStatus(
@@ -85,6 +89,7 @@ class AtableApp {
     /**
      * Expose les fonctions nécessaires globalement
      * Pour les handlers onclick dans le HTML
+     * ⚠️ CRITIQUE : Ceci doit être appelé AVANT le rendu du DOM
      */
     static exposeGlobalHandlers() {
         // Handlers pour les paramètres
@@ -93,6 +98,7 @@ class AtableApp {
         window.closeSettings = () => SettingsManager.closeModal();
         window.toggleNotifications = () => SettingsManager.toggleNotifications();
         window.updateNotificationTime = () => SettingsManager.updateNotificationTime();
+        
         // Handler pour la déconnexion
         window.handleLogout = () => AuthManager.handleLogout();
 
@@ -131,14 +137,19 @@ class AtableApp {
             close: () => Menu.close(),
             isOpen: () => Menu.isMenuOpen()
         };
+
+        // Handlers pour la liste de courses
         window.shoppingListHandlers = {
             open: () => ShoppingList.open(),
             close: () => ShoppingList.close(),
             toggleItem: (key) => ShoppingList.toggleItem(key),
             resetAll: () => ShoppingList.resetAll()
         };
+
         // Pour compatibilité avec le HTML existant (onclick="toggleMobileMenu()")
         window.toggleMobileMenu = () => Menu.toggle();
+
+        console.log('✅ Handlers globaux exposés');
     }
 }
 

@@ -5,19 +5,20 @@
 .ingredients-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
 }
 
 .ingredient-category {
-  background-color: var(--background);
+  background-color: var(--card-bg);
   border: 2px solid var(--border-color);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: var(--border-radius);
+  padding: 10px;
   transition: var(--transition);
 }
 
 .ingredient-category:hover {
-  border-color: var(--primary-light);
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow);
 }
 
 .category-header {
@@ -48,10 +49,13 @@
 }
 
 .category-content {
-  max-height: 500px;
+  max-height: 65vh;
   opacity: 1;
   overflow: hidden;
   transition: max-height 0.3s ease, opacity 0.3s ease;
+  gap: 10px;
+  display: flex;
+  flex-direction: column;
 }
 
 .ingredient-category.collapsed .category-content {
@@ -61,8 +65,6 @@
 
 .repas-toggles {
   display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
   padding: 12px;
   background-color: var(--card-bg);
   border-radius: 6px;
@@ -95,15 +97,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 12px;
-  min-height: 40px;
   padding: 8px;
-  background-color: var(--card-bg);
+  background-color: var(--background);
   border-radius: 6px;
   overflow: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  max-height: 20vh;
+  height: max-content;
+  border: 1px solid var(--border-color);
 }
 
 .item-tag {
@@ -165,12 +166,12 @@
 .add-item-input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 0 0 3px rgba(6, 148, 148, 0.15);
 }
 
 .add-item-input.has-exact-match {
   border-color: var(--error);
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
 }
 
 .add-item-btn {
@@ -207,9 +208,10 @@
   padding: 8px;
 }
 
-/* Mise en évidence des items existants */
+/* Mise en évidence */
+
 .item-tag.highlight-match {
-  background-color: #f59e0b;
+  background-color: var(--warning);
   animation: pulse 0.5s ease-in-out;
 }
 
@@ -227,18 +229,17 @@
    ======================================== */
 
 .days-toggles {
-  margin-top: 15px;
   padding: 15px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: #f9f9f9;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background-color: var(--card-bg);
 }
 
 .days-label {
   font-weight: 600;
   font-size: 14px;
   margin-bottom: 12px;
-  color: #333;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -248,6 +249,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 10px;
+  overflow: auto;
+  max-height: 20vh;
 }
 
 .day-toggle {
@@ -256,23 +259,27 @@
   gap: 8px;
   padding: 8px;
   border-radius: 6px;
-  background-color: white;
-  border: 1px solid #ddd;
-  transition: all 0.3s ease;
+  background-color: var(--background);
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
   cursor: pointer;
 }
 
 .day-toggle:hover {
-  border-color: #4CAF50;
-  background-color: #f0f8f0;
-  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.1);
+  border-color: var(--primary-color);
+  background-color: var(--primary-light);
+  box-shadow: var(--shadow);
+}
+
+.day-toggle:hover label {
+  color: white;
 }
 
 .day-toggle input[type="checkbox"] {
   cursor: pointer;
   width: 18px;
   height: 18px;
-  accent-color: #4CAF50;
+  accent-color: var(--primary-color);
   flex-shrink: 0;
 }
 
@@ -281,30 +288,40 @@
   margin: 0;
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
   flex: 1;
   white-space: nowrap;
   user-select: none;
 }
 
 .day-toggle input[type="checkbox"]:checked+label {
-  color: #4CAF50;
+  color: var(--primary-color);
   font-weight: 600;
 }
 
-/* Responsive: sur mobile, 2 colonnes */
+/* Responsive */
+
 @media (max-width: 768px) {
   .days-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* Responsive: sur très petit écran, 1 colonne */
 @media (max-width: 480px) {
   .days-grid {
     grid-template-columns: 1fr;
   }
+
+  .add-item-form {
+    flex-direction: column;
+  }
+
+  .add-item-btn {
+    width: 100%;
+  }
 }
+
+/* Animations */
 
 @keyframes pulse {
 
@@ -331,29 +348,5 @@
 
   75% {
     transform: translateX(4px);
-  }
-}
-
-/* Mode sombre - ajustements */
-[data-theme="dark"] .ingredient-category {
-  background-color: #1e293b;
-}
-
-[data-theme="dark"] .add-item-input {
-  background-color: #0f172a;
-}
-
-/* Responsive */
-@media (max-width: 480px) {
-  .repas-toggles {
-    gap: 8px;
-  }
-
-  .add-item-form {
-    flex-direction: column;
-  }
-
-  .add-item-btn {
-    width: 100%;
   }
 }

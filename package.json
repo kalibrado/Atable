@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "NODE_ENV=production && node server.js",
+    "debug": "node --trace-deprecation server.js",
     "dev": "NODE_ENV=dev && nodemon server.js",
     "generate-vapid": "node generate-vapid-keys.js",
     "build:notif": "esbuild public/src/js/notifications.js --bundle --minify --target=es2017 --outfile=public/dist/notifications.min.js",

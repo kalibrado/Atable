@@ -29,18 +29,38 @@ export class Menu {
    * @returns {void}
    */
   static init() {
+    console.log('🍔 Initialisation du menu hamburger...');
+    
     this.modal = document.getElementById('mobile-menu-modal');
     const hamburgerBtn = document.getElementById('hamburger-btn');
     const closeBtn = this.modal?.querySelector('.close-menu-btn');
 
-    if (!this.modal || !hamburgerBtn) {
-      console.warn('Éléments du menu introuvables');
+    if (!this.modal) {
+      console.warn('⚠️ Modal du menu introuvable (#mobile-menu-modal)');
       return;
     }
 
+    if (!hamburgerBtn) {
+      console.warn('⚠️ Bouton hamburger introuvable (#hamburger-btn)');
+      return;
+    }
+
+    console.log('✅ Éléments du menu trouvés');
+
     // Événements des boutons
-    hamburgerBtn.addEventListener('click', () => this.toggle());
-    closeBtn?.addEventListener('click', () => this.close());
+    hamburgerBtn.addEventListener('click', (e) => {
+      console.log('🍔 Clic sur hamburger');
+      e.stopPropagation();
+      this.toggle();
+    });
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', (e) => {
+        console.log('❌ Clic sur fermeture menu');
+        e.stopPropagation();
+        this.close();
+      });
+    }
 
     // Empêcher la propagation des clics sur le contenu du menu
     const menuContent = this.modal.querySelector('.mobile-menu-content');
@@ -52,6 +72,7 @@ export class Menu {
 
     // Fermeture au clic sur le backdrop
     this.modal.addEventListener('click', (e) => {
+      console.log('🎯 Clic sur backdrop');
       if (e.target === this.modal) {
         this.close();
       }
@@ -62,6 +83,8 @@ export class Menu {
 
     // Récupérer les éléments focusables
     this.updateFocusableElements();
+
+    console.log('✅ Menu hamburger initialisé avec succès');
   }
 
   /**
@@ -75,6 +98,7 @@ export class Menu {
 
       switch (e.key) {
         case 'Escape':
+          console.log('⌨️ Escape pressé');
           this.close();
           break;
         case 'Tab':
@@ -128,6 +152,7 @@ export class Menu {
    * @returns {void}
    */
   static toggle() {
+    console.log(`🔄 Toggle menu (actuellement: ${this.isOpen ? 'ouvert' : 'fermé'})`);
     this.isOpen ? this.close() : this.open();
   }
 
@@ -136,7 +161,12 @@ export class Menu {
    * @returns {void}
    */
   static open() {
-    if (!this.modal || this.isOpen) return;
+    if (!this.modal || this.isOpen) {
+      console.warn('⚠️ Impossible d\'ouvrir: modal introuvable ou déjà ouvert');
+      return;
+    }
+
+    console.log('📂 Ouverture du menu');
 
     // Annuler un éventuel timeout de fermeture en cours
     if (this.closeTimeout) {
@@ -151,6 +181,12 @@ export class Menu {
     this.modal.classList.remove('closing');
     this.modal.classList.add('active');
     this.isOpen = true;
+
+    // Mise à jour de l'attribut ARIA
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    if (hamburgerBtn) {
+      hamburgerBtn.setAttribute('aria-expanded', 'true');
+    }
 
     // Bloquer le scroll du body
     document.body.style.overflow = 'hidden';
@@ -170,11 +206,22 @@ export class Menu {
    * @returns {void}
    */
   static close() {
-    if (!this.modal || !this.isOpen) return;
+    if (!this.modal || !this.isOpen) {
+      console.warn('⚠️ Impossible de fermer: modal introuvable ou déjà fermé');
+      return;
+    }
+
+    console.log('📁 Fermeture du menu');
 
     // Ajouter la classe pour l'animation de sortie
     this.modal.classList.add('closing');
     this.isOpen = false;
+
+    // Mise à jour de l'attribut ARIA
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    if (hamburgerBtn) {
+      hamburgerBtn.setAttribute('aria-expanded', 'false');
+    }
 
     // Restaurer le scroll du body
     document.body.style.overflow = '';
@@ -230,9 +277,16 @@ export class Menu {
   static forceClose() {
     if (!this.modal) return;
 
+    console.log('🛑 Fermeture forcée du menu');
+
     this.modal.classList.remove('active', 'closing');
     this.isOpen = false;
     document.body.style.overflow = '';
+
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    if (hamburgerBtn) {
+      hamburgerBtn.setAttribute('aria-expanded', 'false');
+    }
 
     if (this.closeTimeout) {
       clearTimeout(this.closeTimeout);
@@ -240,8 +294,3 @@ export class Menu {
     }
   }
 }
-
-// Fonction globale pour la compatibilité avec le HTML existant
-window.toggleMobileMenu = function() {
-  Menu.toggle();
-};

@@ -67,10 +67,9 @@
 }
 
 /* Contenu de la section */
-.settings-section-content {
-  max-height: 1000px;
+.settings-section-content { 
   opacity: 1;
-  padding: 20px;
+  padding: 10px;
   overflow: hidden;
   transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
   background-color: var(--background);
@@ -160,6 +159,6 @@
   }
 
   .settings-section-content {
-    padding: 16px;
+    padding: 5px;
   }
 }

@@ -37,12 +37,16 @@ export class IngredientsManager {
    */
   static async initialize() {
     try {
+      console.log('🥗 Initialisation des ingrédients...');
+      
       // Charger les ingrédients depuis l'API
       const data = await APIManager.fetchIngredients();
       this.state.ingredients = data.ingredients || {};
 
       // Récupérer les catégories depuis la config serveur
       this.state.categories = Object.keys(this.state.ingredients);
+      
+      console.log(`✅ ${this.state.categories.length} catégories chargées:`, this.state.categories);
 
     } catch (error) {
       console.error('Erreur initialisation ingrédients:', error);
@@ -54,18 +58,24 @@ export class IngredientsManager {
    * Rend l'interface des ingrédients dans la modal
    */
   static render() {
+    console.log('🎨 Rendu des ingrédients...');
+    
     const container = document.getElementById('ingredients-container');
-    if (!container) return;
+    if (!container) {
+      console.warn('⚠️ Conteneur "ingredients-container" introuvable');
+      return;
+    }
 
     if (Object.keys(this.state.ingredients).length === 0) {
       container.innerHTML = '<p class="empty-ingredients">Aucune catégorie d\'ingrédients disponible</p>';
       return;
     }
 
+    // Tous les collapses commencent FERMÉS
     const categoriesHTML = Object.entries(this.state.ingredients)
       .map(([category, data]) => {
-        this.state.collapsedCategories.add(category)
-        return this.renderCategory(category, data)
+        this.state.collapsedCategories.add(category); // Initialiser comme fermé
+        return this.renderCategory(category, data);
       })
       .join('');
 
@@ -77,8 +87,16 @@ export class IngredientsManager {
     </div>
     ${categoriesHTML}
     `;
-    // Attacher les événements
+    
+    console.log('🎯 Attache des event listeners aux catégories...');
+    
+    // Attacher les événements APRÈS le rendu
     this.attachEventListeners();
+    
+    // Exposer les handlers
+    this.exposeHandlers();
+    
+    console.log('✅ Ingrédients rendus avec succès');
   }
 
   /**
@@ -93,84 +111,85 @@ export class IngredientsManager {
     const itemsHTML = data.items && data.items.length > 0
       ? data.items.map(item => this.renderItem(category, item)).join('')
       : '<span class="empty-items">Aucun ingrédient ajouté</span>';
-    let safeCategory = category.replace(/'/g, "\\'")
+    
+    let safeCategory = category.replace(/'/g, "\\'");
     
     // Initialiser les jours s'ils n'existent pas
     const days = data.days || this.getDefaultDays();
     
     return `
-      <div class="ingredient-category ${collapsedClass}" data-category="${category}" >
-                <div class="category-header" onclick="window.ingredientsHandlers.toggleCategory('${category}')">
-                  <span class="category-name">${category}</span>
-                  <div class="category-actions" onclick="event.stopPropagation()">
-                    <button class="category-action-btn edit-btn"
-                      onclick="window.ingredientsHandlers.openRenameCategoryModal('${safeCategory}')"
-                      title="Renommer la catégorie">✏️</button>
-                    <button class="category-action-btn delete-btn"
-                      onclick="window.ingredientsHandlers.openDeleteCategoryModal('${safeCategory}')"
-                      title="Supprimer la catégorie">🗑️</button>
-                    <span class="category-toggle ${collapsedClass}">▼</span>
-                  </div>
+      <div class="ingredient-category ${collapsedClass}" data-category="${category}">
+        <div class="category-header" onclick="window.ingredientsHandlers.toggleCategory('${safeCategory}')">
+          <span class="category-name">${category}</span>
+          <div class="category-actions" onclick="event.stopPropagation()">
+            <button class="category-action-btn edit-btn"
+              onclick="window.ingredientsHandlers.openRenameCategoryModal('${safeCategory}')"
+              title="Renommer la catégorie">✏️</button>
+            <button class="category-action-btn delete-btn"
+              onclick="window.ingredientsHandlers.openDeleteCategoryModal('${safeCategory}')"
+              title="Supprimer la catégorie">🗑️</button>
+            <span class="category-toggle ${collapsedClass}">▼</span>
+          </div>
+        </div>
+        <div class="category-content">
+            <div class="repas-toggles">
+                <div class="repas-toggle">
+                    <input 
+                        type="checkbox" 
+                        id="midi-${category}" 
+                        ${data.repas?.midi ? 'checked' : ''}
+                        onchange="window.ingredientsHandlers.updateRepas('${category}', 'midi', this.checked)"
+                    >
+                    <label for="midi-${category}">☀️ Midi</label>
                 </div>
-                <div class="category-content">
-                    <div class="repas-toggles">
-                        <div class="repas-toggle">
+                <div class="repas-toggle">
+                    <input 
+                        type="checkbox" 
+                        id="soir-${category}" 
+                        ${data.repas?.soir ? 'checked' : ''}
+                        onchange="window.ingredientsHandlers.updateRepas('${category}', 'soir', this.checked)"
+                    >
+                    <label for="soir-${category}">🌙 Soir</label>
+                </div>
+            </div>
+
+            <div class="days-toggles">
+                <div class="days-label">📆 Jours de la semaine :</div>
+                <div class="days-grid">
+                    ${this.DAYS_OF_WEEK.map(day => `
+                        <div class="day-toggle">
                             <input 
                                 type="checkbox" 
-                                id="midi-${category}" 
-                                ${data.repas?.midi ? 'checked' : ''}
-                                onchange="window.ingredientsHandlers.updateRepas('${category}', 'midi', this.checked)"
+                                id="day-${day}-${category}" 
+                                ${days[day] ? 'checked' : ''}
+                                onchange="window.ingredientsHandlers.updateDay('${category}', '${day}', this.checked)"
                             >
-                            <label for="midi-${category}">☀️ Midi</label>
+                            <label for="day-${day}-${category}">${this.DAYS_EMOJI[day]} ${day.charAt(0).toUpperCase() + day.slice(1)}</label>
                         </div>
-                        <div class="repas-toggle">
-                            <input 
-                                type="checkbox" 
-                                id="soir-${category}" 
-                                ${data.repas?.soir ? 'checked' : ''}
-                                onchange="window.ingredientsHandlers.updateRepas('${category}', 'soir', this.checked)"
-                            >
-                            <label for="soir-${category}">🌙 Soir</label>
-                        </div>
-                    </div>
-
-                    <div class="days-toggles">
-                        <div class="days-label">📆 Jours de la semaine :</div>
-                        <div class="days-grid">
-                            ${this.DAYS_OF_WEEK.map(day => `
-                                <div class="day-toggle">
-                                    <input 
-                                        type="checkbox" 
-                                        id="day-${day}-${category}" 
-                                        ${days[day] ? 'checked' : ''}
-                                        onchange="window.ingredientsHandlers.updateDay('${category}', '${day}', this.checked)"
-                                    >
-                                    <label for="day-${day}-${category}">${this.DAYS_EMOJI[day]} ${day.charAt(0).toUpperCase() + day.slice(1)}</label>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <div class="items-list" data-category-items="${category}">
-                        ${itemsHTML}
-                    </div>
-                    <div class="add-item-form">
-                        <input 
-                            type="text" 
-                            class="add-item-input" 
-                            placeholder="Ajouter un ingrédient..."
-                            data-category="${category}"
-                        >
-                        <button 
-                            class="add-item-btn" 
-                            data-category-btn="${category}"
-                        >
-                            Ajouter
-                        </button>
-                    </div>
+                    `).join('')}
                 </div>
-            </div >
-      `;
+            </div>
+
+            <div class="items-list" data-category-items="${category}">
+                ${itemsHTML}
+            </div>
+            <div class="add-item-form">
+                <input 
+                    type="text" 
+                    class="add-item-input" 
+                    placeholder="Ajouter un ingrédient..."
+                    data-category="${category}"
+                >
+                <button 
+                    class="add-item-btn" 
+                    data-category-btn="${category}"
+                >
+                    Ajouter
+                </button>
+            </div>
+        </div>
+      </div>
+    `;
   }
 
   /**
@@ -192,17 +211,17 @@ export class IngredientsManager {
   static renderItem(category, item) {
     const safeItem = item.replace(/'/g, "\\'");
     return `
-      <span class="item-tag" data-item="${safeItem}" data-item-category="${category}" >
+      <span class="item-tag" data-item="${safeItem}" data-item-category="${category}">
         ${item}
-    <button
-      class="item-remove"
-      onclick="window.ingredientsHandlers.removeItem('${category}', '${safeItem}')"
-      aria-label="Supprimer ${item}"
-    >
-      ×
-    </button>
-            </span >
-      `;
+        <button
+          class="item-remove"
+          onclick="window.ingredientsHandlers.removeItem('${category}', '${safeItem}')"
+          aria-label="Supprimer ${item}"
+        >
+          ×
+        </button>
+      </span>
+    `;
   }
 
   /**
@@ -324,15 +343,26 @@ export class IngredientsManager {
    * @param {string} category - La catégorie à toggle
    */
   static toggleCategory(category) {
+    console.log(`🔄 Toggle catégorie: "${category}"`);
+    
     const categoryElement = document.querySelector(`.ingredient-category[data-category="${category}"]`);
-    if (!categoryElement) return;
+    if (!categoryElement) {
+      console.warn(`⚠️ Élément catégorie non trouvé pour: "${category}"`);
+      return;
+    }
 
-    if (this.state.collapsedCategories.has(category)) {
-      this.state.collapsedCategories.delete(category);
+    const isCollapsed = this.state.collapsedCategories.has(category);
+
+    if (isCollapsed) {
+      // Ouvrir
       categoryElement.classList.remove('collapsed');
+      this.state.collapsedCategories.delete(category);
+      console.log(`✅ Ouverture: ${category}`);
     } else {
-      this.state.collapsedCategories.add(category);
+      // Fermer
       categoryElement.classList.add('collapsed');
+      this.state.collapsedCategories.add(category);
+      console.log(`✅ Fermeture: ${category}`);
     }
   }
 
@@ -581,7 +611,7 @@ export class IngredientsManager {
     const btn = document.querySelector(`.add-item-btn[data-category-btn="${category}"]`);
 
     if (input) {
-      // Supprimer les anciens listeners
+      // Supprimer les anciens listeners en clonant
       const newInput = input.cloneNode(true);
       input.parentNode.replaceChild(newInput, input);
 
@@ -605,12 +635,17 @@ export class IngredientsManager {
   }
 
   /**
-   * Attache les événements nécessaires
+   * Attache les événements nécessaires à TOUS les éléments
    */
   static attachEventListeners() {
+    console.log('🔗 Attache des event listeners aux catégories...');
+    
+    // Attacher les listeners pour chaque catégorie
     Object.keys(this.state.ingredients).forEach(category => {
       this.attachCategoryEventListeners(category);
     });
+
+    console.log('✅ Event listeners attachés');
   }
 
   /**
@@ -618,7 +653,10 @@ export class IngredientsManager {
    */
   static exposeHandlers() {
     window.ingredientsHandlers = {
-      toggleCategory: (category) => this.toggleCategory(category),
+      toggleCategory: (category) => {
+        console.log(`🎯 Handler: toggleCategory("${category}")`);
+        this.toggleCategory(category);
+      },
       addItem: (category) => this.addItem(category),
       removeItem: (category, item) => this.removeItem(category, item),
       updateRepas: (category, mealType, checked) => this.updateRepas(category, mealType, checked),
@@ -629,6 +667,8 @@ export class IngredientsManager {
       openDeleteCategoryModal: (cat) => this.openDeleteCategoryModal(cat),
       closeCategoryImpactModal: () => this.closeCategoryImpactModal(),
     };
+    
+    console.log('✅ Handlers ingrédients exposés globalement');
   }
 
   /**
