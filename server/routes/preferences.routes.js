@@ -157,12 +157,66 @@ router.put('/ingredients/:category/repas', requireAuth, asyncHandler(async (req,
   }
 }));
 
+/**
+ * Met à jour les jours de la semaine pour une catégorie d'ingrédients
+ * @route PUT /api/preferences/ingredients/:category/days
+ * 
+ * Format du body :
+ * {
+ *   "days": {
+ *     "lundi": true,
+ *     "mardi": true,
+ *     "mercredi": false,
+ *     "jeudi": true,
+ *     "vendredi": true,
+ *     "samedi": false,
+ *     "dimanche": true
+ *   }
+ * }
+ */
+router.put('/ingredients/:category/days', requireAuth, asyncHandler(async (req, res) => {
+  try {
+    const { category } = req.params;
+    const { days } = req.body;
+    const decodedCategory = decodeURIComponent(category);
+
+    // Validation des données
+    if (!days || typeof days !== 'object') {
+      return ServerResponse.error(res, 400, 'INVALID_DAYS_FORMAT', 'Format des jours invalide');
+    }
+
+    // Vérifier que tous les jours requis sont présents
+    const DAYS_OF_WEEK = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+    for (const day of DAYS_OF_WEEK) {
+      if (!(day in days) || typeof days[day] !== 'boolean') {
+        return ServerResponse.error(res, 400, 'INCOMPLETE_DAYS', `Le jour "${day}" est manquant ou invalide`);
+      }
+    }
+
+    const ingredients = await preferencesManager.updateCategoryDays(
+      req.session.userId,
+      decodedCategory,
+      days
+    );
+
+    return ServerResponse.success(res, 200, { 
+      success: true, 
+      message: 'Jours de la semaine mis à jour avec succès', 
+      ingredients 
+    });
+  } catch (error) {
+    logger.error('Erreur mise à jour jours:', error);
+    return ServerResponse.error(res, 400, 'DAYS_UPDATE_ERROR', error.message || 'Erreur lors de la mise à jour des jours');
+  }
+}));
+
 // ─────────────────────────────────────────────────────────────
-// GESTION DES CATÉGORIES (NOUVEAU)
+// GESTION DES CATÉGORIES
 // ─────────────────────────────────────────────────────────────
 
 /**
  * Crée une nouvelle catégorie personnalisée
+ * Initialise automatiquement les jours avec tous les jours activés par défaut
  * @route POST /api/preferences/ingredients/category
  */
 router.post('/ingredients/category', requireAuth, asyncHandler(async (req, res) => {
@@ -186,7 +240,7 @@ router.post('/ingredients/category', requireAuth, asyncHandler(async (req, res) 
 }));
 
 /**
- * Renomme une catégorie existante (conserve items et préférences repas)
+ * Renomme une catégorie existante (conserve items, préférences repas et jours)
  * @route PUT /api/preferences/ingredients/:category/rename
  */
 router.put('/ingredients/:category/rename', requireAuth, asyncHandler(async (req, res) => {

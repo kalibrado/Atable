@@ -222,15 +222,116 @@
   display: none;
 }
 
+/* ========================================
+   Styles pour les jours de la semaine
+   ======================================== */
+
+.days-toggles {
+  margin-top: 15px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.days-label {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.day-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  background-color: white;
+  border: 1px solid #ddd;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.day-toggle:hover {
+  border-color: #4CAF50;
+  background-color: #f0f8f0;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.1);
+}
+
+.day-toggle input[type="checkbox"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: #4CAF50;
+  flex-shrink: 0;
+}
+
+.day-toggle label {
+  cursor: pointer;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.day-toggle input[type="checkbox"]:checked+label {
+  color: #4CAF50;
+  font-weight: 600;
+}
+
+/* Responsive: sur mobile, 2 colonnes */
+@media (max-width: 768px) {
+  .days-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Responsive: sur très petit écran, 1 colonne */
+@media (max-width: 480px) {
+  .days-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px);
+  }
+
+  75% {
+    transform: translateX(4px);
+  }
 }
 
 /* Mode sombre - ajustements */

@@ -10,6 +10,28 @@ const logger = require('../../logger');
  * Classe de gestion de la génération automatique de repas
  */
 class MealGenerator {
+    // Constantes pour les jours de la semaine
+    static DAYS_OF_WEEK = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+
+    /**
+     * Obtient le jour de la semaine pour un jour du mois (1-31)
+     * @param {number} dayOfMonth - Jour du mois (1-31)
+     * @returns {string} Jour de la semaine ('lundi', 'mardi', etc.)
+     */
+    static getDayOfWeek(dayOfMonth) {
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        
+        const date = new Date(currentYear, currentMonth, dayOfMonth);
+        const dayIndex = date.getDay(); // 0 = dimanche, 1 = lundi, etc.
+        
+        // Conversion: dimanche (0) -> dimanche (6 en fin de semaine)
+        const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+        
+        return this.DAYS_OF_WEEK[adjustedIndex];
+    }
+
     /**
      * Génère les repas pour une semaine (ensemble de jours)
      * @param {Object} ingredients - Les préférences alimentaires
@@ -36,7 +58,11 @@ class MealGenerator {
                 soir: ''
             };
 
-            const midiCategories = this.getActiveCategories(ingredients, 'midi');
+            // Obtenir le jour de la semaine pour ce jour du mois
+            const dayOfWeek = this.getDayOfWeek(day);
+
+            // Générer le repas de midi
+            const midiCategories = this.getActiveCategories(ingredients, 'midi', dayOfWeek);
             if (midiCategories.length > 0) {
                 let attempts = 0;
                 let midiMeal;
@@ -51,7 +77,8 @@ class MealGenerator {
                 }
             }
 
-            const soirCategories = this.getActiveCategories(ingredients, 'soir');
+            // Générer le repas du soir
+            const soirCategories = this.getActiveCategories(ingredients, 'soir', dayOfWeek);
             if (soirCategories.length > 0) {
                 let attempts = 0;
                 let soirMeal;
@@ -97,19 +124,26 @@ class MealGenerator {
     }
 
     /**
-     * Récupère les catégories actives pour un type de repas
+     * Récupère les catégories actives pour un type de repas et un jour spécifique
      * @param {Object} ingredients - Les ingrédients
      * @param {string} mealType - 'midi' ou 'soir'
+     * @param {string} dayOfWeek - Jour de la semaine ('lundi', 'mardi', etc.)
      * @returns {Array<string>} Catégories actives
      */
-    static getActiveCategories(ingredients, mealType) {
+    static getActiveCategories(ingredients, mealType, dayOfWeek) {
         return Object.entries(ingredients)
-            .filter(([category, data]) =>
-                data.repas &&
-                data.repas[mealType] &&
-                data.items &&
-                data.items.length > 0
-            )
+            .filter(([category, data]) => {
+                // Vérifier le type de repas
+                const repasActive = data.repas && data.repas[mealType];
+                
+                // Vérifier le jour de la semaine
+                const dayActive = data.days && data.days[dayOfWeek];
+                
+                // Vérifier que la catégorie a des items
+                const hasItems = data.items && Array.isArray(data.items) && data.items.length > 0;
+                
+                return repasActive && dayActive && hasItems;
+            })
             .map(([category]) => category);
     }
 
@@ -278,12 +312,17 @@ class MealGenerator {
      * Génère une suggestion pour un seul repas
      * @param {Object} ingredients - Les préférences alimentaires
      * @param {string} mealType - 'midi' ou 'soir'
+     * @param {string} [dayOfWeek=null] - Jour de la semaine (optionnel)
      * @param {Set<string>} [usedMeals=new Set()] - Repas déjà utilisés
      * @returns {string} Suggestion de repas
      */
-    static generateSingleMeal(ingredients, mealType, usedMeals = new Set()) {
+    static generateSingleMeal(ingredients, mealType, dayOfWeek = null, usedMeals = new Set()) {
         const state = this.initializeState(ingredients);
-        const categories = this.getActiveCategories(ingredients, mealType);
+        
+        // Si pas de jour spécifié, considérer tous les jours actifs
+        const categories = dayOfWeek 
+            ? this.getActiveCategories(ingredients, mealType, dayOfWeek)
+            : this.getActiveCategoriesAnyDay(ingredients, mealType);
 
         if (categories.length === 0) {
             return '';
@@ -298,6 +337,29 @@ class MealGenerator {
         } while (usedMeals.has(meal) && attempts < 20);
 
         return meal;
+    }
+
+    /**
+     * Récupère les catégories actives pour un type de repas (tous les jours confondus)
+     * @param {Object} ingredients - Les ingrédients
+     * @param {string} mealType - 'midi' ou 'soir'
+     * @returns {Array<string>} Catégories actives
+     */
+    static getActiveCategoriesAnyDay(ingredients, mealType) {
+        return Object.entries(ingredients)
+            .filter(([category, data]) => {
+                // Vérifier le type de repas
+                const repasActive = data.repas && data.repas[mealType];
+                
+                // Vérifier que la catégorie a des items
+                const hasItems = data.items && Array.isArray(data.items) && data.items.length > 0;
+                
+                // Vérifier qu'au moins un jour est actif
+                const hasDayActive = data.days && Object.values(data.days).some(day => day === true);
+                
+                return repasActive && hasItems && hasDayActive;
+            })
+            .map(([category]) => category);
     }
 }
 

@@ -20,6 +20,18 @@ export class IngredientsManager {
     collapsedCategories: new Set()
   };
 
+  // Constantes pour les jours de la semaine
+  static DAYS_OF_WEEK = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+  static DAYS_EMOJI = {
+    lundi: '📅',
+    mardi: '📅',
+    mercredi: '📅',
+    jeudi: '📅',
+    vendredi: '📅',
+    samedi: '🎉',
+    dimanche: '☀️'
+  };
+
   /**
    * Initialise le gestionnaire d'ingrédients
    */
@@ -82,6 +94,10 @@ export class IngredientsManager {
       ? data.items.map(item => this.renderItem(category, item)).join('')
       : '<span class="empty-items">Aucun ingrédient ajouté</span>';
     let safeCategory = category.replace(/'/g, "\\'")
+    
+    // Initialiser les jours s'ils n'existent pas
+    const days = data.days || this.getDefaultDays();
+    
     return `
       <div class="ingredient-category ${collapsedClass}" data-category="${category}" >
                 <div class="category-header" onclick="window.ingredientsHandlers.toggleCategory('${category}')">
@@ -117,6 +133,24 @@ export class IngredientsManager {
                             <label for="soir-${category}">🌙 Soir</label>
                         </div>
                     </div>
+
+                    <div class="days-toggles">
+                        <div class="days-label">📆 Jours de la semaine :</div>
+                        <div class="days-grid">
+                            ${this.DAYS_OF_WEEK.map(day => `
+                                <div class="day-toggle">
+                                    <input 
+                                        type="checkbox" 
+                                        id="day-${day}-${category}" 
+                                        ${days[day] ? 'checked' : ''}
+                                        onchange="window.ingredientsHandlers.updateDay('${category}', '${day}', this.checked)"
+                                    >
+                                    <label for="day-${day}-${category}">${this.DAYS_EMOJI[day]} ${day.charAt(0).toUpperCase() + day.slice(1)}</label>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
                     <div class="items-list" data-category-items="${category}">
                         ${itemsHTML}
                     </div>
@@ -137,6 +171,17 @@ export class IngredientsManager {
                 </div>
             </div >
       `;
+  }
+
+  /**
+   * Retourne les jours par défaut (tous activés)
+   */
+  static getDefaultDays() {
+    const days = {};
+    this.DAYS_OF_WEEK.forEach(day => {
+      days[day] = true;
+    });
+    return days;
   }
 
   /**
@@ -457,7 +502,42 @@ export class IngredientsManager {
       UIManager.showStatus('Erreur lors de la mise à jour', STATUS_TYPES.ERROR);
 
       // Revenir à l'état précédent
-      const checkbox = document.getElementById(`${mealType} -${category} `);
+      const checkbox = document.getElementById(`${mealType}-${category}`);
+      if (checkbox) {
+        checkbox.checked = !checked;
+      }
+    }
+  }
+
+  /**
+   * Met à jour les jours de la semaine pour une catégorie
+   * @param {string} category - La catégorie
+   * @param {string} day - Le jour ('lundi', 'mardi', etc.)
+   * @param {boolean} checked - État du checkbox
+   */
+  static async updateDay(category, day, checked) {
+    try {
+      // Mettre à jour l'état local
+      if (!this.state.ingredients[category].days) {
+        this.state.ingredients[category].days = this.getDefaultDays();
+      }
+      this.state.ingredients[category].days[day] = checked;
+
+      // Envoyer au serveur
+      const result = await APIManager.updateCategoryDays(
+        category,
+        this.state.ingredients[category].days
+      );
+
+      if (result.success) {
+        UIManager.showStatus('✓ Jours mis à jour', STATUS_TYPES.SUCCESS);
+      }
+    } catch (error) {
+      console.error('Erreur mise à jour jours:', error);
+      UIManager.showStatus('Erreur lors de la mise à jour', STATUS_TYPES.ERROR);
+
+      // Revenir à l'état précédent
+      const checkbox = document.getElementById(`day-${day}-${category}`);
       if (checkbox) {
         checkbox.checked = !checked;
       }
@@ -542,6 +622,7 @@ export class IngredientsManager {
       addItem: (category) => this.addItem(category),
       removeItem: (category, item) => this.removeItem(category, item),
       updateRepas: (category, mealType, checked) => this.updateRepas(category, mealType, checked),
+      updateDay: (category, day, checked) => this.updateDay(category, day, checked),
       handleKeyPress: (event, category) => this.handleKeyPress(event, category),
       openAddCategoryModal: () => this.openAddCategoryModal(),
       openRenameCategoryModal: (cat) => this.openRenameCategoryModal(cat),

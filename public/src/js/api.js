@@ -416,6 +416,46 @@ export class APIManager {
     }
 
     /**
+     * Met à jour les jours de la semaine pour une catégorie d'ingrédients
+     * @param {string} category - La catégorie
+     * @param {Object} days - Les jours activés {lundi: boolean, mardi: boolean, ...}
+     * @returns {Promise<Object>} Résultat de l'opération avec les ingrédients mis à jour
+     * @throws {Error} Si la mise à jour échoue
+     */
+    static async updateCategoryDays(category, days) {
+        try {
+            const encodedCategory = encodeURIComponent(category);
+            const response = await fetch(`/api/preferences/ingredients/${encodedCategory}/days`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ days })
+            });
+
+            const result = await ResponseHandler.handle(response, {
+                showMessage: true,
+                onSuccess: () => {
+                    console.log(`✅ Jours de la semaine mis à jour pour "${category}"`);
+                },
+                onError: (error) => {
+                    console.error('❌ Erreur mise à jour jours:', error.message);
+                }
+            });
+
+            if (!result.success) {
+                throw new Error(result.message);
+            }
+
+            return result.data;
+
+        } catch (error) {
+            console.error('Erreur mise à jour jours:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Génère automatiquement les repas de la semaine
      * @param {boolean} [replaceAll=false] - Remplacer tous les repas ou seulement les vides
      * @returns {Promise<Object>} Résultat de la génération
@@ -455,11 +495,12 @@ export class APIManager {
     /**
      * Génère une suggestion pour un repas unique
      * @param {string} mealType - Type de repas ('midi' ou 'soir')
+     * @param {string} [dayOfWeek] - Jour de la semaine (optionnel, pour respecter les préférences)
      * @param {Set<string>} [usedMeals=new Set()] - Ensemble des repas déjà utilisés
      * @returns {Promise<Object>} Suggestion de repas
      * @throws {Error} Si la génération échoue
      */
-    static async generateSingleMeal(mealType, usedMeals = new Set()) {
+    static async generateSingleMeal(mealType, dayOfWeek = null, usedMeals = new Set()) {
         try {
             const response = await fetch('/api/generator/generate-single', {
                 method: 'POST',
@@ -468,6 +509,7 @@ export class APIManager {
                 },
                 body: JSON.stringify({
                     mealType,
+                    dayOfWeek,
                     usedMeals: Array.from(usedMeals)
                 })
             });
