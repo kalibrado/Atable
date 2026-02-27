@@ -106,17 +106,19 @@ const CONFIG = {
   maxWeeks: 4,
 
   /** @type {number} Nombre de semaines par défaut */
-  defaultWeeks: 2,
+  defaultWeeks: 4,
 
   /**
    * Catégories d'aliments disponibles
    * @type {Array<string>}
    */
   foodCategories: [
-    "🥩 Protéines animales",
-    "🌱 Protéines végétales",
+    "🥩 Viandes",
+    "🫛 Légumineuses",
     "🥕 Légumes",
-    "🍞 Féculents / Glucides"
+    "🥔 Féculents",
+    "🐟 Poissons",
+    "🌾 Céréales",
   ]
 };
 
