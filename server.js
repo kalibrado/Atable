@@ -57,16 +57,8 @@ app.use(session({
 }));
 
 app.use(protectAllRoutes);
-
-if (process.env.NODE_ENV !== 'production') {
-    app.use(logRequest);
-    app.use(express.static('public'));
-} else {
-    app.use(express.static('public', {
-        maxAge: '7d',
-        etag: true
-    }));
-}
+app.use(logRequest);
+app.use(express.static('public'));
 
 /**
  * Configuration des routes

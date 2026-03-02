@@ -10,8 +10,7 @@ services:
       - NODE_ENV=production
       - LOG_LEVEL=info
     volumes:
-      - ./logs:/app/logs
-      - ./sessions.db:/app/sessions.db
+      - ./logs:/app/logs 
       - ./data:/app/data
     restart: unless-stopped
     networks:
