@@ -38,13 +38,12 @@ router.get('/', requireAuth, asyncHandler(async (req, res) => {
 }));
 
 
-// GET /api/meals/:week - Récupérer UNE semaine spécifique
+// GET /api/atable/:week - Récupérer UNE semaine spécifique
 router.get('/:weeknumber', asyncHandler(async (req, res) => {
     try {
         const { weeknumber } = req.params;
         const weeksPlans = await atableManager.readUseratable(req.session.userId);
-        // Retourner la semaine demandée ou un objet vide
-        return ServerResponse.success(res, 200, weeksPlans[`week${weeknumber}`]?.days || {});
+        return ServerResponse.success(res, 200, weeksPlans[`week${weeknumber}`]?.days || {}, `Planing de la semaine ${weeknumber}`);
     } catch (error) {
         logger.error('Erreur lecture semaine:', error);
         return ServerResponse.error(res, 500, 'INTERNAL_ERROR', 'Erreur lecture données');

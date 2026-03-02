@@ -104,24 +104,20 @@ export class WeeksManager {
     this.state.currentWeek = weekNumber;
 
     const response = await fetch(`/api/atable/${weekNumber}`);
-    let weekData = {};
     ResponseHandler.handle(response, {
       showMessage: true,
-      onSuccess: (data) => {
+      onSuccess: (weekData) => {
         // console.log(`✅ Semaine ${weekNumber} chargée`);
-        weekData = data;
         UIManager.getState().mealsData = weekData;
+        this.renderWeeksTabs();
+        const daysInWeek = MonthDaysUtils.getDaysForWeek(weekNumber, this.state.numberOfWeeks);
+        UIRenderer.renderDaysForWeek(weekData, daysInWeek);
+        UIManager.attachEventListeners();
       },
       onError: (error) => {
         // console.error(`❌ Erreur chargement semaine ${weekNumber}:`, error.message);
       }
     });
-
-    this.renderWeeksTabs();
-
-    const daysInWeek = MonthDaysUtils.getDaysForWeek(weekNumber, this.state.numberOfWeeks);
-    UIRenderer.renderDaysForWeek(weekData, daysInWeek);
-    UIManager.attachEventListeners();
   }
   /**
    * Obtient toutes les données des semaines
