@@ -153,7 +153,7 @@ export class MonthDaysUtils {
 
     return isMobile
       ? `${range.startDay}-${range.endDay} ${shortMonth}`
-      : `Semaine ${weekNumber} (${range.startDay}-${range.endDay} ${monthName})`;
+      : `${range.startDay}-${range.endDay} ${monthName}`;
   }
 }
 

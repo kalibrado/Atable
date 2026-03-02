@@ -16,6 +16,7 @@ COPY logger.js ./
 COPY config.js ./
 COPY server.js ./
 COPY response-handler.js ./
+COPY .env ./
 
 RUN mkdir -p /app/data/users && \
     mkdir -p /app/data && \
@@ -24,7 +25,7 @@ RUN mkdir -p /app/data/users && \
 # Exposer le port (à adapter selon votre app)
 EXPOSE 3000
 
-RUN node generate-vapid-keys.js
+# RUN node generate-vapid-keys.js
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
