@@ -25,7 +25,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const CONFIG = require('./config');
 const SQLiteStore = require('connect-sqlite3')(session);
-const ServerResponse  = require('./response-handler');
+const ServerResponse = require('./response-handler');
 
 
 
@@ -45,9 +45,9 @@ app.use(compression());
 
 
 app.use(session({
-    store: new SQLiteStore({ db:  `data/sessions.db` }),
+    store: new SQLiteStore({ db: `sessions.db` }),
     secret: CONFIG.sessionSecret,
-    resave: false,
+    resave: true,
     saveUninitialized: false,
     cookie: {
         secure: false,
@@ -58,8 +58,15 @@ app.use(session({
 
 app.use(protectAllRoutes);
 app.use(logRequest);
-app.use(express.static('public'));
+app.use(express.static('public', {
+    maxAge: '1y',
+    etag: true
+}));
 
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 /**
  * Configuration des routes
  */

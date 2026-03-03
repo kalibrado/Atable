@@ -42,6 +42,7 @@ export class ResponseHandler {
 
       if (response.ok && data.success) {
         // Succès
+        
         if (showMessage && data.message) {
           this.showMessage(data.message, 'success');
         }

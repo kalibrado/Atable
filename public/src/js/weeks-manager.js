@@ -48,7 +48,7 @@ export class WeeksManager {
     this.state.weekRanges = MonthDaysUtils.calculateWeekRanges(totalDays, numberOfWeeks);
 
     this.state.currentWeek = this.getCurrentWeekNumber();
-
+    
     this.renderWeeksTabs();
   }
 
@@ -107,15 +107,15 @@ export class WeeksManager {
     ResponseHandler.handle(response, {
       showMessage: true,
       onSuccess: (weekData) => {
-        // console.log(`✅ Semaine ${weekNumber} chargée`);
+        console.log(`✅ Semaine ${weekNumber} chargée`);
         UIManager.getState().mealsData = weekData;
-        this.renderWeeksTabs();
         const daysInWeek = MonthDaysUtils.getDaysForWeek(weekNumber, this.state.numberOfWeeks);
         UIRenderer.renderDaysForWeek(weekData, daysInWeek);
+        this.renderWeeksTabs();
         UIManager.attachEventListeners();
       },
       onError: (error) => {
-        // console.error(`❌ Erreur chargement semaine ${weekNumber}:`, error.message);
+        console.error(`❌ Erreur chargement semaine ${weekNumber}:`, error.message);
       }
     });
   }
